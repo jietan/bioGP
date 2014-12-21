@@ -339,11 +339,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="..\utils\HppCommon.h" />
     <ClInclude Include="..\utils\LoadOpengl.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/ZERO_CHECK.vcxproj">
-      <Project>FA9905C4-9B14-4686-B55F-9DDC5D5F0162</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
