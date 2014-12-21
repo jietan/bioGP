@@ -1,0 +1,10 @@
+﻿version 3.00
+cm_version 1.0
+platform CM-510
+o main
+o begin
+o load param_dest:motion:1:50 param_src:dec_num:1
+o wait param_src:motion:1:51 lop:== param_src:bool_num:1 rop:then
+o load param_dest:motion:1:50 param_src:dec_num:2
+o wait param_src:motion:1:51 lop:== param_src:bool_num:1 rop:then
+o end
