@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|Win32">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|Win32">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{92C39FF7-7388-4470-AFD1-463B4D51BE34}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>bioloidgp</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">bioloidgp.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">bioloidgp</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bioloidgp.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bioloidgp</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">bioloidgp.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">bioloidgp</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">bioloidgp.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">bioloidgp</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">true</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
+    <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;NDEBUG;BOOST_UBLAS_NDEBUG;QT_OPENGL_LIB;QT_GUI_LIB;QT_XML_LIB;QT_CORE_LIB;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;NDEBUG;BOOST_UBLAS_NDEBUG;QT_OPENGL_LIB;QT_GUI_LIB;QT_XML_LIB;QT_CORE_LIB;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 /debug %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;C:\Qt\4.8.0\lib\QtOpenGLd4.lib;C:\Qt\4.8.0\lib\QtGuid4.lib;C:\Qt\4.8.0\lib\QtXmld4.lib;C:\Qt\4.8.0\lib\QtCored4.lib;glog.lib;tinyxml2d.lib;assimpd.lib;fcld.lib;dartd.lib;dart-cored.lib;dart_dynamicsd.lib;dart_simulationd.lib;dart_mathd.lib;dart_guid.lib;dart_collisiond.lib;dart_rendererd.lib;dart_utilsd.lib;dart_constraintd.lib;dart_integrationd.lib;dart_commond.lib;dart_lcpsolverd.lib;dart_collision_fcld.lib;dart_collision_fcl_meshd.lib;dart_utils_sdfd.lib;dart_utils_urdfd.lib;urdfdom_sensord.lib;urdfdom_model_stated.lib;urdfdom_modeld.lib;urdfdom_worldd.lib;tinyxmld.lib;ccdd.lib;console_bridged.lib;C:\local\boost_1_55_0\lib32-msvc-12.0\boost_system-vc120-mt-gd-1_55.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Golems\lib;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImportLibrary>C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/Debug/bioloidgp.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/Debug/bioloidgp.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;BOOST_UBLAS_NDEBUG;QT_NO_DEBUG;QT_OPENGL_LIB;QT_GUI_LIB;QT_XML_LIB;QT_CORE_LIB;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NDEBUG;BOOST_UBLAS_NDEBUG;QT_NO_DEBUG;QT_OPENGL_LIB;QT_GUI_LIB;QT_XML_LIB;QT_CORE_LIB;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;C:\Qt\4.8.0\lib\QtOpenGL4.lib;C:\Qt\4.8.0\lib\QtGui4.lib;C:\Qt\4.8.0\lib\QtXml4.lib;C:\Qt\4.8.0\lib\QtCore4.lib;glog.lib;tinyxml2.lib;assimp.lib;fcl.lib;dart.lib;dart-core.lib;dart_dynamics.lib;dart_simulation.lib;dart_math.lib;dart_gui.lib;dart_collision.lib;dart_renderer.lib;dart_utils.lib;dart_constraint.lib;dart_integration.lib;dart_common.lib;dart_lcpsolver.lib;dart_collision_fcl.lib;dart_collision_fcl_mesh.lib;dart_utils_sdf.lib;dart_utils_urdf.lib;urdfdom_sensor.lib;urdfdom_model_state.lib;urdfdom_model.lib;urdfdom_world.lib;tinyxml.lib;ccd.lib;console_bridge.lib;C:\local\boost_1_55_0\lib32-msvc-12.0\boost_system-vc120-mt-1_55.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Golems\lib;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ImportLibrary>C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/Release/bioloidgp.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/Release/bioloidgp.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">
+    <ClCompile>
+      <AdditionalOptions> -Wno-enum-compare %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>MinSizeRel/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NDEBUG;BOOST_UBLAS_NDEBUG;QT_NO_DEBUG;QT_OPENGL_LIB;QT_GUI_LIB;QT_XML_LIB;QT_CORE_LIB;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NDEBUG;BOOST_UBLAS_NDEBUG;QT_NO_DEBUG;QT_OPENGL_LIB;QT_GUI_LIB;QT_XML_LIB;QT_CORE_LIB;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;glu32.lib;opengl32.lib;C:\Qt\4.8.0\lib\QtOpenGL4.lib;glu32.lib;opengl32.lib;C:\Qt\4.8.0\lib\QtGui4.lib;C:\Qt\4.8.0\lib\QtXml4.lib;C:\Qt\4.8.0\lib\QtCore4.lib;glog.lib;tinyxml2.lib;dart4.lib;dart-core4.lib;C:\Qt\4.8.0\lib\QtOpenGL4.lib;C:\Qt\4.8.0\lib\QtGui4.lib;C:\Qt\4.8.0\lib\QtXml4.lib;C:\Qt\4.8.0\lib\QtCore4.lib;glog.lib;tinyxml2.lib;dart4.lib;dart-core4.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ImportLibrary>C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/MinSizeRel/bioloidgp.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/MinSizeRel/bioloidgp.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>RelWithDebInfo/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;BOOST_UBLAS_NDEBUG;QT_NO_DEBUG;QT_OPENGL_LIB;QT_GUI_LIB;QT_XML_LIB;QT_CORE_LIB;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NDEBUG;BOOST_UBLAS_NDEBUG;QT_NO_DEBUG;QT_OPENGL_LIB;QT_GUI_LIB;QT_XML_LIB;QT_CORE_LIB;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Golems\include\Eigen;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 /debug %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;C:\Qt\4.8.0\lib\QtOpenGL4.lib;C:\Qt\4.8.0\lib\QtGui4.lib;C:\Qt\4.8.0\lib\QtXml4.lib;C:\Qt\4.8.0\lib\QtCore4.lib;glog.lib;tinyxml2.lib;assimp.lib;fcl.lib;dart.lib;dart-core.lib;dart_dynamics.lib;dart_simulation.lib;dart_math.lib;dart_gui.lib;dart_collision.lib;dart_renderer.lib;dart_utils.lib;dart_constraint.lib;dart_integration.lib;dart_common.lib;dart_lcpsolver.lib;dart_collision_fcl.lib;dart_collision_fcl_mesh.lib;dart_utils_sdf.lib;dart_utils_urdf.lib;urdfdom_sensor.lib;urdfdom_model_state.lib;urdfdom_model.lib;urdfdom_world.lib;tinyxml.lib;ccd.lib;console_bridge.lib;C:\local\boost_1_55_0\lib32-msvc-12.0\boost_system-vc120-mt-1_55.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Golems\lib;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImportLibrary>C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/RelWithDebInfo/bioloidgp.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/RelWithDebInfo/bioloidgp.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+"C:\Program Files (x86)\CMake\bin\cmake.exe" -HC:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master -BC:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build --check-stamp-file C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/CMakeLists.txt;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\CMakeLists.txt;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeSystem.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeCCompiler.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindOpenGL.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindGLUT.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindBoost.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindQt4.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CheckCXXSymbolExists.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CheckSymbolExists.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\MacroAddFileDependencies.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Qt4ConfigDependentSettings.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindOpenGL.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Qt4Macros.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\UseQt4.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\cmake\FindEigen.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\cmake\FindTinyXML2.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+"C:\Program Files (x86)\CMake\bin\cmake.exe" -HC:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master -BC:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build --check-stamp-file C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/CMakeLists.txt;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\CMakeLists.txt;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeSystem.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeCCompiler.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindOpenGL.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindGLUT.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindBoost.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindQt4.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CheckCXXSymbolExists.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CheckSymbolExists.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\MacroAddFileDependencies.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Qt4ConfigDependentSettings.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindOpenGL.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Qt4Macros.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\UseQt4.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\cmake\FindEigen.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\cmake\FindTinyXML2.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Building Custom Rule C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+"C:\Program Files (x86)\CMake\bin\cmake.exe" -HC:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master -BC:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build --check-stamp-file C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/CMakeLists.txt;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\CMakeLists.txt;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeSystem.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeCCompiler.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindOpenGL.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindGLUT.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindBoost.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindQt4.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CheckCXXSymbolExists.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CheckSymbolExists.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\MacroAddFileDependencies.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Qt4ConfigDependentSettings.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindOpenGL.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Qt4Macros.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\UseQt4.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\cmake\FindEigen.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\cmake\FindTinyXML2.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Building Custom Rule C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+"C:\Program Files (x86)\CMake\bin\cmake.exe" -HC:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master -BC:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build --check-stamp-file C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/CMakeLists.txt;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\CMakeLists.txt;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeSystem.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeCCompiler.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\3.0.0\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindOpenGL.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindGLUT.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindBoost.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindQt4.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CheckCXXSymbolExists.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CheckSymbolExists.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\MacroAddFileDependencies.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Qt4ConfigDependentSettings.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindOpenGL.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\Qt4Macros.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\UseQt4.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\cmake\FindEigen.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\cmake\FindTinyXML2.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake\share\cmake-3.0\Modules\CMakeParseArguments.cmake;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\robot\HumanoidController.h" />
+    <ClInclude Include="..\robot\Motion.h" />
+    <ClInclude Include="..\robot\MotorMap.h" />
+    <ClInclude Include="..\robot\MyWindow.h" />
+    <ClCompile Include="..\robot\HumanoidController.cpp" />
+    <ClCompile Include="..\robot\Main.cpp" />
+    <ClCompile Include="..\robot\Motion.cpp" />
+    <ClCompile Include="..\robot\MotorMap.cpp" />
+    <ClCompile Include="..\robot\MyWindow.cpp" />
+    <ClInclude Include="..\utils\CppCommon.h" />
+    <ClInclude Include="..\utils\GLObjects.h" />
+    <ClInclude Include="..\utils\HppCommon.h" />
+    <ClInclude Include="..\utils\LoadOpengl.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:/Users/JieTan/Documents/MyProjects/bioloid/bioloidgp-master/build/ZERO_CHECK.vcxproj">
+      <Project>FA9905C4-9B14-4686-B55F-9DDC5D5F0162</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
