@@ -238,7 +238,7 @@ Eigen::VectorXd Motion::targetPose(double t) const {
         const Step& s = steps[i];
 
         // Case 1. The accumulated time is within the pause time
-        accum_t += s.pause;
+
         if (t <= accum_t) {
             return prevStepPose;
         }
@@ -253,6 +253,7 @@ Eigen::VectorXd Motion::targetPose(double t) const {
             return pose;
         }
         accum_t += s.duration;
+		accum_t += s.pause;
         // Update prevStepPose
         prevStepPose = s.targetpose;
     }

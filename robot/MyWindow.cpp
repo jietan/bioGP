@@ -74,6 +74,23 @@ MyWindow::~MyWindow()
 }
 
 int g_cnt = 0;
+
+void MyWindow::displayTimer(int _val) {
+	int numIter = mDisplayTimeout / (mWorld->getTimeStep() * 1000);
+	if (mPlay) {
+		mPlayFrame += numIter;
+		if (mPlayFrame >= mWorld->getRecording()->getNumFrames())
+			mPlayFrame = 0;
+	}
+	else if (mSimulating) {
+		for (int i = 0; i < numIter; i++) {
+			timeStepping();
+			mWorld->bake();
+		}
+	}
+	glutPostRedisplay();
+	glutTimerFunc(mDisplayTimeout, refreshTimer, _val);
+}
 //==============================================================================
 void MyWindow::timeStepping()
 {
