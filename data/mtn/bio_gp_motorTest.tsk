@@ -1,0 +1,27 @@
+﻿version 3.00
+cm_version 1.0
+platform CM-530
+o main
+o begin
+o load param_dest:motion:1:50 param_src:dec_num:1
+o load param_dest:cm:6 param_src:hrtimer_num:20000
+o load param_dest:motor:17:102 param_src:dec_num:0
+o load param_dest:motor:17:103 param_src:dec_num:0
+o while(1)
+o begin
+o load param_dest:motion:1:50 param_src:dec_num:3
+o compute param_dest:var:currenTime param_src:dec_num:20000 aop:- param_src:cm:6
+o load param_dest:var:goalPos param_src:motor:17:106
+o load param_dest:var:currentPos param_src:custom:w:17:36
+o load param_dest:var:currentVoltage param_src:motor:17:112
+o load param_dest:cm:9 param_src:var:currenTime
+o load param_dest:cm:9 param_src:var:goalPos
+o load param_dest:cm:9 param_src:var:currentPos
+o load param_dest:cm:11 param_src:var:currentVoltage
+o if param_src:cm:6 lop:== param_src:hrtimer_num:0 rop:then
+o begin
+o break
+o end
+o end
+o load param_dest:motion:1:50 param_src:dec_num:2
+o end
