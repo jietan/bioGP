@@ -35,7 +35,10 @@ HumanoidController::HumanoidController(
 
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
 	mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512;
-
+	//mtvInitPose <<
+	//    342, 681, 572, 451, 762, 261,
+	//    358, 666,
+	//    515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
     set_motion( new Motion(NMOTORS, mtvInitPose) );
 	setInitialPose(mtvInitPose);
 
@@ -64,6 +67,12 @@ HumanoidController::~HumanoidController() {
 void HumanoidController::reset()
 {
 	setInitialPose(motion()->getInitialPose());
+}
+void HumanoidController::setFreeDofs(const Eigen::VectorXd& q6)
+{
+	Eigen::VectorXd q = robot()->getPositions();
+	q.head(6) = q6;
+	robot()->setPositions(q);
 }
 void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 {
@@ -95,7 +104,7 @@ void HumanoidController::setMotorMapPose(const Eigen::VectorXd& mtv) {
     Eigen::VectorXd pose = motormap()->fromMotorMapVector( mtv );
     CHECK_EQ(q.size(), pose.size());
     q.tail(n - 6) = pose.tail(n - 6);
-    LOG(INFO) << "q = " << q.transpose();
+    //LOG(INFO) << "q = " << q.transpose();
 
     robot()->setPositions(q);
     robot()->computeForwardKinematics(true, true, false);

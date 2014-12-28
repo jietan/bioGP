@@ -34,6 +34,12 @@
  *   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *   POSSIBILITY OF SUCH DAMAGE.
  */
+#define STRICT
+#include <tchar.h>
+#include <stdio.h>
+#include <string.h>
+#include <vector>
+
 
 #include <iostream>
 
@@ -51,18 +57,32 @@
 #include "dart/collision/fcl_mesh/FCLMeshCollisionDetector.h"
 //#include "dart/collision/bullet/BulletCollisionDetector.h"
 
-#include "robot/MyWindow.h"
+#include "MyWindow.h"
 #include "robot/HumanoidController.h"
 #include "robot/MotorMap.h"
 #include "robot/Motion.h"
-// #include "robot/Controller.h"
+#include <windows.h>
+#include "Serial.h"
 
 using namespace std;
 using namespace dart::dynamics;
 using namespace dart::simulation;
 using namespace dart::utils;
 
-// avconv -r 160 -i ./Capture%04d.png output.mp4
+
+
+
+//int ShowError(LONG lError, LPCTSTR lptszMessage)
+//{
+//	// Generate a message text
+//	TCHAR tszMessage[256];
+//	wsprintf(tszMessage, _T("%s\n(error code %d)"), lptszMessage, lError);
+//
+//	// Display message-box and return with an error-code
+//	::MessageBox(0, tszMessage, _T("Listener"), MB_ICONSTOP | MB_OK);
+//	return 1;
+//}
+
 
 
 int main(int argc, char* argv[])
@@ -80,10 +100,34 @@ int main(int argc, char* argv[])
     
     srand( (unsigned int) time (NULL) );
 
-    World* myWorld = new World;
+	//serial communication setup
+	CSerial serial;
+	LONG    lLastError = ERROR_SUCCESS;
+	lLastError = serial.Open(_T("COM3"), 0, 0, false);
+	if (lLastError != ERROR_SUCCESS)
+		LOG(FATAL) << serial.GetLastError() << " Unable to open COM-port.";
+	lLastError = serial.Setup(CSerial::EBaud57600, CSerial::EData8, CSerial::EParNone, CSerial::EStop1);
+	if (lLastError != ERROR_SUCCESS)
+		LOG(FATAL) << serial.GetLastError() << " Unable to set COM-port setting.";
+	lLastError = serial.SetMask(CSerial::EEventBreak |
+		CSerial::EEventCTS |
+		CSerial::EEventDSR |
+		CSerial::EEventError |
+		CSerial::EEventRing |
+		CSerial::EEventRLSD |
+		CSerial::EEventRecv);
+	if (lLastError != ERROR_SUCCESS)
+		LOG(FATAL) << serial.GetLastError() << " Unable to set COM-port event mask.";
+	lLastError = serial.SetupReadTimeouts(CSerial::EReadTimeoutNonblocking);
+	if (lLastError != ERROR_SUCCESS)
+		LOG(FATAL) << serial.GetLastError() << " Unable to set COM-port read timeout.";
+	lLastError = serial.Write("w");
+	if (lLastError != ERROR_SUCCESS)
+		LOG(FATAL) << serial.GetLastError() << " Unable to send data.";
+	// end serial communication setup
 
-    // myWorld->getConstraintSolver()->setCollisionDetector(
-    //     new dart::collision::BulletCollisionDetector());
+
+    World* myWorld = new World;
     myWorld->setTimeStep(0.0002);
 
     // // Load ground and Atlas robot and add them to the world
@@ -94,7 +138,7 @@ int main(int argc, char* argv[])
         = urdfLoader.parseSkeleton(
             DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
     robot->enableSelfCollision();
-
+	
     myWorld->addSkeleton(robot);
     myWorld->addSkeleton(ground);
 
@@ -108,35 +152,15 @@ int main(int argc, char* argv[])
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
 
-
-    // Set initial configuration for Atlas robot
-    int m = con->motormap()->numMotors();
-    Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(m) * 512;
-    mtvInitPose <<
-        342, 681, 572, 451, 762, 261,
-        358, 666,
-        515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
-    con->setMotorMapPose(mtvInitPose);
-    con->motion()->setInitialPose(mtvInitPose);
-
-    // Adjust the global position and orientation
-    Eigen::VectorXd q = robot->getPositions();
-    q[0] = -0.41 * DART_PI;
-    q[4] = -0.043;
-    Eigen::VectorXd noise = 0.0 * Eigen::VectorXd::Random( q.size() );
-    noise.head<6>().setZero();
-    robot->setPositions(q + noise);
-
-    // Upddate the dynamics
-    robot->computeForwardKinematics(true, true, false);
-
-
+	Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);
+	q6[4] = 0;
+	con->setFreeDofs(q6);
 
     // Create a window and link it to the world
     // MyWindow window(new Controller(robot, myWorld->getConstraintSolver()));
     MyWindow window(con);
     window.setWorld(myWorld);
-
+	window.setSerial(&serial);
     // Print manual
     LOG(INFO) << "space bar: simulation on/off";
     LOG(INFO) << "'p': playback/stop";

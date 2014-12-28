@@ -35,8 +35,7 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 #define GLOG_NO_ABBREVIATED_SEVERITIES
-#include "robot/MyWindow.h"
-
+#include "MyWindow.h"
 #include "dart/math/Helpers.h"
 #include "dart/simulation/World.h"
 #include "dart/dynamics/BodyNode.h"
@@ -51,12 +50,88 @@
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
 #include "robot/HumanoidController.h"
+#include "Serial.h"
 
 
+#define NUM_MOTORS 16
+#define NUM_BYTES_PER_MOTOR 5
+
+int MakeWord(int hex0, int hex1, int hex2, int hex3)
+{
+	unsigned int word;
+
+	word = ((hex0 << 12) + (hex1 << 8) + (hex2 << 4) + hex3);
+	return (int)word;
+}
+
+int Decipher(char c)
+{
+	int ret = c;
+	if (ret > '9')
+	{
+		ret -= 7;
+	}
+	ret -= '0';
+	return ret;
+}
+
+bool ProcessFrame(const string& frame, Eigen::VectorXd& motorAngle)
+{
+	std::vector<int> tmpPos;
+	tmpPos.resize(NUM_MOTORS);
+	for (int i = 0; i < NUM_MOTORS; ++i)
+	{
+		int mPos = MakeWord(Decipher(frame[NUM_BYTES_PER_MOTOR * i]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 1]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 2]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 3]));
+		tmpPos[i] = mPos;
+		if (mPos < 0 || mPos >= 1024)
+		{
+			std::cout << "Warning! Joint angle abnormal." << std::endl;
+			return false;
+		}
+
+	}
+	for (int i = 0; i < NUM_MOTORS; ++i)
+	{
+		motorAngle[i] = tmpPos[i];
+	}
+	return true;
+}
+
+bool ProcessBuffer(string& buff, Eigen::VectorXd& motorAngle)
+{
+	bool ret = false;
+	size_t endPos = buff.find_last_of("\n", buff.size());
+	if (endPos >= buff.size())
+	{
+		//std::cout << "Warning! End symbol not found!" << std::endl;
+		return false;
+	}
+	else if (endPos == NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1 - 1)
+	{
+		ret = ProcessFrame(buff, motorAngle);
+	}
+	else if (endPos < NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1 - 1)
+	{
+	}
+	else
+	{
+		size_t newEndPos = buff.find_last_of("\n", endPos - 1);
+		if (endPos - newEndPos == NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
+		{
+			string frame = buff.substr(newEndPos + 1, endPos);
+			ret = ProcessFrame(frame, motorAngle);
+		}
+	}
+	buff = buff.substr(endPos + 1, buff.size());
+
+	return ret;
+}
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
     : SimWindow(),
-      mController(_controller)
+      mController(_controller),
+	  mSerial(NULL),
+	  mTmpBuffer("")
 {
     mForce = Eigen::Vector3d::Zero();
     mImpulseDuration = 0.0;
@@ -75,101 +150,127 @@ MyWindow::~MyWindow()
 
 int g_cnt = 0;
 
-void MyWindow::displayTimer(int _val) {
-	int numIter = mDisplayTimeout / (mWorld->getTimeStep() * 1000);
-	if (mPlay) {
-		mPlayFrame += numIter;
-		if (mPlayFrame >= mWorld->getRecording()->getNumFrames())
-			mPlayFrame = 0;
-	}
-	else if (mSimulating) {
-		for (int i = 0; i < numIter; i++) {
-			timeStepping();
-			mWorld->bake();
-		}
-	}
+void MyWindow::setSerial(CSerial* serial)
+{
+	mSerial = serial;
+}
+void MyWindow::displayTimer(int _val) 
+{
+	timeStepping();
 	glutPostRedisplay();
 	glutTimerFunc(mDisplayTimeout, refreshTimer, _val);
 }
 //==============================================================================
 void MyWindow::timeStepping()
 {
-    // External force
-    mWorld->getSkeleton(0)->getBodyNode("torso")->addExtForce(
-          mForce);
+	// Wait for an event
+	Eigen::VectorXd motorAngle;
+	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
 
-    // Internal force
-    mController->update(mWorld->getTime());
+	//LONG lLastError = mSerial->WaitEvent();
 
-    // simulate one step
-    mWorld->step();
-    
-    if (g_cnt % 500 == 0) {
-        calculateInertia();
-    }
-    g_cnt++;
-    
-    // for perturbation test
-    mImpulseDuration--;
-    if (mImpulseDuration <= 0)
-    {
-        mImpulseDuration = 0;
-        mForce.setZero();
-    }
+	//if (lLastError != ERROR_SUCCESS)
+	//	LOG(FATAL) << mSerial->GetLastError() << " Unable to wait for a COM-port event.";
+
+	//// Save event
+	//const CSerial::EEvent eEvent = mSerial->GetEventType();
+
+	//// Handle break event
+	//if (eEvent & CSerial::EEventBreak)
+	//{
+	//	printf("\n### BREAK received ###\n");
+	//}
+
+	//// Handle CTS event
+	//if (eEvent & CSerial::EEventCTS)
+	//{
+	//	printf("\n### Clear to send %s ###\n", mSerial->GetCTS() ? "on" : "off");
+	//}
+
+	//// Handle DSR event
+	//if (eEvent & CSerial::EEventDSR)
+	//{
+	//	printf("\n### Data set ready %s ###\n", mSerial->GetDSR() ? "on" : "off");
+	//}
+
+	//// Handle error event
+	//if (eEvent & CSerial::EEventError)
+	//{
+	//	printf("\n### ERROR: ");
+	//	switch (mSerial->GetError())
+	//	{
+	//	case CSerial::EErrorBreak:		printf("Break condition");			break;
+	//	case CSerial::EErrorFrame:		printf("Framing error");			break;
+	//	case CSerial::EErrorIOE:		printf("IO device error");			break;
+	//	case CSerial::EErrorMode:		printf("Unsupported mode");			break;
+	//	case CSerial::EErrorOverrun:	printf("Buffer overrun");			break;
+	//	case CSerial::EErrorRxOver:		printf("Input buffer overflow");	break;
+	//	case CSerial::EErrorParity:		printf("Input parity error");		break;
+	//	case CSerial::EErrorTxFull:		printf("Output buffer full");		break;
+	//	default:						printf("Unknown");					break;
+	//	}
+	//	printf(" ###\n");
+	//}
+
+	//// Handle ring event
+	//if (eEvent & CSerial::EEventRing)
+	//{
+	//	printf("\n### RING ###\n");
+	//}
+
+	//// Handle RLSD/CD event
+	//if (eEvent & CSerial::EEventRLSD)
+	//{
+	//	printf("\n### RLSD/CD %s ###\n", mSerial->GetRLSD() ? "on" : "off");
+	//}
+
+	//// Handle data receive event
+	//if (eEvent & CSerial::EEventRecv)
+	//{
+		// Read data, until there is nothing left
+		DWORD dwBytesRead = 0;
+		char szBuffer[101];
+		do
+		{
+			// Read data from the COM-port
+			LONG lLastError = mSerial->Read(szBuffer, sizeof(szBuffer) - 1, &dwBytesRead);
+
+			if (lLastError != ERROR_SUCCESS)
+				LOG(FATAL) << mSerial->GetLastError() << " Unable to read from COM-port.";
+
+			if (dwBytesRead > 0)
+			{
+				mTmpBuffer.insert(mTmpBuffer.size(), szBuffer, dwBytesRead);
+
+				if (mTmpBuffer.size() >= NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
+				{
+
+					bool bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
+
+					if (bUpdated)
+					{
+						Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
+						fullMotorAngle.head(6) = motorAngle.head(6);
+						fullMotorAngle.tail(10) = motorAngle.tail(10);
+						mController->setMotorMapPose(fullMotorAngle);
+						//for (int i = 0; i < NUM_MOTORS; ++i)
+						//{
+						//	std::cout << motorAngle[i] << " ";
+						//}
+						//std::cout << std::endl;
+					}
+				}
+			}
+
+		} while (dwBytesRead == sizeof(szBuffer) - 1);
+	//}
 }
 
 void MyWindow::draw()
 {
 	glDisable(GL_LIGHTING);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	if (mPlay) {
-		if (mPlayFrame < mWorld->getRecording()->getNumFrames()) {
-			size_t nSkels = mWorld->getNumSkeletons();
-			for (size_t i = 0; i < nSkels; i++) {
-				// size_t start = mWorld->getIndex(i);
-				// size_t size = mWorld->getSkeleton(i)->getNumDofs();
-				mWorld->getSkeleton(i)->setPositions(mWorld->getRecording()->getConfig(mPlayFrame, i));
-				mWorld->getSkeleton(i)->computeForwardKinematics(true, false, false);
-			}
-			if (mShowMarkers) {
-				// size_t sumDofs = mWorld->getIndex(nSkels);
-				int nContact = mWorld->getRecording()->getNumContacts(mPlayFrame);
-				for (int i = 0; i < nContact; i++) {
-					Eigen::Vector3d v = mWorld->getRecording()->getContactPoint(mPlayFrame, i);
-					Eigen::Vector3d f = mWorld->getRecording()->getContactForce(mPlayFrame, i);
 
-					glBegin(GL_LINES);
-					glVertex3f(v[0], v[1], v[2]);
-					glVertex3f(v[0] + f[0], v[1] + f[1], v[2] + f[2]);
-					glEnd();
-					mRI->setPenColor(Eigen::Vector3d(0.2, 0.2, 0.8));
-					mRI->pushMatrix();
-					glTranslated(v[0], v[1], v[2]);
-					mRI->drawEllipsoid(Eigen::Vector3d(0.02, 0.02, 0.02));
-					mRI->popMatrix();
-				}
-			}
-		}
-	}
-	else {
-		if (mShowMarkers) {
-			dart::collision::CollisionDetector* cd =
-				mWorld->getConstraintSolver()->getCollisionDetector();
-			for (size_t k = 0; k < cd->getNumContacts(); k++) {
-				Eigen::Vector3d v = cd->getContact(k).point;
-				Eigen::Vector3d f = cd->getContact(k).force / 10.0;
-				glBegin(GL_LINES);
-				glVertex3f(v[0], v[1], v[2]);
-				glVertex3f(v[0] + f[0], v[1] + f[1], v[2] + f[2]);
-				glEnd();
-				mRI->setPenColor(Eigen::Vector3d(0.2, 0.2, 0.8));
-				mRI->pushMatrix();
-				glTranslated(v[0], v[1], v[2]);
-				mRI->drawEllipsoid(Eigen::Vector3d(0.02, 0.02, 0.02));
-				mRI->popMatrix();
-			}
-		}
-	}
 	drawSkels();
 
 	// display the frame count in 2D text
@@ -195,12 +296,6 @@ void MyWindow::draw()
 //==============================================================================
 void MyWindow::drawSkels()
 {
-    // Eigen::Quaterniond q = mTrackBall.getCurrQuat();
-    // cout << "Quat = " << q.x() << " " << q.y() << " " << q.z() << " " << q.w() << endl;
-    // cout << mTrans.transpose() << endl;
-    // cout << mWorld->getSkeleton(0)->getPositions().transpose() << endl;
-
-//  glEnable(GL_LIGHTING);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     for (unsigned int i = 0; i < mWorld->getNumSkeletons(); i++) {
@@ -226,18 +321,6 @@ void MyWindow::drawSkels()
         //     glPopMatrix();
         // }
         
-    }
-
-    // draw arrow
-    if (mImpulseDuration > 0)
-    {
-        Eigen::Vector3d poa
-            =  mWorld->getSkeleton(0)->getBodyNode(
-                "torso")->getTransform()
-            * Eigen::Vector3d(0.0, 0.0, 0.0);
-        Eigen::Vector3d start = poa - mForce / 500.0;
-        double len = mForce.norm() / 500.0;
-        dart::gui::drawArrow3D(start, mForce, len, 0.05, 0.1);
     }
 }
 

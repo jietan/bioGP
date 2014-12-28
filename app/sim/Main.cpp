@@ -51,7 +51,7 @@
 #include "dart/collision/fcl_mesh/FCLMeshCollisionDetector.h"
 //#include "dart/collision/bullet/BulletCollisionDetector.h"
 
-#include "robot/MyWindow.h"
+#include "MyWindow.h"
 #include "robot/HumanoidController.h"
 #include "robot/MotorMap.h"
 #include "robot/Motion.h"

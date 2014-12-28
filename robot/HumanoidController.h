@@ -39,7 +39,7 @@ public:
         dart::constraint::ConstraintSolver* _collisionSolver
         );
     virtual ~HumanoidController();
-
+	void setFreeDofs(const Eigen::VectorXd& q6);
     void setMotorMapPose(const Eigen::VectorXd& mtv);
     void setMotionTargetPose(int index); // Debug Purpose
 	void reset();

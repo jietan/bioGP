@@ -47,7 +47,7 @@ using namespace boost::assign;
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define CONFINE(a, lo, hi) (((a)<(lo))?(lo):(  (((a)>(hi))?(hi):(a))           ))
 
-#define DATA_DIR "../data"
+#define DATA_DIR "../../data"
 
 #define UTILS_PI 3.14159265359
 
