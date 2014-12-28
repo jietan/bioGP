@@ -134,7 +134,7 @@ int main(void)
 	CommStatus = dxl_get_result();
 	while(1)
 	{
-		mDelay(10);
+		//mDelay(15);
 		int i;
 		for (i = 0; i < numMotors; ++i)
 		{
@@ -149,13 +149,14 @@ int main(void)
 //				TxDWord16(id);
 //				TxDString("   ");
 				TxDWord16(wPresentPos);
+				TxDByte_PC(' ');
 //				TxDByte_PC('\r');
 //				TxDByte_PC('\n');
 			}
 			else
 				PrintCommStatus(CommStatus);
 		}
-
+		TxDByte_PC('\n');
 	}
 	return 0;
 }
