@@ -57,16 +57,24 @@
 
 
 #define NUM_MOTORS 16
-#define NUM_BYTES_PER_MOTOR 5
+#define NUM_BYTES_PER_MOTOR 3
 
-int MakeWord(int hex0, int hex1, int hex2, int hex3)
+//int MakeWord(int hex0, int hex1, int hex2, int hex3)
+//{
+//	unsigned int word;
+//
+//	word = ((hex0 << 12) + (hex1 << 8) + (hex2 << 4) + hex3);
+//	return (int)word;
+//}
+int MakeWord(unsigned char lowbyte, unsigned char highbyte)
 {
-	unsigned int word;
+	unsigned short word;
 
-	word = ((hex0 << 12) + (hex1 << 8) + (hex2 << 4) + hex3);
+	word = highbyte;
+	word = word << 8;
+	word = word + lowbyte;
 	return (int)word;
 }
-
 void SeparateWord(int word, unsigned char* highByte, unsigned char* lowByte)
 {
 	unsigned short temp;
@@ -79,16 +87,16 @@ void SeparateWord(int word, unsigned char* highByte, unsigned char* lowByte)
 	*highByte = static_cast<unsigned char>(temp);
 }
 
-int Decipher(char c)
-{
-	int ret = c;
-	if (ret > '9')
-	{
-		ret -= 7;
-	}
-	ret -= '0';
-	return ret;
-}
+//int Decipher(char c)
+//{
+//	int ret = c;
+//	if (ret > '9')
+//	{
+//		ret -= 7;
+//	}
+//	ret -= '0';
+//	return ret;
+//}
 
 bool ProcessFrame(const string& frame, Eigen::VectorXd& motorAngle)
 {
@@ -96,7 +104,8 @@ bool ProcessFrame(const string& frame, Eigen::VectorXd& motorAngle)
 	tmpPos.resize(NUM_MOTORS);
 	for (int i = 0; i < NUM_MOTORS; ++i)
 	{
-		int mPos = MakeWord(Decipher(frame[NUM_BYTES_PER_MOTOR * i]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 1]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 2]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 3]));
+		//int mPos = MakeWord(Decipher(frame[NUM_BYTES_PER_MOTOR * i]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 1]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 2]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 3]));
+		int mPos = MakeWord(frame[NUM_BYTES_PER_MOTOR * i], frame[NUM_BYTES_PER_MOTOR * i + 1]);
 		tmpPos[i] = mPos;
 		if (mPos < 0 || mPos >= 1024)
 		{
@@ -151,7 +160,7 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 {
     mForce = Eigen::Vector3d::Zero();
     mImpulseDuration = 0.0;
-	mDisplayTimeout = 30;
+	mDisplayTimeout = 20;
     // 0.166622 0.548365 0.118241 0.810896
     Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
     mTrackBall.setQuaternion(q);

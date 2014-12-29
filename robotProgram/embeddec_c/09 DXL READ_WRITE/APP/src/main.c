@@ -89,7 +89,7 @@ void PrintErrorCode(void);
 void TxDByte_DXL(byte);
 byte RxDByte_DXL(void);
 void TxDString(byte*);
-void TxDString(byte* bData, int n);
+void TxDByteArray(byte* bData, int n);
 void TxDWord16(word);
 void TxDByte16(byte);
 void TxDByte_PC(byte);
@@ -143,6 +143,7 @@ int main(void)
 	byte command[256];
 
 	int goalPos[NUM_MOTORS];
+	byte result[256];
 	while(1)
 	{
 		//mDelay(15);
@@ -176,17 +177,22 @@ int main(void)
 
 				// Read present position
 				wPresentPos = dxl_read_word( id, P_PRESENT_POSITION_L );
+				result[NUM_BYTES_PER_MOTOR * i] = dxl_get_lowbyte(wPresentPos);
+				result[NUM_BYTES_PER_MOTOR * i + 1] = dxl_get_highbyte(wPresentPos);
+				result[NUM_BYTES_PER_MOTOR * i + 2] = ' ';
 //				TxDWord16(id);
 //				TxDString("   ");
-				TxDWord16(wPresentPos);
-				TxDByte_PC(' ');
+//				TxDWord16(wPresentPos);
+//				TxDByte_PC(' ');
 //				TxDByte_PC('\r');
 //				TxDByte_PC('\n');
 			}
 //			else
 //				PrintCommStatus(CommStatus);
 		}
-		TxDByte_PC('\n');
+		result[NUM_BYTES_PER_MOTOR * NUM_MOTORS] = '\n';
+		TxDByteArray(result, NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1);
+//		TxDByte_PC('\n');
 	}
 	return 0;
 }
@@ -538,7 +544,7 @@ byte RxDByte_PC(void)
 	return temp;
 }
 
-void TxDString(byte* bData, int n)
+void TxDByteArray(byte* bData, int n)
 {
 	int i = 0;
 	for (i = 0; i < n; ++i)
