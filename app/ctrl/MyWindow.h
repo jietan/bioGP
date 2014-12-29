@@ -73,7 +73,7 @@ public:
     void calculateInertia();
 	void setSerial(CSerial* serial);
 private:
-
+	double mTime;
 	CSerial* mSerial;
     /// \brief External force to exert on Atlas robot
     Eigen::Vector3d mForce;

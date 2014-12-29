@@ -15,6 +15,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#define P_CW_COMPLIANCE_SLOPE	28
+#define P_CCW_COMPLIANCE_SLOPE	29
 #define P_GOAL_POSITION_L		30
 #define P_GOAL_POSITION_H		31
 #define P_PRESENT_POSITION_L	36
@@ -41,11 +43,14 @@
 #define word                    u16
 #define byte                    u8
 
+#define NUM_MOTORS				16
+#define NUM_BYTES_PER_MOTOR		3
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 volatile byte 					gbPacketWritePointer;
 volatile byte 					gbPacketReadPointer;
-volatile byte 					gbpPacketDataBuffer[16+1+16];
+volatile byte 					gbpPacketDataBuffer[256];
 
 volatile byte                   gbpRxInterruptBuffer[256]; // dxl buffer
 volatile byte                   gbRxBufferWritePointer,gbRxBufferReadPointer;
@@ -55,7 +60,7 @@ u32                             Baudrate_DXL = 	1000000;
 u32                             Baudrate_PC = 57600;
 vu16                            CCR1_Val = 100; 		// 1ms
 vu32                            capture = 0;
-word                            GoalPos[2] = {0, 1023};
+//word                            GoalPos[2] = {0, 1023};
 //word                            GoalPos[2] = {0, 1023};  //For EX and MX series
 word                            Position;
 word                            wPresentPos;
@@ -84,14 +89,17 @@ void PrintErrorCode(void);
 void TxDByte_DXL(byte);
 byte RxDByte_DXL(void);
 void TxDString(byte*);
+void TxDString(byte* bData, int n);
 void TxDWord16(word);
 void TxDByte16(byte);
 void TxDByte_PC(byte);
+byte RxDByte_PC(void);
+int  RxDString_PC(byte*);
 void Timer_Configuration(void);
 void mDelay(u32);
 void StartDiscount(s32);
 byte CheckTimeOut(void);
-byte RxDByte_PC(void);
+
 /*******************************************************************************
 * Function Name  : main
 * Description    : Main program
@@ -118,30 +126,52 @@ int main(void)
 	dxl_initialize( 0, 1 );
 	USART_Configuration(USART_PC, Baudrate_PC);
 
-	while(1)
-	{
-		mDelay(10);
-		ReceivedData = RxDByte_PC();
 
-		if(ReceivedData == 'w')
-			break;
-	}
-	int numMotors = 16;
 	int motorId[] = {1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
-	mDelay(1000);
+	mDelay(100);
 	int id = 1;
 	bMoving = dxl_read_byte( id, P_MOVING );
 	CommStatus = dxl_get_result();
+	int i;
+	for (i = 0; i < NUM_MOTORS; ++i)
+	{
+		id = motorId[i];
+		dxl_write_byte( id, P_CW_COMPLIANCE_SLOPE, 64 );
+		dxl_write_byte( id, P_CCW_COMPLIANCE_SLOPE, 64 );
+	}
+	int lenPerCommand = NUM_MOTORS * NUM_BYTES_PER_MOTOR;
+	byte command[256];
+
+	int goalPos[NUM_MOTORS];
 	while(1)
 	{
 		//mDelay(15);
-		int i;
-		for (i = 0; i < numMotors; ++i)
+		int len = RxDString_PC(command);
+		if (len >= lenPerCommand)
 		{
+			int commandStartIdx = len - lenPerCommand;
+			for (i = 0; i < NUM_MOTORS; ++i)
+			{
+				int id = motorId[i];
+				int goalPosition = dxl_makeword(command[commandStartIdx + NUM_BYTES_PER_MOTOR * i], command[commandStartIdx + NUM_BYTES_PER_MOTOR * i + 1]);
+//				TxDWord16(goalPosition);
+//				TxDByte_PC(' ');
+				if (goalPosition >= 0 && goalPosition < 1024)
+				{
+					goalPos[i] = goalPosition;
+					dxl_write_word( id, P_GOAL_POSITION_L, goalPos[i] );
+				}
+			}
+//			TxDByte_PC('\n');
+		}
+
+		for (i = 0; i < NUM_MOTORS; ++i)
+		{
+
 			int id = motorId[i];
-			bMoving = dxl_read_byte( id, P_MOVING );
-			CommStatus = dxl_get_result();
-			if( CommStatus == COMM_RXSUCCESS )
+//			bMoving = dxl_read_byte( id, P_MOVING );
+//			CommStatus = dxl_get_result();
+//			if( CommStatus == COMM_RXSUCCESS )
 			{
 
 				// Read present position
@@ -153,8 +183,8 @@ int main(void)
 //				TxDByte_PC('\r');
 //				TxDByte_PC('\n');
 			}
-			else
-				PrintCommStatus(CommStatus);
+//			else
+//				PrintCommStatus(CommStatus);
 		}
 		TxDByte_PC('\n');
 	}
@@ -313,18 +343,6 @@ void USART1_Configuration(u32 baudrate)
 }
 
 
-void RxD1Interrupt(void)
-{
-	byte temp;
-	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
-	{
-		temp = USART_ReceiveData(USART3);
-		gbpPacketDataBuffer[gbPacketWritePointer] = temp;
-		gbPacketWritePointer++;
-		gbPacketWritePointer = gbPacketWritePointer & 0x1F;
-	}
-}
-
 void USART_Configuration(u8 PORT, u32 baudrate)
 {
 
@@ -478,6 +496,32 @@ void PrintErrorCode()
 		TxDString("Instruction code error!\n");
 }
 
+void RxD1Interrupt(void)
+{
+	byte temp;
+	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
+	{
+		temp = USART_ReceiveData(USART3);
+		gbpPacketDataBuffer[gbPacketWritePointer] = temp;
+		gbPacketWritePointer++;
+		gbPacketWritePointer = gbPacketWritePointer & 0xFF;
+	}
+}
+
+int RxDString_PC(byte* str)
+{
+	byte temp;
+	int count = 0;
+	while (1)
+	{
+		temp = RxDByte_PC();
+		str[count++] = temp;
+		if (temp == '\n')
+			break;
+	}
+	return count - 1;
+}
+
 byte RxDByte_PC(void)
 {
     byte temp;
@@ -489,9 +533,18 @@ byte RxDByte_PC(void)
 
 	temp = gbpPacketDataBuffer[gbPacketReadPointer];
 	gbPacketReadPointer++;
-	gbPacketReadPointer = gbPacketReadPointer & 0x1F;
+	gbPacketReadPointer = gbPacketReadPointer & 0xFF;
 
 	return temp;
+}
+
+void TxDString(byte* bData, int n)
+{
+	int i = 0;
+	for (i = 0; i < n; ++i)
+	{
+		TxDByte_PC(bData[i]);
+	}
 }
 
 void TxDString(byte *bData)

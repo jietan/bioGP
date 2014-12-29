@@ -115,13 +115,14 @@ bool Motion::loadMTN(const char* const filename, const char* const motionname) {
 	if (a != (char)0xEF || b != (char)0xBB || c != (char)0xBF) {
 		fin.seekg(0);
 	}
-
+	int lineNum = 0;
     while(true) {
         const int MAX_LINE = 512;
         char buf[MAX_LINE + 2];
 
 
         fin.getline(buf, MAX_LINE);
+		lineNum++;
         if (fin.fail()) {
             break;
         }

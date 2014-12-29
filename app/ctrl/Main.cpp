@@ -121,14 +121,14 @@ int main(int argc, char* argv[])
 	lLastError = serial.SetupReadTimeouts(CSerial::EReadTimeoutNonblocking);
 	if (lLastError != ERROR_SUCCESS)
 		LOG(FATAL) << serial.GetLastError() << " Unable to set COM-port read timeout.";
-	lLastError = serial.Write("w");
-	if (lLastError != ERROR_SUCCESS)
-		LOG(FATAL) << serial.GetLastError() << " Unable to send data.";
+	//lLastError = serial.Write("w");
+	//if (lLastError != ERROR_SUCCESS)
+	//	LOG(FATAL) << serial.GetLastError() << " Unable to send data.";
 	// end serial communication setup
 
 
     World* myWorld = new World;
-    myWorld->setTimeStep(0.0002);
+    myWorld->setTimeStep(0.03);
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;
@@ -152,9 +152,9 @@ int main(int argc, char* argv[])
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
 
-	Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);
-	q6[4] = 0;
-	con->setFreeDofs(q6);
+	//Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);
+	//q6[4] = 0;
+	//con->setFreeDofs(q6);
 
     // Create a window and link it to the world
     // MyWindow window(new Controller(robot, myWorld->getConstraintSolver()));

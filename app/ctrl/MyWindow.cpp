@@ -36,6 +36,7 @@
  */
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #include "MyWindow.h"
+#include "dart/common/Timer.h"
 #include "dart/math/Helpers.h"
 #include "dart/simulation/World.h"
 #include "dart/dynamics/BodyNode.h"
@@ -50,7 +51,9 @@
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
 #include "robot/HumanoidController.h"
+#include "robot/Motion.h"
 #include "Serial.h"
+
 
 
 #define NUM_MOTORS 16
@@ -62,6 +65,18 @@ int MakeWord(int hex0, int hex1, int hex2, int hex3)
 
 	word = ((hex0 << 12) + (hex1 << 8) + (hex2 << 4) + hex3);
 	return (int)word;
+}
+
+void SeparateWord(int word, unsigned char* highByte, unsigned char* lowByte)
+{
+	unsigned short temp;
+
+	temp = word & 0xff;
+	*lowByte = static_cast<unsigned char>(temp);
+
+	temp = word & 0xff00;
+	temp = temp >> 8;
+	*highByte = static_cast<unsigned char>(temp);
 }
 
 int Decipher(char c)
@@ -131,11 +146,12 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
     : SimWindow(),
       mController(_controller),
 	  mSerial(NULL),
-	  mTmpBuffer("")
+	  mTmpBuffer(""),
+	  mTime(0)
 {
     mForce = Eigen::Vector3d::Zero();
     mImpulseDuration = 0.0;
-
+	mDisplayTimeout = 30;
     // 0.166622 0.548365 0.118241 0.810896
     Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
     mTrackBall.setQuaternion(q);
@@ -163,10 +179,29 @@ void MyWindow::displayTimer(int _val)
 //==============================================================================
 void MyWindow::timeStepping()
 {
+	static dart::common::Timer t;
+
+	
 	// Wait for an event
 	Eigen::VectorXd motorAngle;
 	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
-
+	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
+	Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
+	motor_qhat_noGriper.head(6) = motor_qhat.head(6);
+	motor_qhat_noGriper.tail(10) = motor_qhat.tail(10);
+	unsigned char commands[256];
+	for (int i = 0; i < NUM_MOTORS; ++i)
+	{
+		int command = static_cast<int>(motor_qhat_noGriper[i]);
+		unsigned char highByte, lowByte;
+		SeparateWord(command, &highByte, &lowByte);
+		commands[3 * i] = lowByte;
+		commands[3 * i + 1] = highByte;
+		commands[3 * i + 2] = ' ';
+	}
+	commands[3 * 16] = '\n';
+	mSerial->Write(commands, 3 * 16 + 1);
+	//LOG(INFO) << motor_qhat_noGriper[14];
 	//LONG lLastError = mSerial->WaitEvent();
 
 	//if (lLastError != ERROR_SUCCESS)
@@ -230,6 +265,7 @@ void MyWindow::timeStepping()
 		// Read data, until there is nothing left
 		DWORD dwBytesRead = 0;
 		char szBuffer[101];
+		bool bUpdated = false;
 		do
 		{
 			// Read data from the COM-port
@@ -245,7 +281,7 @@ void MyWindow::timeStepping()
 				if (mTmpBuffer.size() >= NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
 				{
 
-					bool bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
+					bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
 
 					if (bUpdated)
 					{
@@ -255,15 +291,20 @@ void MyWindow::timeStepping()
 						mController->setMotorMapPose(fullMotorAngle);
 						//for (int i = 0; i < NUM_MOTORS; ++i)
 						//{
-						//	std::cout << motorAngle[i] << " ";
+						//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
 						//}
 						//std::cout << std::endl;
+						
 					}
 				}
 			}
 
 		} while (dwBytesRead == sizeof(szBuffer) - 1);
 	//}
+		double elaspedTime = t.getElapsedTime();
+		std::cout << elaspedTime << std::endl;
+		mTime += elaspedTime;
+		t.start();
 }
 
 void MyWindow::draw()
@@ -420,7 +461,7 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
         temp++;
 	case 'r':
 		mController->reset();
-		mWorld->setTime(0);
+		mTime = 0;
 		break;
     default:
         Win3D::keyboard(_key, _x, _y);

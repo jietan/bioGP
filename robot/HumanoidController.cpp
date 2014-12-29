@@ -34,7 +34,7 @@ HumanoidController::HumanoidController(
     motormap()->load(DATA_DIR"/urdf/BioloidGP/BioloidGPMotorMap.xml");
 
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
-	mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512;
+	//mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
 	//mtvInitPose <<
 	//    342, 681, 572, 451, 762, 261,
 	//    358, 666,
@@ -44,8 +44,8 @@ HumanoidController::HumanoidController(
 
     // motion()->load(DATA_DIR"/xml/motion.xml");
     // motion()->loadMTN(DATA_DIR"/mtn/bio_gp_humanoid_kr.mtn", "HandStanding");
-    // motion()->loadMTN(DATA_DIR"/mtn/bio_gp_humanoid_kr.mtn", "SideDumbling");
-    motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightAnkel");
+    motion()->loadMTN(DATA_DIR"/mtn/bio_gp_squat.mtn", "Squat");
+    //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightAnkel");
     motion()->printSteps();
     // exit(0);
 
@@ -88,8 +88,8 @@ void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 	// Adjust the global position and orientation
 	Eigen::VectorXd q = robot()->getPositions();
 	q.head(6) = Eigen::VectorXd::Zero(6);
-	//q[0] = -0.5 * DART_PI;
-	q[4] = -0.27;
+	q[0] = -0.5 * DART_PI;
+	//q[4] = -0.27;
 	Eigen::VectorXd noise = 0.0 * Eigen::VectorXd::Random(q.size());
 	noise.head<6>().setZero();
 	robot()->setPositions(q + noise);
