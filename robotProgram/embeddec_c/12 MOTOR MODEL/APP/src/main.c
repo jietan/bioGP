@@ -47,7 +47,7 @@
 
 #define NUM_MOTORS				16
 #define NUM_BYTES_PER_MOTOR		3
-
+#define NUM_FRAMES_STORE 		5000
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 volatile byte 					gbPacketWritePointer;
@@ -57,6 +57,10 @@ volatile byte 					gbpPacketDataBuffer[256];
 volatile byte                   gbpRxInterruptBuffer[256]; // dxl buffer
 volatile byte                   gbRxBufferWritePointer,gbRxBufferReadPointer;
 volatile vu32                   gwTimingDelay,gw1msCounter;
+volatile vu32                   gwTimer = 0;
+
+int 							gFrameCounter = 0;
+
 byte 							ReceivedData;
 u32                             Baudrate_DXL = 	1000000;
 u32                             Baudrate_PC = 57600;
@@ -144,6 +148,12 @@ int main(void)
 
 	dxl_write_word( testId, P_GOAL_POSITION_L, GoalPos[INDEX]);
 	int results[3];
+
+
+	int time[NUM_FRAMES_STORE];
+	int goal[NUM_FRAMES_STORE];
+	int angle[NUM_FRAMES_STORE];
+	int i;
 	while(1)
 	{
 			// Read present position
@@ -155,12 +165,28 @@ int main(void)
 		}
 		int wGoalPos = dxl_read_word( testId, P_GOAL_POSITION_L );
 		wPresentPos = dxl_read_word( testId, P_PRESENT_POSITION_L );
-		results[0] = wGoalPos;
-		results[1] = wPresentPos;
-//			result[NUM_BYTES_PER_MOTOR * i] = dxl_get_lowbyte(wPresentPos);
-//			result[NUM_BYTES_PER_MOTOR * i + 1] = dxl_get_highbyte(wPresentPos);
-//			result[NUM_BYTES_PER_MOTOR * i + 2] = ' ';
-		TxDInt(results, 2);
+		if (gFrameCounter >= NUM_FRAMES_STORE)
+		{
+			for (i = 0; i < gFrameCounter - 1; ++i)
+			{
+				results[0] = time[i];
+				results[1] = goal[i];
+				results[2] = angle[i];
+				TxDInt(results, 3);
+			}
+			break;
+		}
+		time[gFrameCounter] = gwTimer;
+		goal[gFrameCounter] = wGoalPos;
+		angle[gFrameCounter++] = wPresentPos;
+//		results[0] = gwTimer;
+//		results[1] = wGoalPos;
+//		results[2] = wPresentPos;
+//
+//		TxDInt(results, 3);
+		//			result[NUM_BYTES_PER_MOTOR * i] = dxl_get_lowbyte(wPresentPos);
+		//			result[NUM_BYTES_PER_MOTOR * i + 1] = dxl_get_highbyte(wPresentPos);
+		//			result[NUM_BYTES_PER_MOTOR * i + 2] = ' ';
 		//sprintf(result, "%4d    %4d\r\n", wGoalPos, wPresentPos);
 
 //		TxDWord16(wGoalPos);
@@ -174,7 +200,9 @@ int main(void)
 //		result[NUM_BYTES_PER_MOTOR * NUM_MOTORS] = '\n';
 //		TxDByteArray(result, NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1);
 //		TxDByte_PC('\n');
+
 	}
+
 	return 0;
 }
 
@@ -654,6 +682,7 @@ void TimerInterrupt_1ms(void) //OLLO CONTROL
 		capture = TIM_GetCapture1(TIM2);
 		TIM_SetCompare1(TIM2, capture + CCR1_Val);
 
+		gwTimer++;
 		if(gw1msCounter > 0)
 			gw1msCounter--;
 	}
@@ -715,7 +744,7 @@ u8 CheckTimeOut(void)
 void SetupInitialParameters(int* motorId)
 {
 	int i = 0;
-	int slope = 64;
+	int slope = 32;
 	int movingSpeed = 0;
 	for (i = 0; i < NUM_MOTORS; ++i)
 	{

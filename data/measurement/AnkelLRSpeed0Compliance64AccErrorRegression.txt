@@ -1,0 +1,4 @@
+startLatency = 7ms
+steadySpeed = 584.9 degree/s
+x(t) = -2.749e04	7992	-675.8	18.3
+x(xddot) = 6.126e-12	1.459e-21	-0.0005983	2.846
