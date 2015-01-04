@@ -66,8 +66,8 @@ u32                             Baudrate_DXL = 	1000000;
 u32                             Baudrate_PC = 57600;
 vu16                            CCR1_Val = 100; 		// 1ms
 vu32                            capture = 0;
-word                            GoalPos[2] = {312, 712};
-//word                            GoalPos[2] = {0, 1023};  //For EX and MX series
+//word                            GoalPos[2] = {312, 712};
+word                            GoalPos[2] = {200, 350};  //For EX and MX series
 word                            Position;
 word                            wPresentPos;
 byte                            INDEX = 0;
@@ -137,7 +137,8 @@ int main(void)
 	dxl_initialize( 0, 1 );
 	USART_Configuration(USART_PC, Baudrate_PC);
 
-	int testId = 17;
+//	int testId = 17;
+	int testId = 11;
 
 	int motorId[] = {1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
 	bMoving = dxl_read_byte( testId, P_MOVING );
@@ -744,7 +745,7 @@ u8 CheckTimeOut(void)
 void SetupInitialParameters(int* motorId)
 {
 	int i = 0;
-	int slope = 32;
+	int slope = 64;
 	int movingSpeed = 0;
 	for (i = 0; i < NUM_MOTORS; ++i)
 	{
