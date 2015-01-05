@@ -1,10 +1,10 @@
 % filename = '../data/measurement/pControlAnkelLR7.txt';
-filename = '../data/measurement/HipSpeed0Compliance64.txt';
+filename = '../data/measurement/AnkelLRSpeed0Compliance128.txt';
 data = load(filename);
 numSamples = size(data, 1);
 t = data(:, 1) / 1000.0;
-goalPos = data(:, 2) * 0.29;
-currentPos = data(:, 3) * 0.29;
+goalPos = data(:, 2) * 0.29 / 360 * 2 * pi;
+currentPos = data(:, 3) * 0.29 / 360 * 2 * pi;
 figure;
 plot(t, goalPos, t, currentPos);
 xlim([0, 10]);
@@ -33,11 +33,11 @@ xlim([3, 8]);
 % numDataSegments = 3;
 
 % % compliance 128
-% tStart(1, 1) = 4.45;   tStart(1, 2) = 4.461;   tStart(1, 3) = 4.599;
-% tEnd(1, 1) = 4.461;     tEnd(1, 2) = 4.599;     tEnd(1, 3) = 4.799;
-% tStart(2, 1) = 6.021;   tStart(2, 2) = 6.031;   tStart(2, 3) = 6.17;
-% tEnd(2, 1) = 6.031;     tEnd(2, 2) = 6.17;     tEnd(2, 3) = 6.361;
-% numDataSegments = 2;
+tStart(1, 1) = 4.45;   tStart(1, 2) = 4.461;   tStart(1, 3) = 4.599;
+tEnd(1, 1) = 4.461;     tEnd(1, 2) = 4.599;     tEnd(1, 3) = 4.799;
+tStart(2, 1) = 6.021;   tStart(2, 2) = 6.031;   tStart(2, 3) = 6.17;
+tEnd(2, 1) = 6.031;     tEnd(2, 2) = 6.17;     tEnd(2, 3) = 6.361;
+numDataSegments = 2;
 
 % % compliance 32
 % tStart(1, 1) = 4.273;   tStart(1, 2) = 4.28;   tStart(1, 3) = 4.471;
@@ -50,11 +50,11 @@ xlim([3, 8]);
 
 % % Hip
 % % compliance 64
-tStart(1, 1) = 4.122;   tStart(1, 2) = 4.134;   tStart(1, 3) = 4.203;
-tEnd(1, 1) = 4.134;     tEnd(1, 2) = 4.203;     tEnd(1, 3) = 4.36;
-tStart(2, 1) = 5.691;   tStart(2, 2) = 5.706;   tStart(2, 3) = 5.77;
-tEnd(2, 1) = 5.706;     tEnd(2, 2) = 5.77;     tEnd(2, 3) = 5.92;
-numDataSegments = 2;
+% tStart(1, 1) = 4.122;   tStart(1, 2) = 4.134;   tStart(1, 3) = 4.203;
+% tEnd(1, 1) = 4.134;     tEnd(1, 2) = 4.203;     tEnd(1, 3) = 4.36;
+% tStart(2, 1) = 5.691;   tStart(2, 2) = 5.706;   tStart(2, 3) = 5.77;
+% tEnd(2, 1) = 5.706;     tEnd(2, 2) = 5.77;     tEnd(2, 3) = 5.92;
+% numDataSegments = 2;
 
 % % Hip
 % % compliance 128
