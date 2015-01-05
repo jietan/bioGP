@@ -1,12 +1,17 @@
 clear all;
-a = -1.473e05;
-b = 4.794e04;
-c = -3728;
-d = -281.9;
-e = 36.71;
-kp = -440.7;
-kd = -26.05;
-ks = 1056;
+
+degToRad = 2 * pi / 360;
+a = -1.473e05 * degToRad;
+b = 4.794e04 * degToRad;
+c = -3728 * degToRad;
+d = -281.9 * degToRad;
+e = 36.71 * degToRad;
+
+inertiaRatio = 0.3994;
+ks = 0.006234832611976e03 * inertiaRatio;
+kd = -0.083291497874863e03 * inertiaRatio;
+kp = -1.228188542897816e03 * inertiaRatio;
+
 endTime = 0.13;
 
 times = 0 : 0.001 : endTime;

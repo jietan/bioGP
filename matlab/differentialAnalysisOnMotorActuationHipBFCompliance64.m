@@ -1,12 +1,18 @@
-a = -2808;
-b = -1.399e04;
-c = 5783;
-d = -669.8;
-e = 19.13;
-kp = -390.9;
-kd = -24.25;
-ks = 2079;
-endTime = 0.15;
+clearvars;
+
+degToRad = 2 * pi / 360;
+a = -2808 * degToRad;
+b = -1.399e04 * degToRad;
+c = 5783 * degToRad;
+d = -669.8 * degToRad;
+e = 19.13 * degToRad;
+
+inertiaRatio = 0.3994;
+ks = 0.006234832611976e03 * inertiaRatio;
+kd = -0.083291497874863e03 * inertiaRatio;
+kp = -1.228188542897816e03 * inertiaRatio;
+
+endTime = 0.08;
 
 times = 0 : 0.001 : endTime;
 count = size(times, 2);
