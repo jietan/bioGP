@@ -2,9 +2,9 @@ clear all;
 nEpisodes = 2; 
 % 128 64
 
-ks = 0.006234832611976e03;
+ks = -0.006234832611976e03;
 kd = -0.083291497874863e03;
-kp = -1.228188542897816e03;
+kp = 1.228188542897816e03;
 
 degToRad = 2 * pi / 360;
 a = [-1.473e05; -2808] * degToRad;
@@ -28,8 +28,8 @@ for i = 1 : nEpisodes
         count = count + 1;
         t = ithSample * stepSize;
         x(count) = a(i) * t^4 + b(i) * t^3 + c(i) * t^2 + d(i) * t + e(i);
-        xdot(count) = 4 * a(i) * t^3 + 3 * b(i) * t^2 + 2 * c(i) * t + d(i);
-        xddot(count) = 12 * a(i) * t^2 + 6 * b(i) * t + 2 * c(i);
+        xdot(count) = -(4 * a(i) * t^3 + 3 * b(i) * t^2 + 2 * c(i) * t + d(i));
+        xddot(count) = -(12 * a(i) * t^2 + 6 * b(i) * t + 2 * c(i));
     end
 end
 

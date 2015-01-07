@@ -28,13 +28,14 @@ HumanoidController::HumanoidController(
     const int NDOFS = robot()->getNumDofs();
     const int NMOTORS = 18;
 
-    setJointDamping(0.15);
+    //setJointDamping(0.15);
 
+	setJointDamping(0.0);
     set_motormap( new MotorMap(NMOTORS, NDOFS) );
     motormap()->load(DATA_DIR"/urdf/BioloidGP/BioloidGPMotorMap.xml");
 
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
-	//mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
+	mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
 	//mtvInitPose <<
 	//    342, 681, 572, 451, 762, 261,
 	//    358, 666,
@@ -44,16 +45,18 @@ HumanoidController::HumanoidController(
 
     // motion()->load(DATA_DIR"/xml/motion.xml");
     // motion()->loadMTN(DATA_DIR"/mtn/bio_gp_humanoid_kr.mtn", "HandStanding");
-    motion()->loadMTN(DATA_DIR"/mtn/bio_gp_squat.mtn", "Squat");
-    //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightAnkel");
+    //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_squat.mtn", "Squat");
+    motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightHip");
     motion()->printSteps();
     // exit(0);
 
     mKp = Eigen::VectorXd::Zero(NDOFS);
     mKd = Eigen::VectorXd::Zero(NDOFS);
     for (int i = 6; i < NDOFS; ++i) {
-        mKp(i) = 600.0;
-		mKd(i) = 0.0;//1.0;
+        mKp(i) = 9.272;
+		mKd(i) = 0.3144;//1.0;
+  //    mKp(i) = 600;
+		//mKd(i) = 1;//1.0;
     }
 	int numBodies = static_cast<int>(robot()->getNumBodyNodes());
     for (int i = 0; i < numBodies; i++) {
@@ -88,7 +91,7 @@ void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 	// Adjust the global position and orientation
 	Eigen::VectorXd q = robot()->getPositions();
 	q.head(6) = Eigen::VectorXd::Zero(6);
-	q[0] = -0.5 * DART_PI;
+	//q[0] = -0.5 * DART_PI;
 	//q[4] = -0.27;
 	Eigen::VectorXd noise = 0.0 * Eigen::VectorXd::Random(q.size());
 	noise.head<6>().setZero();
@@ -150,15 +153,15 @@ void HumanoidController::update(double _currentTime) {
             -mKd(i) * dq(i);
     }
 
-
+	tau(20) = 0.001;
     // Confine within the limit: 25% of stall torque
     // Reference: http://support.robotis.com/en/product/dynamixel/ax_series/dxl_ax_actuator.htm
     const double MAX_TORQUE = 0.5 * 1.5;
     for (int i = 6; i < NDOFS; i++) {
         tau(i) = CONFINE(tau(i), -MAX_TORQUE, MAX_TORQUE);
     }
+ 	LOG(INFO) << q(20);
     // cout << _currentTime << " : " << tau.transpose() << endl;
-    
     robot()->setForces(tau);
 
 }

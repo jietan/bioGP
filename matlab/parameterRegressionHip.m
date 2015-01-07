@@ -23,8 +23,9 @@ for i = 1 : nEpisodes
         count = count + 1;
         t = ithSample * stepSize;
         x(count) = a(i) * t^4 + b(i) * t^3 + c(i) * t^2 + d(i) * t + e(i);
-        xdot(count) = 4 * a(i) * t^3 + 3 * b(i) * t^2 + 2 * c(i) * t + d(i);
-        xddot(count) = 12 * a(i) * t^2 + 6 * b(i) * t + 2 * c(i);
+        xdot(count) = -(4 * a(i) * t^3 + 3 * b(i) * t^2 + 2 * c(i) * t + d(i));
+        xddot(count) = -(12 * a(i) * t^2 + 6 * b(i) * t + 2 * c(i));
+        xtrdot(count) = -(24 * a(i) * t + 6 * b(i));
     end
 end
 

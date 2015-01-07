@@ -8,7 +8,7 @@ b = [-2.047e04; -2.749e04; 4.646e04] * degToRad;
 c = [5304; 7992; 1.026e04] * degToRad;
 d = [-677.8; -675.8; -681.3] * degToRad;
 e = [37.42; 18.3; 9.368] * degToRad;
-endTime = [0.2; 0.06; 0.035];
+endTime = [0.2; 0.06; 0.03 ];
 weight = [1 1 1];
 % weight = 1 ./ endTime;
 count = 0;
@@ -23,12 +23,13 @@ for i = 1 : nEpisodes
         count = count + 1;
         t = ithSample * stepSize;
         x(count) = a(i) * t^4 + b(i) * t^3 + c(i) * t^2 + d(i) * t + e(i);
-        xdot(count) = 4 * a(i) * t^3 + 3 * b(i) * t^2 + 2 * c(i) * t + d(i);
-        xddot(count) = 12 * a(i) * t^2 + 6 * b(i) * t + 2 * c(i);
+        xdot(count) = -(4 * a(i) * t^3 + 3 * b(i) * t^2 + 2 * c(i) * t + d(i));
+        xddot(count) = -(12 * a(i) * t^2 + 6 * b(i) * t + 2 * c(i));
+        xtrdot(count) = -(24 * a(i) * t + 6 * b(i));
     end
 end
 
-A = zeros([count, 2 + nEpisodes]);
+B = zeros([count, 2 + nEpisodes]);
 b = zeros([count, 1]);
 i = 0;
 for ithEpisode = 1 : nEpisodes
@@ -38,9 +39,9 @@ for ithEpisode = 1 : nEpisodes
         else
             i = cumEpisodeSize(ithEpisode - 1) + ithSample;
         end
-        A(i, 1) = weight(ithEpisode) * 1;
-        A(i, 2) = weight(ithEpisode) * xdot(i);
-        A(i, 2 + ithEpisode) = weight(ithEpisode) * x(i);
+        B(i, 1) = weight(ithEpisode) * 1;
+        B(i, 2) = weight(ithEpisode) * xdot(i);
+        B(i, 2 + ithEpisode) = weight(ithEpisode) * x(i);
         b(i) = weight(ithEpisode) * xddot(i);
     end
 end
@@ -54,4 +55,4 @@ end
 %     end
 %     b(i) = xddot(i);
 % end
-params = A \ b
+params = B \ b

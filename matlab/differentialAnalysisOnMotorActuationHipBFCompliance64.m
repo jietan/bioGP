@@ -8,9 +8,9 @@ d = -669.8 * degToRad;
 e = 19.13 * degToRad;
 
 inertiaRatio = 0.3994;
-ks = 0.006234832611976e03 * inertiaRatio;
-kd = -0.083291497874863e03 * inertiaRatio;
-kp = -1.228188542897816e03 * inertiaRatio;
+ks = 60.74;
+kd = -17.46;
+kp = -192.2;
 
 endTime = 0.08;
 

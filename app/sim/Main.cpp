@@ -49,6 +49,7 @@
 
 #include "dart/constraint/ConstraintSolver.h"
 #include "dart/collision/fcl_mesh/FCLMeshCollisionDetector.h"
+#include "dart/constraint/WeldJointConstraint.h"
 //#include "dart/collision/bullet/BulletCollisionDetector.h"
 
 #include "MyWindow.h"
@@ -62,8 +63,15 @@ using namespace dart::dynamics;
 using namespace dart::simulation;
 using namespace dart::utils;
 
-// avconv -r 160 -i ./Capture%04d.png output.mp4
+dart::constraint::WeldJointConstraint* gWeldJoint;
 
+// avconv -r 160 -i ./Capture%04d.png output.mp4
+void AddWeldConstraint(World* myWorld)
+{
+	BodyNode* bd = myWorld->getSkeleton(0)->getBodyNode("torso");
+	gWeldJoint = new dart::constraint::WeldJointConstraint(bd);
+	myWorld->getConstraintSolver()->addConstraint(gWeldJoint);
+}
 
 int main(int argc, char* argv[])
 {
@@ -102,8 +110,9 @@ int main(int argc, char* argv[])
     LOG(INFO) << "robot.mass = " << robot->getMass();
 
     // Set gravity of the world
-    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
-
+    //myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+	myWorld->setGravity(Eigen::Vector3d(0.0, 0, 0.0));
+	AddWeldConstraint(myWorld);
     // Create a humanoid controller
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
