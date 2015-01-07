@@ -1,5 +1,5 @@
 clear all;
-nEpisodes = 3; 
+nEpisodes = 2; 
 % 128 64 32
 
 degToRad = 2 * pi / 360;

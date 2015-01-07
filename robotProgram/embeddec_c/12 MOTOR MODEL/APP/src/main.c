@@ -67,7 +67,9 @@ u32                             Baudrate_PC = 57600;
 vu16                            CCR1_Val = 100; 		// 1ms
 vu32                            capture = 0;
 //word                            GoalPos[2] = {312, 712};
-word                            GoalPos[2] = {200, 350};  //For EX and MX series
+//word                            GoalPos[2] = {200, 350};  //For EX and MX series
+//word                            GoalPos[2] = {212, 612};  //For EX and MX series
+word                            GoalPos[2] = {812, 412};  //For EX and MX series
 word                            Position;
 word                            wPresentPos;
 byte                            INDEX = 0;
@@ -745,7 +747,7 @@ u8 CheckTimeOut(void)
 void SetupInitialParameters(int* motorId)
 {
 	int i = 0;
-	int slope = 64;
+	int slope = 128;
 	int movingSpeed = 0;
 	for (i = 0; i < NUM_MOTORS; ++i)
 	{
@@ -762,6 +764,10 @@ void SetupInitialPose(int* motorId)
 	int initialPose1[] = {512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 512, 512, 824, 200, 512, 512};
 	int initialPose2[] = {512, 512, 512, 512, 200, 824, 512, 512, 200, 512, 512, 512, 824, 200, 512, 512};
 	int initialPose3[] = {512, 512, 512, 512, 200, 824, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512};
+	// left hip with knee bended
+	int initialPose4[] = {512, 512, 512, 512, 200, 824, 512, 500, 512, 512, 512, 200, 512, 512, 512, 512};
+	// right hip with knee bended
+	int initialPose5[] = {512, 512, 512, 512, 200, 824, 524, 512, 512, 512, 824, 512, 512, 512, 512, 512};
 	for (i = 0; i < NUM_MOTORS; ++i)
 	{
 		int id = motorId[i];
@@ -782,7 +788,7 @@ void SetupInitialPose(int* motorId)
 	for (i = 0; i < NUM_MOTORS; ++i)
 	{
 		int id = motorId[i];
-		dxl_write_word( id, P_GOAL_POSITION_L, initialPose3[i] );
+		dxl_write_word( id, P_GOAL_POSITION_L, initialPose5[i] );
 	}
 	mDelay(3000);
 }

@@ -1,4 +1,4 @@
-clear all;
+% clear all;
 nEpisodes = 2; 
 % 128 64 32
 

@@ -1,17 +1,34 @@
 clear all;
-nEpisodes = 2; 
-% 128 64
+nEpisodes = 4; 
+% 128 right 64 right 128 left 64 left
 
 
 degToRad = 2 * pi / 360;
-a = [-1.473e05; -2808] * degToRad;
-b = [4.794e04; -1.399e04] * degToRad;
-c = [-3728; 5783] * degToRad;
-d = [-281.9; -669.8] * degToRad;
-e = [36.71; 19.13] * degToRad;
-endTime = [0.13; 0.08];
-weight = [1 1];
-power = [1 2];
+% a = [-1.473e05; -2808] * degToRad;
+% b = [4.794e04; -1.399e04] * degToRad;
+% c = [-3728; 5783] * degToRad;
+% d = [-281.9; -669.8] * degToRad;
+% e = [36.71; 19.13] * degToRad;
+% endTime = [0.13; 0.08];
+
+% a = [-3.84e05; -9.411e05] * degToRad;
+% b = [7.012e04; 1.084e05] * degToRad;
+% c = [-1035; 1151] * degToRad;
+% d = [-590.2; -624.8] * degToRad;
+% e = [37.34; 18.44] * degToRad;
+% 
+% endTime = [0.067; 0.06];
+
+a = [3.254e04 ; 2.718e04 ; -3.64e04 ;  -1.688e04  ] * degToRad;
+b = [-1480    ; 1.308e04 ; 3493     ;  -1.985e04  ] * degToRad;
+c = [-3482    ; -6500    ; 3220     ;  7543       ] * degToRad;
+d = [690.4    ; 705.7    ; -687.1   ;  -747.2     ] * degToRad;
+e = [-36.84   ; -18.52   ; 37.84    ;  18.98      ] * degToRad;
+
+
+endTime = [0.16; 0.16; 0.18; 0.15];
+weight = [1 1 1 1];
+power = [1 2 1 2];
 % weight = 1 ./ endTime;
 count = 0;
 

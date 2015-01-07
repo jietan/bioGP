@@ -3,12 +3,21 @@ nEpisodes = 2;
 % 128 64 32
 
 degToRad = 2 * pi / 360;
-a = [-1.473e05; -2808] * degToRad;
-b = [4.794e04; -1.399e04] * degToRad;
-c = [-3728; 5783] * degToRad;
-d = [-281.9; -669.8] * degToRad;
-e = [36.71; 19.13] * degToRad;
-endTime = [0.11; 0.08];
+% a = [-1.473e05; -2808] * degToRad;
+% b = [4.794e04; -1.399e04] * degToRad;
+% c = [-3728; 5783] * degToRad;
+% d = [-281.9; -669.8] * degToRad;
+% e = [36.71; 19.13] * degToRad;
+% endTime = [0.11; 0.08];
+
+
+a = [-3.84e05; -9.411e05] * degToRad;
+b = [7.012e04; 1.084e05] * degToRad;
+c = [-1035; 1151] * degToRad;
+d = [-590.2; -624.8] * degToRad;
+e = [37.34; 18.44] * degToRad;
+
+endTime = [0.067; 0.06];
 weight = [1 1];
 % weight = 1 ./ endTime;
 count = 0;
