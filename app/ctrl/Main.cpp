@@ -52,7 +52,7 @@
 #include "dart/utils/SkelParser.h"
 #include "dart/utils/sdf/SoftSdfParser.h"
 #include "dart/utils/urdf/DartLoader.h"
-
+#include "dart/constraint/WeldJointConstraint.h"
 #include "dart/constraint/ConstraintSolver.h"
 #include "dart/collision/fcl_mesh/FCLMeshCollisionDetector.h"
 //#include "dart/collision/bullet/BulletCollisionDetector.h"
@@ -61,6 +61,7 @@
 #include "robot/HumanoidController.h"
 #include "robot/MotorMap.h"
 #include "robot/Motion.h"
+#include "myUtils/ConfigManager.h"
 #include <windows.h>
 #include "Serial.h"
 
@@ -69,7 +70,14 @@ using namespace dart::dynamics;
 using namespace dart::simulation;
 using namespace dart::utils;
 
+dart::constraint::WeldJointConstraint* gWeldJoint;
 
+void AddWeldConstraint(World* myWorld)
+{
+	BodyNode* bd = myWorld->getSkeleton(0)->getBodyNode("torso");
+	gWeldJoint = new dart::constraint::WeldJointConstraint(bd);
+	myWorld->getConstraintSolver()->addConstraint(gWeldJoint);
+}
 
 
 //int ShowError(LONG lError, LPCTSTR lptszMessage)
@@ -99,7 +107,7 @@ int main(int argc, char* argv[])
 
     
     srand( (unsigned int) time (NULL) );
-
+	DecoConfig::GetSingleton()->Init("../config.ini");
 	//serial communication setup
 	CSerial serial;
 	LONG    lLastError = ERROR_SUCCESS;
@@ -147,6 +155,7 @@ int main(int argc, char* argv[])
 
     // Set gravity of the world
     myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+	//AddWeldConstraint(myWorld);
 
     // Create a humanoid controller
     bioloidgp::robot::HumanoidController* con =

@@ -45,8 +45,11 @@ public:
 	void reset();
 	void setInitialPose(const Eigen::VectorXd& init);
     virtual void update(double _currentTime);
-
     virtual void printDebugInfo() const;
+	Eigen::Vector3d getCOMChangeFromInitial() const;
+	Eigen::Vector3d getCOMVelocity();
+	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose);
+	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
 
 protected:
@@ -60,7 +63,9 @@ protected:
 
     Eigen::VectorXd mKp;
     Eigen::VectorXd mKd;
-
+	Eigen::Vector3d mInitialCOM;
+	bool mIsCOMInitialized;
+	Eigen::VectorXd mPrevPos;
 }; // class Humanoidcontroller
 
 } // namespace robot

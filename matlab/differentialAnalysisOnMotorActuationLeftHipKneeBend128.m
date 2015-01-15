@@ -47,9 +47,9 @@ for i = 1 : count
 end
 
 params = A \ b
-ks = params(1);
-kd = params(2);
-kp = params(3);
+% ks = params(1);
+% kd = params(2);
+% kp = params(3);
 
 ks = -0.036103383760814e02;
 kd = -0.405350054329964e02;

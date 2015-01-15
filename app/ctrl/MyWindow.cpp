@@ -47,7 +47,7 @@
 #include "dart/gui/GLFuncs.h"
 #include "dart/collision/CollisionDetector.h"
 #include "dart/constraint/ConstraintSolver.h"
-
+#include "dart/math/Geometry.h"
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
 #include "robot/HumanoidController.h"
@@ -58,6 +58,8 @@
 
 #define NUM_MOTORS 16
 #define NUM_BYTES_PER_MOTOR 3
+
+
 
 //int MakeWord(int hex0, int hex1, int hex2, int hex3)
 //{
@@ -195,6 +197,8 @@ void MyWindow::timeStepping()
 	Eigen::VectorXd motorAngle;
 	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
 	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
+	motor_qhat = mController->useAnkelStrategy(motor_qhat);
+
 	Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
 	motor_qhat_noGriper.head(6) = motor_qhat.head(6);
 	motor_qhat_noGriper.tail(10) = motor_qhat.tail(10);
@@ -310,6 +314,7 @@ void MyWindow::timeStepping()
 
 		} while (dwBytesRead == sizeof(szBuffer) - 1);
 	//}
+		mController->keepFeetLevel();
 		double elaspedTime = t.getElapsedTime();
 		std::cout << elaspedTime << std::endl;
 		mTime += elaspedTime;
@@ -470,6 +475,7 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
         temp++;
 	case 'r':
 		mController->reset();
+		
 		mTime = 0;
 		break;
     default:

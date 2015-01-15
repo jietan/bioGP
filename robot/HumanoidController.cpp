@@ -12,6 +12,7 @@
 #include "utils/CppCommon.h"
 #include "MotorMap.h"
 #include "Motion.h"
+#include "myUtils/ConfigManager.h"
 
 namespace bioloidgp {
 namespace robot {
@@ -35,7 +36,7 @@ HumanoidController::HumanoidController(
     motormap()->load(DATA_DIR"/urdf/BioloidGP/BioloidGPMotorMap.xml");
 
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
-	mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
+	//mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
 	//mtvInitPose <<
 	//    342, 681, 572, 451, 762, 261,
 	//    358, 666,
@@ -46,7 +47,8 @@ HumanoidController::HumanoidController(
     // motion()->load(DATA_DIR"/xml/motion.xml");
     // motion()->loadMTN(DATA_DIR"/mtn/bio_gp_humanoid_kr.mtn", "HandStanding");
     //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_squat.mtn", "Squat");
-    motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightHip");
+    //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightHip");
+	motion()->loadMTN(DATA_DIR"/mtn/bio_gp_bow.mtn", "Bow");
     motion()->printSteps();
     // exit(0);
 
@@ -54,14 +56,16 @@ HumanoidController::HumanoidController(
     mKd = Eigen::VectorXd::Zero(NDOFS);
     for (int i = 6; i < NDOFS; ++i) {
         mKp(i) = 9.272;
-		mKd(i) = 0.3144;//1.0;
-  //    mKp(i) = 600;
+		mKd(i) = 0.3069;//1.0;
+      //mKp(i) = 600;
 		//mKd(i) = 1;//1.0;
     }
 	int numBodies = static_cast<int>(robot()->getNumBodyNodes());
     for (int i = 0; i < numBodies; i++) {
         LOG(INFO) << "Joint " << i + 5 << " : name = " << robot()->getJoint(i)->getName();
     }
+	mIsCOMInitialized = false;
+	
 }
 
 HumanoidController::~HumanoidController() {
@@ -70,12 +74,14 @@ HumanoidController::~HumanoidController() {
 void HumanoidController::reset()
 {
 	setInitialPose(motion()->getInitialPose());
+	mIsCOMInitialized = false;
 }
 void HumanoidController::setFreeDofs(const Eigen::VectorXd& q6)
 {
 	Eigen::VectorXd q = robot()->getPositions();
 	q.head(6) = q6;
 	robot()->setPositions(q);
+	mInitialCOM = robot()->getWorldCOM();
 }
 void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 {
@@ -91,12 +97,12 @@ void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 	// Adjust the global position and orientation
 	Eigen::VectorXd q = robot()->getPositions();
 	q.head(6) = Eigen::VectorXd::Zero(6);
-	//q[0] = -0.5 * DART_PI;
+	q[0] = -0.5 * DART_PI;
 	//q[4] = -0.27;
 	Eigen::VectorXd noise = 0.0 * Eigen::VectorXd::Random(q.size());
 	noise.head<6>().setZero();
 	robot()->setPositions(q + noise);
-
+	mPrevPos = q + noise;
 	// Update the dynamics
 	robot()->computeForwardKinematics(true, true, false);
 }
@@ -121,6 +127,74 @@ void HumanoidController::setMotionTargetPose(int index) {
     this->setMotorMapPose(mtv);
 }
 
+Eigen::Vector3d HumanoidController::getCOMChangeFromInitial() const
+{
+	Eigen::Vector3d com = robot()->getWorldCOM();
+	return (com - mInitialCOM);
+}
+Eigen::Vector3d HumanoidController::getCOMVelocity()
+{
+	Eigen::Vector3d comV = robot()->getWorldCOMVelocity();
+	return comV;
+}
+
+Eigen::VectorXd HumanoidController::useAnkelStrategy(const Eigen::VectorXd& refPose)
+{
+	double kp = 1500;
+	double kd = 0;
+	DecoConfig::GetSingleton()->GetDouble("Ankel", "kp", kp);
+	DecoConfig::GetSingleton()->GetDouble("Ankel", "kd", kd);
+
+	Eigen::VectorXd ret = refPose;
+	if (!mIsCOMInitialized)
+	{
+		mInitialCOM = robot()->getWorldCOM();
+		mIsCOMInitialized = true;
+		return ret;
+	}
+
+	int nMotors = motormap()->numMotors();
+
+	const int forwardBackwardIndex = 2;
+	double deltaCOM = getCOMChangeFromInitial()[forwardBackwardIndex];
+	double detalCOMV = getCOMVelocity()[forwardBackwardIndex];
+
+	int deltaAnkelAngle = -kp * deltaCOM - kd * detalCOMV;
+	ret[nMotors - 1 - 2] -= deltaAnkelAngle;
+	ret[nMotors - 1 - 3] += deltaAnkelAngle;
+	return ret;
+}
+
+void HumanoidController::keepFeetLevel()
+{
+	
+	Eigen::VectorXd q = robot()->getPositions();
+	mPrevPos = q;
+	q.head(6) = Eigen::VectorXd::Zero(6);
+	q[0] = -0.5 * DART_PI;
+	robot()->setPositions(q);
+	robot()->computeForwardKinematics(true, true, false);
+
+	dart::dynamics::BodyNode* b = robot()->getBodyNode("l_foot");
+	const Eigen::Isometry3d& trans = b->getTransform();
+	Eigen::Isometry3d targetTrans;
+	Eigen::Matrix4d internalTrans;
+	internalTrans << 0, 0, -1, 0,
+		0, -1, 0, 0,
+		-1, 0, 0, 0,
+		0.0281, -0.26867, -0.000717, 1;
+	targetTrans.matrix() = internalTrans.transpose();
+	Eigen::Isometry3d diffTrans = targetTrans * trans.inverse();
+
+	Eigen::Matrix3d initialRootRot;
+	initialRootRot = Eigen::AngleAxisd(-0.5 * DART_PI, Eigen::Vector3d::UnitX());
+	q.head<3>() = dart::math::logMap(diffTrans.linear() * initialRootRot);
+	q.segment(3, 3) = diffTrans.translation();
+	robot()->setPositions(q);
+	robot()->computeForwardKinematics(true, true, false);
+	Eigen::VectorXd v = (q - mPrevPos) / robot()->getTimeStep();
+	robot()->setVelocities(v);
+}
 void HumanoidController::update(double _currentTime) {
 	const int NDOFS = robot()->getNumDofs();
     Eigen::VectorXd q    = robot()->getPositions();
@@ -142,25 +216,28 @@ void HumanoidController::update(double _currentTime) {
     //     358, 666,
     //     515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
     // Eigen::VectorXd qhat = motormap()->fromMotorMapVector( mtvInitPose );
-
     Eigen::VectorXd motor_qhat = motion()->targetPose(_currentTime);
+	motor_qhat = useAnkelStrategy(motor_qhat);
+
     Eigen::VectorXd qhat = motormap()->fromMotorMapVector( motor_qhat );
 
-
+	const double friction = 0.03;
     tau.head<6>() = Eigen::Vector6d::Zero();
     for (int i = 6; i < NDOFS; ++i) {
-        tau(i) = -mKp(i) * (q(i) - qhat(i))
-            -mKd(i) * dq(i);
+		tau(i) = -mKp(i) * (q(i) - qhat(i))
+			- mKd(i) * dq(i);
+		if (abs(dq(i) > 1e-6))
+			tau(i) += -friction * abs(dq(i)) / dq(i);
     }
 
-	tau(20) = 0.001;
+	//tau(20) = 0.001;
     // Confine within the limit: 25% of stall torque
     // Reference: http://support.robotis.com/en/product/dynamixel/ax_series/dxl_ax_actuator.htm
     const double MAX_TORQUE = 0.5 * 1.5;
     for (int i = 6; i < NDOFS; i++) {
         tau(i) = CONFINE(tau(i), -MAX_TORQUE, MAX_TORQUE);
     }
- 	LOG(INFO) << q(20);
+ 	//LOG(INFO) << q(20);
     // cout << _currentTime << " : " << tau.transpose() << endl;
     robot()->setForces(tau);
 

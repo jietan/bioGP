@@ -7,8 +7,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robot", "..\..\robot\robot.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ctrl", "ctrl.vcxproj", "{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}"
 	ProjectSection(ProjectDependencies) = postProject
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB} = {7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}
 		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC} = {5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "myUtils", "..\..\myUtils\myUtils.vcxproj", "{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +32,12 @@ Global
 		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.FastDebug|Win32.Build.0 = FastDebug|Win32
 		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.Release|Win32.ActiveCfg = Release|Win32
 		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.Release|Win32.Build.0 = Release|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.Debug|Win32.Build.0 = Debug|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.FastDebug|Win32.ActiveCfg = FastDebug|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.FastDebug|Win32.Build.0 = FastDebug|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.Release|Win32.ActiveCfg = Release|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

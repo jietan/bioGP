@@ -110,9 +110,9 @@ int main(int argc, char* argv[])
     LOG(INFO) << "robot.mass = " << robot->getMass();
 
     // Set gravity of the world
-    //myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
-	myWorld->setGravity(Eigen::Vector3d(0.0, 0, 0.0));
-	AddWeldConstraint(myWorld);
+    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+	//myWorld->setGravity(Eigen::Vector3d(0.0, 0, 0.0));
+	//AddWeldConstraint(myWorld);
     // Create a humanoid controller
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
