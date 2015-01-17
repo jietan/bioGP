@@ -50,6 +50,7 @@
 #include "dart/math/Geometry.h"
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
+#include "myUtils/ConfigManager.h"
 #include "robot/HumanoidController.h"
 #include "robot/Motion.h"
 #include "Serial.h"
@@ -162,7 +163,9 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 {
     mForce = Eigen::Vector3d::Zero();
     mImpulseDuration = 0.0;
-	mDisplayTimeout = 20;
+	
+	mDisplayTimeout = 10;
+	DecoConfig::GetSingleton()->GetDouble("Server", "timeout", mDisplayTimeout);
     // 0.166622 0.548365 0.118241 0.810896
     Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
     mTrackBall.setQuaternion(q);
@@ -302,7 +305,7 @@ void MyWindow::timeStepping()
 						fullMotorAngle.head(6) = motorAngle.head(6);
 						fullMotorAngle.tail(10) = motorAngle.tail(10);
 						mController->setMotorMapPose(fullMotorAngle);
-						//for (int i = 0; i < NUM_MOTORS; ++i)
+						//for (int i = 0; i < 3; ++i)
 						//{
 						//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
 						//}

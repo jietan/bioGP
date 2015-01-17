@@ -54,7 +54,7 @@ volatile byte 					gbpPacketDataBuffer[256];
 
 volatile byte                   gbpRxInterruptBuffer[256]; // dxl buffer
 volatile byte                   gbRxBufferWritePointer,gbRxBufferReadPointer;
-volatile vu32                   gwTimingDelay,gw1msCounter;
+volatile vu32                   gwTimingDelay,gw1msCounter,gwTimer;
 byte 							ReceivedData;
 u32                             Baudrate_DXL = 	1000000;
 u32                             Baudrate_PC = 57600;
@@ -126,6 +126,7 @@ int main(void)
 	dxl_initialize( 0, 1 );
 	USART_Configuration(USART_PC, Baudrate_PC);
 
+	gwTimer = 0;
 
 	int motorId[] = {1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
 	mDelay(100);
@@ -146,26 +147,63 @@ int main(void)
 	byte result[256];
 	while(1)
 	{
+		vu32 startTime = gwTimer;
 		//mDelay(15);
 		int len = RxDString_PC(command);
+		vu32 receiveTime = gwTimer;
+
+//		if (len >= lenPerCommand)
+//		{
+//			int commandStartIdx = len - lenPerCommand;
+//			for (i = 0; i < NUM_MOTORS; ++i)
+//			{
+//				int id = motorId[i];
+//				int goalPosition = dxl_makeword(command[commandStartIdx + NUM_BYTES_PER_MOTOR * i], command[commandStartIdx + NUM_BYTES_PER_MOTOR * i + 1]);
+////				TxDWord16(goalPosition);
+////				TxDByte_PC(' ');
+//				if (goalPosition >= 0 && goalPosition < 1024)
+//				{
+//					goalPos[i] = goalPosition;
+//					dxl_write_word( id, P_GOAL_POSITION_L, goalPos[i] );
+//				}
+//			}
+////			TxDByte_PC('\n');
+//		}
+
+
+		// Make syncwrite packet
 		if (len >= lenPerCommand)
 		{
 			int commandStartIdx = len - lenPerCommand;
-			for (i = 0; i < NUM_MOTORS; ++i)
+
+
+			dxl_set_txpacket_id(BROADCAST_ID);
+			dxl_set_txpacket_instruction(INST_SYNC_WRITE);
+			dxl_set_txpacket_parameter(0, P_GOAL_POSITION_L);
+			dxl_set_txpacket_parameter(1, 2);
+
+			for( i=0; i< NUM_MOTORS; i++ )
 			{
-				int id = motorId[i];
 				int goalPosition = dxl_makeword(command[commandStartIdx + NUM_BYTES_PER_MOTOR * i], command[commandStartIdx + NUM_BYTES_PER_MOTOR * i + 1]);
-//				TxDWord16(goalPosition);
-//				TxDByte_PC(' ');
-				if (goalPosition >= 0 && goalPosition < 1024)
-				{
-					goalPos[i] = goalPosition;
-					dxl_write_word( id, P_GOAL_POSITION_L, goalPos[i] );
-				}
+				int id = motorId[i];
+				goalPos[i] = goalPosition;
+				dxl_set_txpacket_parameter(2+3*i, id);
+				dxl_set_txpacket_parameter(2+3*i+1, dxl_get_lowbyte(goalPos[i]));
+				dxl_set_txpacket_parameter(2+3*i+2, dxl_get_highbyte(goalPos[i]));
+
 			}
-//			TxDByte_PC('\n');
+			dxl_set_txpacket_length((2+1)*NUM_MOTORS+4);
+
+			dxl_txrx_packet();
+
+			CommStatus = dxl_get_result();
+//			if( CommStatus == COMM_RXSUCCESS )
+//				PrintErrorCode();
+//			else
+//				PrintCommStatus(CommStatus);
 		}
 
+		vu32 sendToActuatorTime = gwTimer;
 		for (i = 0; i < NUM_MOTORS; ++i)
 		{
 
@@ -190,6 +228,19 @@ int main(void)
 //			else
 //				PrintCommStatus(CommStatus);
 		}
+		vu32 receiveFromActuatorTime = gwTimer;
+
+//		int time1 = receiveTime - startTime;
+//		int time2 = sendToActuatorTime - receiveTime;
+//		int time3 = receiveFromActuatorTime - sendToActuatorTime;
+//
+//		result[NUM_BYTES_PER_MOTOR * 0 + 0] = dxl_get_lowbyte(time1);
+//		result[NUM_BYTES_PER_MOTOR * 0 + 1] = dxl_get_highbyte(time1);
+//		result[NUM_BYTES_PER_MOTOR * 1 + 0] = dxl_get_lowbyte(time2);
+//		result[NUM_BYTES_PER_MOTOR * 1 + 1] = dxl_get_highbyte(time2);
+//		result[NUM_BYTES_PER_MOTOR * 2 + 0] = dxl_get_lowbyte(time3);
+//		result[NUM_BYTES_PER_MOTOR * 2 + 1] = dxl_get_highbyte(time3);
+
 		result[NUM_BYTES_PER_MOTOR * NUM_MOTORS] = '\n';
 		TxDByteArray(result, NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1);
 //		TxDByte_PC('\n');
@@ -631,6 +682,7 @@ void TimerInterrupt_1ms(void) //OLLO CONTROL
 		capture = TIM_GetCapture1(TIM2);
 		TIM_SetCompare1(TIM2, capture + CCR1_Val);
 
+		gwTimer++;
 		if(gw1msCounter > 0)
 			gw1msCounter--;
 	}
