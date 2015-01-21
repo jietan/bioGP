@@ -8,6 +8,7 @@
 #ifndef ROBOT_HUMANOIDCONTROLLER_H
 #define ROBOT_HUMANOIDCONTROLLER_H
 
+#include <vector>
 #include <Eigen/Dense>
 #include "utils/HppCommon.h"
 
@@ -48,7 +49,7 @@ public:
     virtual void printDebugInfo() const;
 	Eigen::Vector3d getCOMChangeFromInitial() const;
 	Eigen::Vector3d getCOMVelocity();
-	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose);
+	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
 	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
 
@@ -66,6 +67,10 @@ protected:
 	Eigen::Vector3d mInitialCOM;
 	bool mIsCOMInitialized;
 	Eigen::VectorXd mPrevPos;
+	double mAnkelOffset;
+	double mLastControlTime;
+	double mLatency;
+	std::vector<double> mAnkelOffsetQueue;
 }; // class Humanoidcontroller
 
 } // namespace robot

@@ -41,7 +41,6 @@
 
 #include "dart/dynamics/Skeleton.h"
 #include "dart/simulation/World.h"
-#include "dart/simulation/World.h"
 #include "dart/utils/Paths.h"
 #include "dart/utils/SkelParser.h"
 #include "dart/utils/sdf/SoftSdfParser.h"
@@ -64,6 +63,8 @@ using namespace dart::simulation;
 using namespace dart::utils;
 
 dart::constraint::WeldJointConstraint* gWeldJoint;
+
+double gTimeStep = 0.0002;
 
 // avconv -r 160 -i ./Capture%04d.png output.mp4
 void AddWeldConstraint(World* myWorld)
@@ -92,7 +93,7 @@ int main(int argc, char* argv[])
 
     // myWorld->getConstraintSolver()->setCollisionDetector(
     //     new dart::collision::BulletCollisionDetector());
-    myWorld->setTimeStep(0.0002);
+    myWorld->setTimeStep(gTimeStep);
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;
@@ -102,7 +103,7 @@ int main(int argc, char* argv[])
         = urdfLoader.parseSkeleton(
             DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
     robot->enableSelfCollision();
-
+	
     myWorld->addSkeleton(robot);
     myWorld->addSkeleton(ground);
 
@@ -123,7 +124,7 @@ int main(int argc, char* argv[])
     // MyWindow window(new Controller(robot, myWorld->getConstraintSolver()));
     MyWindow window(con);
     window.setWorld(myWorld);
-
+	con->reset();
     // Print manual
     LOG(INFO) << "space bar: simulation on/off";
     LOG(INFO) << "'p': playback/stop";

@@ -200,7 +200,7 @@ void MyWindow::timeStepping()
 	Eigen::VectorXd motorAngle;
 	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
 	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
-	motor_qhat = mController->useAnkelStrategy(motor_qhat);
+	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
 
 	Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
 	motor_qhat_noGriper.head(6) = motor_qhat.head(6);
@@ -319,7 +319,7 @@ void MyWindow::timeStepping()
 	//}
 		mController->keepFeetLevel();
 		double elaspedTime = t.getElapsedTime();
-		std::cout << elaspedTime << std::endl;
+		LOG(INFO) << elaspedTime;
 		mTime += elaspedTime;
 		t.start();
 }

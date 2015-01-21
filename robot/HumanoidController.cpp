@@ -65,7 +65,10 @@ HumanoidController::HumanoidController(
         LOG(INFO) << "Joint " << i + 5 << " : name = " << robot()->getJoint(i)->getName();
     }
 	mIsCOMInitialized = false;
-	
+	mAnkelOffset = 0;
+	mLastControlTime = 0;
+	mLatency = 0;
+	DecoConfig::GetSingleton()->GetDouble("Sim", "Latency", mLatency);
 }
 
 HumanoidController::~HumanoidController() {
@@ -75,6 +78,13 @@ void HumanoidController::reset()
 {
 	setInitialPose(motion()->getInitialPose());
 	mIsCOMInitialized = false;
+	mAnkelOffset = 0;
+	mLastControlTime = 0;
+
+	double timeStep = robot()->getTimeStep();
+	int numLatencySteps = mLatency / timeStep;
+	mAnkelOffsetQueue.clear();
+	mAnkelOffsetQueue.insert(mAnkelOffsetQueue.end(), numLatencySteps, 0);
 }
 void HumanoidController::setFreeDofs(const Eigen::VectorXd& q6)
 {
@@ -138,7 +148,7 @@ Eigen::Vector3d HumanoidController::getCOMVelocity()
 	return comV;
 }
 
-Eigen::VectorXd HumanoidController::useAnkelStrategy(const Eigen::VectorXd& refPose)
+Eigen::VectorXd HumanoidController::useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim)
 {
 	double kp = 1500;
 	double kd = 0;
@@ -153,15 +163,44 @@ Eigen::VectorXd HumanoidController::useAnkelStrategy(const Eigen::VectorXd& refP
 		return ret;
 	}
 
-	int nMotors = motormap()->numMotors();
-
 	const int forwardBackwardIndex = 2;
 	double deltaCOM = getCOMChangeFromInitial()[forwardBackwardIndex];
-	double detalCOMV = getCOMVelocity()[forwardBackwardIndex];
+	double deltaCOMV = getCOMVelocity()[forwardBackwardIndex];
 
-	int deltaAnkelAngle = -kp * deltaCOM - kd * detalCOMV;
-	ret[nMotors - 1 - 2] -= deltaAnkelAngle;
-	ret[nMotors - 1 - 3] += deltaAnkelAngle;
+	if (bSim)
+	{
+
+		double controlInteval = 0, comNoiseLevel = 0, comVNoiseLevel = 0;
+		DecoConfig::GetSingleton()->GetDouble("Sim", "ControlInteval", controlInteval);
+		DecoConfig::GetSingleton()->GetDouble("Sim", "COMNoise", comNoiseLevel);
+		DecoConfig::GetSingleton()->GetDouble("Sim", "COMVNoise", comVNoiseLevel);
+
+		double comNoise = comNoiseLevel * Eigen::VectorXd::Random(1)[0];
+		double comVNoise = comVNoiseLevel * Eigen::VectorXd::Random(1)[0];
+
+		deltaCOM += comNoise; 
+		deltaCOMV += comVNoise; 
+		double ankelOffset = -kp * deltaCOM - kd * deltaCOMV;
+		mAnkelOffsetQueue.push_back(ankelOffset);
+
+		if ((currentTime - mLastControlTime) > controlInteval)
+		{
+			mLastControlTime = currentTime;
+			double timeStep = robot()->getTimeStep();
+			int offset = static_cast<int>(mLatency / timeStep);
+			int idx = static_cast<int>(mAnkelOffsetQueue.size()) - offset - 1;
+			if (idx < 0) idx = 0;
+			mAnkelOffset = mAnkelOffsetQueue[idx];
+		}
+	}
+	else
+	{
+		mAnkelOffset = -kp * deltaCOM - kd * deltaCOMV;;
+	}
+	int nMotors = motormap()->numMotors();
+
+	ret[nMotors - 1 - 2] -= mAnkelOffset;
+	ret[nMotors - 1 - 3] += mAnkelOffset;
 	return ret;
 }
 
@@ -217,7 +256,7 @@ void HumanoidController::update(double _currentTime) {
     //     515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
     // Eigen::VectorXd qhat = motormap()->fromMotorMapVector( mtvInitPose );
     Eigen::VectorXd motor_qhat = motion()->targetPose(_currentTime);
-	motor_qhat = useAnkelStrategy(motor_qhat);
+	motor_qhat = useAnkelStrategy(motor_qhat, _currentTime, true);
 
     Eigen::VectorXd qhat = motormap()->fromMotorMapVector( motor_qhat );
 
