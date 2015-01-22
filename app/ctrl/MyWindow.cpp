@@ -124,29 +124,56 @@ bool ProcessFrame(const string& frame, Eigen::VectorXd& motorAngle)
 	return true;
 }
 
+int FindLastOf(const string& buff, const string& target, int startPos)
+{
+	int buffLen = static_cast<int>(buff.size());
+	int targetLen = static_cast<int>(target.length());
+	for (int i = startPos - 1; i >= targetLen; --i)
+	{
+		bool found = true;
+		for (int j = 0; j < targetLen; ++j)
+		{
+			if (buff[i - targetLen + j + 1] != target[j])
+			{
+				found = false;
+				break;
+			}
+		}
+		if (found)
+			return i;
+	}
+	return buffLen + 1;
+}
+
 bool ProcessBuffer(string& buff, Eigen::VectorXd& motorAngle)
 {
 	bool ret = false;
-	size_t endPos = buff.find_last_of("\n", buff.size());
+	size_t endPos = FindLastOf(buff, "\t\n", buff.size());
 	if (endPos >= buff.size())
 	{
-		//std::cout << "Warning! End symbol not found!" << std::endl;
+		std::cout << "Warning! End symbol not found!" << std::endl;
 		return false;
 	}
-	else if (endPos == NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1 - 1)
+	else if (endPos == NUM_BYTES_PER_MOTOR * NUM_MOTORS + 2 - 1)
 	{
 		ret = ProcessFrame(buff, motorAngle);
 	}
-	else if (endPos < NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1 - 1)
+	else if (endPos < NUM_BYTES_PER_MOTOR * NUM_MOTORS + 2 - 1)
 	{
+		std::cout << "End symbol too early!" << std::endl;
 	}
 	else
 	{
-		size_t newEndPos = buff.find_last_of("\n", endPos - 1);
-		if (endPos - newEndPos == NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
+		size_t newEndPos = FindLastOf(buff, "\t\n", endPos - 2);
+		if (endPos - newEndPos == NUM_BYTES_PER_MOTOR * NUM_MOTORS + 2)
 		{
 			string frame = buff.substr(newEndPos + 1, endPos);
 			ret = ProcessFrame(frame, motorAngle);
+			endPos = newEndPos;
+		}
+		else
+		{
+			std::cout << "Unknow reason." << std::endl;
 		}
 	}
 	buff = buff.substr(endPos + 1, buff.size());
@@ -200,7 +227,8 @@ void MyWindow::timeStepping()
 	Eigen::VectorXd motorAngle;
 	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
 	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
-	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
+	if (mTime < 3)
+		motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
 
 	Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
 	motor_qhat_noGriper.head(6) = motor_qhat.head(6);
@@ -211,12 +239,15 @@ void MyWindow::timeStepping()
 		int command = static_cast<int>(motor_qhat_noGriper[i]);
 		unsigned char highByte, lowByte;
 		SeparateWord(command, &highByte, &lowByte);
-		commands[3 * i] = lowByte;
-		commands[3 * i + 1] = highByte;
-		commands[3 * i + 2] = ' ';
+		commands[2 * i] = lowByte;
+		commands[2 * i + 1] = highByte;
+		//commands[3 * i + 2] = ' ';
 	}
-	commands[3 * 16] = '\n';
-	mSerial->Write(commands, 3 * 16 + 1);
+	commands[2 * 16] = '\t';
+	commands[2 * 16 + 1] = '\n';
+	mSerial->Write(commands, 2 * 16 + 2);
+//	commands[3 * 16] = '\n';
+//	mSerial->Write(commands, 3 * 16 + 1);
 	//LOG(INFO) << motor_qhat_noGriper[14];
 	//LONG lLastError = mSerial->WaitEvent();
 
@@ -304,22 +335,25 @@ void MyWindow::timeStepping()
 						Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
 						fullMotorAngle.head(6) = motorAngle.head(6);
 						fullMotorAngle.tail(10) = motorAngle.tail(10);
-						mController->setMotorMapPose(fullMotorAngle);
-						//for (int i = 0; i < 3; ++i)
-						//{
-						//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
-						//}
-						//std::cout << std::endl;
-						
+						mController->setMotorMapPose(fullMotorAngle);						
 					}
+					//for (int i = 0; i < 3; ++i)
+					//{
+					//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
+					//}
+					//std::cout << std::endl;
 				}
 			}
-
+			else
+			{
+				std::cout << "Noting received." << endl;
+			}
 		} while (dwBytesRead == sizeof(szBuffer) - 1);
 	//}
 		mController->keepFeetLevel();
 		double elaspedTime = t.getElapsedTime();
-		LOG(INFO) << elaspedTime;
+		//LOG(INFO) << elaspedTime;
+		std::cout << elaspedTime << endl;
 		mTime += elaspedTime;
 		t.start();
 }

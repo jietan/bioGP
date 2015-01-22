@@ -44,7 +44,8 @@
 #define byte                    u8
 
 #define NUM_MOTORS				16
-#define NUM_BYTES_PER_MOTOR		3
+#define NUM_BYTES_PER_MOTOR_FROM_PC		2
+#define NUM_BYTES_PER_MOTOR_TO_PC		3
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -140,7 +141,7 @@ int main(void)
 		dxl_write_byte( id, P_CW_COMPLIANCE_SLOPE, 64 );
 		dxl_write_byte( id, P_CCW_COMPLIANCE_SLOPE, 64 );
 	}
-	int lenPerCommand = NUM_MOTORS * NUM_BYTES_PER_MOTOR;
+	int lenPerCommand = NUM_MOTORS * NUM_BYTES_PER_MOTOR_FROM_PC;
 	byte command[256];
 
 	int goalPos[NUM_MOTORS];
@@ -184,7 +185,7 @@ int main(void)
 
 			for( i=0; i< NUM_MOTORS; i++ )
 			{
-				int goalPosition = dxl_makeword(command[commandStartIdx + NUM_BYTES_PER_MOTOR * i], command[commandStartIdx + NUM_BYTES_PER_MOTOR * i + 1]);
+				int goalPosition = dxl_makeword(command[commandStartIdx + NUM_BYTES_PER_MOTOR_FROM_PC * i], command[commandStartIdx + NUM_BYTES_PER_MOTOR_FROM_PC * i + 1]);
 				int id = motorId[i];
 				goalPos[i] = goalPosition;
 				dxl_set_txpacket_parameter(2+3*i, id);
@@ -215,9 +216,9 @@ int main(void)
 
 				// Read present position
 				wPresentPos = dxl_read_word( id, P_PRESENT_POSITION_L );
-				result[NUM_BYTES_PER_MOTOR * i] = dxl_get_lowbyte(wPresentPos);
-				result[NUM_BYTES_PER_MOTOR * i + 1] = dxl_get_highbyte(wPresentPos);
-				result[NUM_BYTES_PER_MOTOR * i + 2] = ' ';
+				result[NUM_BYTES_PER_MOTOR_TO_PC * i] = dxl_get_lowbyte(wPresentPos);
+				result[NUM_BYTES_PER_MOTOR_TO_PC * i + 1] = dxl_get_highbyte(wPresentPos);
+				result[NUM_BYTES_PER_MOTOR_TO_PC * i + 2] = ' ';
 //				TxDWord16(id);
 //				TxDString("   ");
 //				TxDWord16(wPresentPos);
@@ -240,9 +241,9 @@ int main(void)
 //		result[NUM_BYTES_PER_MOTOR * 1 + 1] = dxl_get_highbyte(time2);
 //		result[NUM_BYTES_PER_MOTOR * 2 + 0] = dxl_get_lowbyte(time3);
 //		result[NUM_BYTES_PER_MOTOR * 2 + 1] = dxl_get_highbyte(time3);
-
-		result[NUM_BYTES_PER_MOTOR * NUM_MOTORS] = '\n';
-		TxDByteArray(result, NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1);
+		result[NUM_BYTES_PER_MOTOR_TO_PC * NUM_MOTORS] = '\t';
+		result[NUM_BYTES_PER_MOTOR_TO_PC * NUM_MOTORS + 1] = '\n';
+		TxDByteArray(result, NUM_BYTES_PER_MOTOR_TO_PC * NUM_MOTORS + 2);
 //		TxDByte_PC('\n');
 	}
 	return 0;
@@ -569,14 +570,26 @@ int RxDString_PC(byte* str)
 {
 	byte temp;
 	int count = 0;
+	int isTabHit = 0;
 	while (1)
 	{
 		temp = RxDByte_PC();
 		str[count++] = temp;
-		if (temp == '\n')
+		if (temp == '\n' && isTabHit)
+		{
 			break;
+		}
+		else
+		{
+			isTabHit = 0;
+		}
+		if (temp == '\t')
+		{
+			isTabHit = 1;
+		}
+
 	}
-	return count - 1;
+	return count - 2;
 }
 
 byte RxDByte_PC(void)
