@@ -35,6 +35,7 @@ public:
 
     Eigen::VectorXd toMotorMapVector(const Eigen::VectorXd& v) const;
     Eigen::VectorXd fromMotorMapVector(const Eigen::VectorXd& mtv) const;
+	Eigen::VectorXd fromMotorMapVectorRad(const Eigen::VectorXd& mtv) const;
 
 protected:
     std::vector<Motor*> motors;

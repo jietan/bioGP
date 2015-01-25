@@ -60,125 +60,6 @@
 #define NUM_BYTES_PER_MOTOR 3
 
 
-
-//int MakeWord(int hex0, int hex1, int hex2, int hex3)
-//{
-//	unsigned int word;
-//
-//	word = ((hex0 << 12) + (hex1 << 8) + (hex2 << 4) + hex3);
-//	return (int)word;
-//}
-int MakeWord(unsigned char lowbyte, unsigned char highbyte)
-{
-	unsigned short word;
-
-	word = highbyte;
-	word = word << 8;
-	word = word + lowbyte;
-	return (int)word;
-}
-void SeparateWord(int word, unsigned char* highByte, unsigned char* lowByte)
-{
-	unsigned short temp;
-
-	temp = word & 0xff;
-	*lowByte = static_cast<unsigned char>(temp);
-
-	temp = word & 0xff00;
-	temp = temp >> 8;
-	*highByte = static_cast<unsigned char>(temp);
-}
-
-//int Decipher(char c)
-//{
-//	int ret = c;
-//	if (ret > '9')
-//	{
-//		ret -= 7;
-//	}
-//	ret -= '0';
-//	return ret;
-//}
-
-bool ProcessFrame(const string& frame, Eigen::VectorXd& motorAngle)
-{
-	std::vector<int> tmpPos;
-	tmpPos.resize(NUM_MOTORS);
-	for (int i = 0; i < NUM_MOTORS; ++i)
-	{
-		//int mPos = MakeWord(Decipher(frame[NUM_BYTES_PER_MOTOR * i]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 1]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 2]), Decipher(frame[NUM_BYTES_PER_MOTOR * i + 3]));
-		int mPos = MakeWord(frame[NUM_BYTES_PER_MOTOR * i], frame[NUM_BYTES_PER_MOTOR * i + 1]);
-		tmpPos[i] = mPos;
-		if (mPos < 0 || mPos >= 1024)
-		{
-			std::cout << "Warning! Joint angle abnormal." << std::endl;
-			return false;
-		}
-
-	}
-	for (int i = 0; i < NUM_MOTORS; ++i)
-	{
-		motorAngle[i] = tmpPos[i];
-	}
-	return true;
-}
-
-int FindLastOf(const string& buff, const string& target, int startPos)
-{
-	int buffLen = static_cast<int>(buff.size());
-	int targetLen = static_cast<int>(target.length());
-	for (int i = startPos - 1; i >= targetLen; --i)
-	{
-		bool found = true;
-		for (int j = 0; j < targetLen; ++j)
-		{
-			if (buff[i - targetLen + j + 1] != target[j])
-			{
-				found = false;
-				break;
-			}
-		}
-		if (found)
-			return i;
-	}
-	return buffLen + 1;
-}
-
-bool ProcessBuffer(string& buff, Eigen::VectorXd& motorAngle)
-{
-	bool ret = false;
-	size_t endPos = FindLastOf(buff, "\t\n", buff.size());
-	if (endPos >= buff.size())
-	{
-		std::cout << "Warning! End symbol not found!" << std::endl;
-		return false;
-	}
-	else if (endPos == NUM_BYTES_PER_MOTOR * NUM_MOTORS + 2 - 1)
-	{
-		ret = ProcessFrame(buff, motorAngle);
-	}
-	else if (endPos < NUM_BYTES_PER_MOTOR * NUM_MOTORS + 2 - 1)
-	{
-		std::cout << "End symbol too early!" << std::endl;
-	}
-	else
-	{
-		size_t newEndPos = FindLastOf(buff, "\t\n", endPos - 2);
-		if (endPos - newEndPos == NUM_BYTES_PER_MOTOR * NUM_MOTORS + 2)
-		{
-			string frame = buff.substr(newEndPos + 1, endPos);
-			ret = ProcessFrame(frame, motorAngle);
-			endPos = newEndPos;
-		}
-		else
-		{
-			std::cout << "Unknow reason." << std::endl;
-		}
-	}
-	buff = buff.substr(endPos + 1, buff.size());
-
-	return ret;
-}
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
     : SimWindow(),
@@ -222,14 +103,30 @@ void MyWindow::timeStepping()
 	static dart::common::Timer t;
 
 	
-	// Wait for an event
-	Eigen::VectorXd motorAngle;
-	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
-	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
-	//if (mTime < 3)
-	//	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
+	//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
+	//mController->setMotorMapPose(motor_qhat);
+	//Eigen::VectorXd motor_qhat = Eigen::VectorXd::Zero(18);
+	Eigen::VectorXd motor_qhat = mController->getMocapPose(mTime);
+	
+	//offset between DART and CMU mocap data
+	double collisionAvoidanceOffset = 0.2; // jie hack
+	double hip1Offset = atan2(0.34202, 0.939693);
+	motor_qhat[0] += UTILS_PI / 6;
+	motor_qhat[1] += UTILS_PI / 6;
+	motor_qhat[2] += UTILS_PI / 2;
+	motor_qhat[3] += -UTILS_PI / 2;
+	motor_qhat[4] += -UTILS_PI / 2;
+	motor_qhat[5] += -UTILS_PI / 2;
+	motor_qhat[8] += hip1Offset + collisionAvoidanceOffset;
+	motor_qhat[9] += -hip1Offset;
+	motor_qhat[10] += -0.5;
+	motor_qhat[11] += -0.5;
+	motor_qhat[12] += 1;
+	motor_qhat[13] += 1;
+	motor_qhat[14] += -0.5;
+	motor_qhat[15] += -0.5;
+	mController->setMotorMapPoseRad(motor_qhat);
 
-	mController->setMotorMapPose(motor_qhat);
 	mController->keepFeetLevel();
 	double elaspedTime = t.getElapsedTime();
 	LOG(INFO) << elaspedTime;

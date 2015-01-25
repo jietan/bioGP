@@ -29,9 +29,11 @@ struct Motion;
 } // namespace robot
 } // namespace bioloidgp
 
+class MocapReader;
 
 namespace bioloidgp {
 namespace robot {
+
 
 class HumanoidController {
 public:
@@ -40,8 +42,10 @@ public:
         dart::constraint::ConstraintSolver* _collisionSolver
         );
     virtual ~HumanoidController();
+	void setMocapData(MocapReader* data);
 	void setFreeDofs(const Eigen::VectorXd& q6);
     void setMotorMapPose(const Eigen::VectorXd& mtv);
+	void setMotorMapPoseRad(const Eigen::VectorXd& mtv);
     void setMotionTargetPose(int index); // Debug Purpose
 	void reset();
 	void setInitialPose(const Eigen::VectorXd& init);
@@ -49,6 +53,7 @@ public:
     virtual void printDebugInfo() const;
 	Eigen::Vector3d getCOMChangeFromInitial() const;
 	Eigen::Vector3d getCOMVelocity();
+	Eigen::VectorXd getMocapPose(double time) const;
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
 	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
@@ -71,6 +76,7 @@ protected:
 	double mLastControlTime;
 	double mLatency;
 	std::vector<double> mAnkelOffsetQueue;
+	MocapReader* mMocapReader;
 }; // class Humanoidcontroller
 
 } // namespace robot

@@ -8,6 +8,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "myUtils", "..\..\myUtils\myUtils.vcxproj", "{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mocap", "mocap.vcxproj", "{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB} = {7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}
+		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC} = {5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

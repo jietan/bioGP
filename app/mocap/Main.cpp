@@ -63,7 +63,7 @@
 #include "robot/Motion.h"
 #include "myUtils/ConfigManager.h"
 #include <windows.h>
-#include "MocapReader.h"
+#include "robot/MocapReader.h"
 
 using namespace std;
 using namespace dart::dynamics;
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
     // Create a humanoid controller
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
-
+	con->setMocapData(&mocapReader);
 	//Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);
 	//q6[4] = 0;
 	//con->setFreeDofs(q6);

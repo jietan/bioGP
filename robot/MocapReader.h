@@ -49,12 +49,16 @@ public:
 class CMUMocapFrame
 {
 public:
+	Eigen::VectorXd GetRobotPose() const;
 	vector<CMUMocapJointDof> mDofs;
 };
 class MocapReader
 {
 public:
 	void Read(const string& filename);
+	const CMUMocapFrame& GetFrame(int ithFrame);
+	const CMUMocapFrame& GetFrame(double time);
+
 private:
 	void readHeader(ifstream& inFile);
 

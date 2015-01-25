@@ -121,11 +121,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="HumanoidController.cpp" />
+    <ClCompile Include="MocapReader.cpp" />
     <ClCompile Include="Motion.cpp" />
     <ClCompile Include="MotorMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HumanoidController.h" />
+    <ClInclude Include="MocapReader.h" />
     <ClInclude Include="Motion.h" />
     <ClInclude Include="MotorMap.h" />
   </ItemGroup>

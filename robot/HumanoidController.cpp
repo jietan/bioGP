@@ -12,6 +12,7 @@
 #include "utils/CppCommon.h"
 #include "MotorMap.h"
 #include "Motion.h"
+#include "MocapReader.h"
 #include "myUtils/ConfigManager.h"
 
 namespace bioloidgp {
@@ -48,8 +49,8 @@ HumanoidController::HumanoidController(
     // motion()->loadMTN(DATA_DIR"/mtn/bio_gp_humanoid_kr.mtn", "HandStanding");
     //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_squat.mtn", "Squat");
     //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightHip");
-	motion()->loadMTN(DATA_DIR"/mtn/bio_gp_bow.mtn", "Bow");
-    motion()->printSteps();
+	//motion()->loadMTN(DATA_DIR"/mtn/bio_gp_bow.mtn", "Bow");
+ //   motion()->printSteps();
     // exit(0);
 
     mKp = Eigen::VectorXd::Zero(NDOFS);
@@ -72,6 +73,11 @@ HumanoidController::HumanoidController(
 }
 
 HumanoidController::~HumanoidController() {
+}
+
+void HumanoidController::setMocapData(MocapReader* data)
+{
+	mMocapReader = data;
 }
 
 void HumanoidController::reset()
@@ -130,11 +136,31 @@ void HumanoidController::setMotorMapPose(const Eigen::VectorXd& mtv) {
     
 }
 
+void HumanoidController::setMotorMapPoseRad(const Eigen::VectorXd& mtv) 
+{
+	int n = robot()->getNumDofs();
+	Eigen::VectorXd q = robot()->getPositions();
+	Eigen::VectorXd pose = motormap()->fromMotorMapVectorRad(mtv);
+	CHECK_EQ(q.size(), pose.size());
+	q.tail(n - 6) = pose.tail(n - 6);
+	//LOG(INFO) << "q = " << q.transpose();
+
+	robot()->setPositions(q);
+	robot()->computeForwardKinematics(true, true, false);
+
+}
+
 void HumanoidController::setMotionTargetPose(int index) {
     Eigen::VectorXd mtv = motion()->targetPoseAtIndex(index);
     LOG(INFO) << FUNCTION_NAME();
     LOG(INFO) << index << " : " << mtv.transpose();
     this->setMotorMapPose(mtv);
+}
+
+Eigen::VectorXd HumanoidController::getMocapPose(double time) const
+{
+	Eigen::VectorXd ret = mMocapReader->GetFrame(time).GetRobotPose();
+	return ret;
 }
 
 Eigen::Vector3d HumanoidController::getCOMChangeFromInitial() const
