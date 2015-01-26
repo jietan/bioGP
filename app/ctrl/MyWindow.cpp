@@ -226,10 +226,12 @@ void MyWindow::timeStepping()
 	// Wait for an event
 	Eigen::VectorXd motorAngle;
 	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
-	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
-	if (mTime < 3)
-		motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
+	//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
+	//if (mTime < 3)
+	//	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
 
+	Eigen::VectorXd mocapPose = mController->mocap()->GetPose(mTime - 1.0);
+	Eigen::VectorXd motor_qhat = mController->motormap()->toMotorMapVectorSameDim(mocapPose);
 	Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
 	motor_qhat_noGriper.head(6) = motor_qhat.head(6);
 	motor_qhat_noGriper.tail(10) = motor_qhat.tail(10);
@@ -354,7 +356,8 @@ void MyWindow::timeStepping()
 		double elaspedTime = t.getElapsedTime();
 		//LOG(INFO) << elaspedTime;
 		std::cout << elaspedTime << endl;
-		mTime += elaspedTime;
+		//mTime += elaspedTime;
+		mTime += mController->robot()->getTimeStep();
 		t.start();
 }
 

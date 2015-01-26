@@ -107,31 +107,13 @@ void MyWindow::timeStepping()
 	//mController->setMotorMapPose(motor_qhat);
 	//Eigen::VectorXd motor_qhat = Eigen::VectorXd::Zero(18);
 	Eigen::VectorXd motor_qhat = mController->getMocapPose(mTime);
-	
-	//offset between DART and CMU mocap data
-	double collisionAvoidanceOffset = 0.2; // jie hack
-	double hip1Offset = atan2(0.34202, 0.939693);
-	motor_qhat[0] += UTILS_PI / 6;
-	motor_qhat[1] += UTILS_PI / 6;
-	motor_qhat[2] += UTILS_PI / 2;
-	motor_qhat[3] += -UTILS_PI / 2;
-	motor_qhat[4] += -UTILS_PI / 2;
-	motor_qhat[5] += -UTILS_PI / 2;
-	motor_qhat[8] += hip1Offset + collisionAvoidanceOffset;
-	motor_qhat[9] += -hip1Offset;
-	motor_qhat[10] += -0.5;
-	motor_qhat[11] += -0.5;
-	motor_qhat[12] += 1;
-	motor_qhat[13] += 1;
-	motor_qhat[14] += -0.5;
-	motor_qhat[15] += -0.5;
 	mController->setMotorMapPoseRad(motor_qhat);
 
 	mController->keepFeetLevel();
 	double elaspedTime = t.getElapsedTime();
 	LOG(INFO) << elaspedTime;
-	
-	mTime += elaspedTime;
+	mTime += mController->robot()->getTimeStep();
+	//mTime += elaspedTime;
 	t.start();
 }
 
@@ -181,16 +163,14 @@ void MyWindow::drawSkels()
             
             continue;
         }
-        mWorld->getSkeleton(i)->draw(mRI);
-        // {
-        //     Eigen::Vector3d C = mWorld->getSkeleton(i)->getWorldCOM();
-        //     glPushMatrix();
-        //     glTranslated(C(0), C(1), C(2));
-        //     bioloidgp::utils::renderAxis(1.0);
-        //     glPopMatrix();
-        // }
-        
+		mWorld->getSkeleton(i)->draw(mRI);      
     }
+			
+	Eigen::Vector3d C = mWorld->getSkeleton(0)->getWorldCOM();
+	glPushMatrix();
+	glTranslated(C(0), C(1), C(2));
+	bioloidgp::utils::renderAxis(1.0);
+	glPopMatrix();
 }
 
 void MyWindow::calculateInertia() {

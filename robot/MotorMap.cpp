@@ -142,6 +142,16 @@ int MotorMap::findMotorIndex(const char* const motorName) const {
     return -1;
 }
 
+Eigen::VectorXd MotorMap::toMotorMapVectorSameDim(const Eigen::VectorXd& v) const
+{
+	Eigen::VectorXd mtv = Eigen::VectorXd::Zero(numMotors());
+	FOREACH(Motor* m, motors) {
+		mtv(m->id) = m->toMotorMap(v(m->id));
+	}
+	return mtv;
+}
+
+
 Eigen::VectorXd MotorMap::toMotorMapVector(const Eigen::VectorXd& v) const {
     Eigen::VectorXd mtv = Eigen::VectorXd::Zero(numMotors());
     FOREACH(Motor* m, motors) {

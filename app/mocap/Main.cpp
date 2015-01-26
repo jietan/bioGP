@@ -110,11 +110,10 @@ int main(int argc, char* argv[])
 	DecoConfig::GetSingleton()->Init("../config.ini");
 
     World* myWorld = new World;
-    myWorld->setTimeStep(0.03);
+    myWorld->setTimeStep(0.017);
 
 	MocapReader mocapReader;
 	mocapReader.Read("../../mocap/oneFootBalance.amc");
-
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;
@@ -138,7 +137,7 @@ int main(int argc, char* argv[])
     // Create a humanoid controller
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
-	con->setMocapData(&mocapReader);
+	con->setMocapReader(&mocapReader);
 	//Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);
 	//q6[4] = 0;
 	//con->setFreeDofs(q6);

@@ -227,7 +227,11 @@ void MyWindow::drawSkels()
         // }
         
     }
-
+	Eigen::Vector3d C = mWorld->getSkeleton(0)->getWorldCOM();
+	glPushMatrix();
+	glTranslated(C(0), C(1), C(2));
+	bioloidgp::utils::renderAxis(1.0);
+	glPopMatrix();
     // draw arrow
     if (mImpulseDuration > 0)
     {

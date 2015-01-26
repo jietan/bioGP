@@ -11,6 +11,9 @@
 #include <vector>
 #include <Eigen/Dense>
 #include "utils/HppCommon.h"
+#include "MocapMotion.h"
+#include "MocapReader.h"
+#include "MotorMap.h"
 
 namespace dart {
 namespace dynamics {
@@ -29,8 +32,6 @@ struct Motion;
 } // namespace robot
 } // namespace bioloidgp
 
-class MocapReader;
-
 namespace bioloidgp {
 namespace robot {
 
@@ -42,8 +43,8 @@ public:
         dart::constraint::ConstraintSolver* _collisionSolver
         );
     virtual ~HumanoidController();
-	void setMocapData(MocapReader* data);
 	void setFreeDofs(const Eigen::VectorXd& q6);
+	void setMocapReader(MocapReader* reader);
     void setMotorMapPose(const Eigen::VectorXd& mtv);
 	void setMotorMapPoseRad(const Eigen::VectorXd& mtv);
     void setMotionTargetPose(int index); // Debug Purpose
@@ -66,7 +67,7 @@ protected:
     MEMBER_PTR(dart::constraint::ConstraintSolver*, collisionSolver);
     MEMBER_PTR(MotorMap*, motormap);
     MEMBER_PTR(Motion*, motion);
-
+	MEMBER_PTR(MocapMotion*, mocap);
     Eigen::VectorXd mKp;
     Eigen::VectorXd mKd;
 	Eigen::Vector3d mInitialCOM;
@@ -77,6 +78,7 @@ protected:
 	double mLatency;
 	std::vector<double> mAnkelOffsetQueue;
 	MocapReader* mMocapReader;
+	
 }; // class Humanoidcontroller
 
 } // namespace robot

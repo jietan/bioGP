@@ -138,8 +138,8 @@ int main(void)
 	for (i = 0; i < NUM_MOTORS; ++i)
 	{
 		id = motorId[i];
-		dxl_write_byte( id, P_CW_COMPLIANCE_SLOPE, 64 );
-		dxl_write_byte( id, P_CCW_COMPLIANCE_SLOPE, 64 );
+		dxl_write_byte( id, P_CW_COMPLIANCE_SLOPE, 32 );
+		dxl_write_byte( id, P_CCW_COMPLIANCE_SLOPE, 32 );
 	}
 	int lenPerCommand = NUM_MOTORS * NUM_BYTES_PER_MOTOR_FROM_PC;
 	byte command[256];

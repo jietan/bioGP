@@ -10,9 +10,8 @@
 #include "dart/dynamics/BodyNode.h"
 #include "dart/dynamics/Joint.h"
 #include "utils/CppCommon.h"
-#include "MotorMap.h"
+
 #include "Motion.h"
-#include "MocapReader.h"
 #include "myUtils/ConfigManager.h"
 
 namespace bioloidgp {
@@ -35,13 +34,19 @@ HumanoidController::HumanoidController(
 	setJointDamping(0.0);
     set_motormap( new MotorMap(NMOTORS, NDOFS) );
     motormap()->load(DATA_DIR"/urdf/BioloidGP/BioloidGPMotorMap.xml");
-
+	set_mocap(new MocapMotion());
+	mocap()->Read("../../mocap/oneFootBalance.mocap");
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
 	//mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
 	//mtvInitPose <<
 	//    342, 681, 572, 451, 762, 261,
 	//    358, 666,
 	//    515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
+	vector<double> initialPose;
+	DecoConfig::GetSingleton()->GetDoubleVector("Sim", "InitialPose", initialPose);
+	Eigen::Map<Eigen::VectorXd> initialPoseEigen(&(initialPose[0]), NMOTORS);
+	mtvInitPose = motormap()->toMotorMapVectorSameDim(initialPoseEigen);
+
     set_motion( new Motion(NMOTORS, mtvInitPose) );
 	setInitialPose(mtvInitPose);
 
@@ -75,14 +80,18 @@ HumanoidController::HumanoidController(
 HumanoidController::~HumanoidController() {
 }
 
-void HumanoidController::setMocapData(MocapReader* data)
+void HumanoidController::setMocapReader(MocapReader* reader)
 {
-	mMocapReader = data;
+	mMocapReader = reader;
 }
 
 void HumanoidController::reset()
 {
 	setInitialPose(motion()->getInitialPose());
+	vector<double> freeDof;
+	DecoConfig::GetSingleton()->GetDoubleVector("Sim", "Initial6Dofs", freeDof);
+	Eigen::Map<Eigen::VectorXd> freeDofEigen(&(freeDof[0]), 6);
+	setFreeDofs(freeDofEigen);
 	mIsCOMInitialized = false;
 	mAnkelOffset = 0;
 	mLastControlTime = 0;
@@ -97,6 +106,7 @@ void HumanoidController::setFreeDofs(const Eigen::VectorXd& q6)
 	Eigen::VectorXd q = robot()->getPositions();
 	q.head(6) = q6;
 	robot()->setPositions(q);
+	robot()->computeForwardKinematics(true, true, false);
 	mInitialCOM = robot()->getWorldCOM();
 }
 void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
@@ -112,8 +122,14 @@ void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 
 	// Adjust the global position and orientation
 	Eigen::VectorXd q = robot()->getPositions();
-	q.head(6) = Eigen::VectorXd::Zero(6);
-	q[0] = -0.5 * DART_PI;
+
+	vector<double> freeDof;
+	DecoConfig::GetSingleton()->GetDoubleVector("Sim", "Initial6Dofs", freeDof);
+	Eigen::Map<Eigen::VectorXd> freeDofEigen(&(freeDof[0]), 6);
+	q.head(6) = freeDofEigen;
+
+	//q.head(6) = Eigen::VectorXd::Zero(6);
+	//q[0] = -0.5 * DART_PI;
 	//q[4] = -0.27;
 	Eigen::VectorXd noise = 0.0 * Eigen::VectorXd::Random(q.size());
 	noise.head<6>().setZero();
@@ -281,7 +297,10 @@ void HumanoidController::update(double _currentTime) {
     //     358, 666,
     //     515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
     // Eigen::VectorXd qhat = motormap()->fromMotorMapVector( mtvInitPose );
-    Eigen::VectorXd motor_qhat = motion()->targetPose(_currentTime);
+    //Eigen::VectorXd motor_qhat = motion()->targetPose(_currentTime);
+
+	Eigen::VectorXd mocapPose = mocap()->GetPose(_currentTime);
+	Eigen::VectorXd motor_qhat = motormap()->toMotorMapVectorSameDim(mocapPose);
 	motor_qhat = useAnkelStrategy(motor_qhat, _currentTime, true);
 
     Eigen::VectorXd qhat = motormap()->fromMotorMapVector( motor_qhat );

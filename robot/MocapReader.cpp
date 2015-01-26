@@ -5,10 +5,11 @@
 #include <glog/logging.h>
 using namespace google;
 
+const int numMotors = 18;
+
 
 Eigen::VectorXd CMUMocapFrame::GetRobotPose() const
 {
-	const int numMotors = 18;
 	Eigen::VectorXd ret;
 	ret = Eigen::VectorXd::Zero(numMotors);
 	ret[0] = mDofs[CMU_JointName_rhumerus].mValues[2]; //rShoulder1
@@ -28,6 +29,24 @@ Eigen::VectorXd CMUMocapFrame::GetRobotPose() const
 	ret[16] = -mDofs[CMU_JointName_rfoot].mValues[1]; //rAnkel2
 	ret[17] = -mDofs[CMU_JointName_lfoot].mValues[1]; //lAnkel2
 	ret = UTILS_PI / 180 * ret;
+
+	//offset between DART and CMU mocap data
+	double collisionAvoidanceOffset = 0.2; // jie hack
+	double hip1Offset = atan2(0.34202, 0.939693);
+	ret[0] += UTILS_PI / 6;
+	ret[1] += UTILS_PI / 6;
+	ret[2] += UTILS_PI / 2;
+	ret[3] += -UTILS_PI / 2;
+	ret[4] += -UTILS_PI / 2;
+	ret[5] += -UTILS_PI / 2;
+	ret[8] += hip1Offset + collisionAvoidanceOffset;
+	ret[9] += -hip1Offset;
+	ret[10] += -0.5;
+	ret[11] += -0.5;
+	ret[12] += 1;
+	ret[13] += 1;
+	ret[14] += -0.5;
+	ret[15] += -0.5;
 	return ret;
 }
 
@@ -73,6 +92,22 @@ void MocapReader::Read(const string& filename)
 	}
 	mMotion.erase(mMotion.end() - 1);
 	LOG(INFO) << "Read " << mMotion.size() << " frames of mocap data.";
+}
+
+void MocapReader::Save(const string& filename)
+{
+	ofstream outFile(filename.c_str());
+	int numFrames = static_cast<int>(mMotion.size());
+	outFile << numFrames << endl;
+	
+	for (int i = 0; i < numFrames; ++i)
+	{
+		int numDofs = static_cast<int>(mMotion[i].mDofs.size());
+		for (int j = 0; j < numMotors; ++j)
+			outFile << mMotion[i].GetRobotPose()[j] << " ";
+		outFile << endl;
+	}
+		
 }
 
 void MocapReader::readHeader(ifstream& inFile)

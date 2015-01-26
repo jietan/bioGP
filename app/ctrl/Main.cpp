@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 
 
     World* myWorld = new World;
-    myWorld->setTimeStep(0.03);
+    myWorld->setTimeStep(0.017);
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;

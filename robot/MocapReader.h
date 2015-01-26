@@ -56,6 +56,7 @@ class MocapReader
 {
 public:
 	void Read(const string& filename);
+	void Save(const string& filename);
 	const CMUMocapFrame& GetFrame(int ithFrame);
 	const CMUMocapFrame& GetFrame(double time);
 
