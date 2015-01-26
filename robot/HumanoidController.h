@@ -12,7 +12,6 @@
 #include <Eigen/Dense>
 #include "utils/HppCommon.h"
 #include "MocapMotion.h"
-#include "MocapReader.h"
 #include "MotorMap.h"
 
 namespace dart {
@@ -44,7 +43,7 @@ public:
         );
     virtual ~HumanoidController();
 	void setFreeDofs(const Eigen::VectorXd& q6);
-	void setMocapReader(MocapReader* reader);
+	
     void setMotorMapPose(const Eigen::VectorXd& mtv);
 	void setMotorMapPoseRad(const Eigen::VectorXd& mtv);
     void setMotionTargetPose(int index); // Debug Purpose
@@ -54,7 +53,8 @@ public:
     virtual void printDebugInfo() const;
 	Eigen::Vector3d getCOMChangeFromInitial() const;
 	Eigen::Vector3d getCOMVelocity();
-	Eigen::VectorXd getMocapPose(double time) const;
+	
+	
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
 	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
@@ -77,7 +77,7 @@ protected:
 	double mLastControlTime;
 	double mLatency;
 	std::vector<double> mAnkelOffsetQueue;
-	MocapReader* mMocapReader;
+	
 	
 }; // class Humanoidcontroller
 

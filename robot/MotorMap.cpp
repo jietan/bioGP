@@ -176,6 +176,15 @@ Eigen::VectorXd MotorMap::fromMotorMapVectorRad(const Eigen::VectorXd& mtv) cons
 	return v;
 }
 
+Eigen::VectorXd MotorMap::toMotorMapVectorRad(const Eigen::VectorXd& v) const
+{
+	Eigen::VectorXd mtv = Eigen::VectorXd::Zero(numMotors());
+	FOREACH(Motor* m, motors) {
+		mtv(m->id) = v(m->index);
+	}
+	return mtv;
+}
+
 // class MotorMap ends
 ////////////////////////////////////////////////////////////
 

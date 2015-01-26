@@ -48,7 +48,7 @@ class HumanoidController;
 } // namespace robot
 } // namespace bioloidgp
 
-
+class MocapReader;
 class CSerial;
 /// \brief class MyWindow
 class MyWindow : public dart::gui::SimWindow
@@ -70,11 +70,13 @@ public:
     virtual void keyboard(unsigned char _key, int _x, int _y);
 
 	virtual void displayTimer(int _val);
+	void setMocap(MocapReader* mocap);
     void calculateInertia();
 	void setSerial(CSerial* serial);
 private:
 	double mTime;
 	CSerial* mSerial;
+	MocapReader* mMocapReader;
     /// \brief External force to exert on Atlas robot
     Eigen::Vector3d mForce;
 

@@ -33,7 +33,7 @@ public:
     int findMotorIndex(int motorID) const;
     int findMotorIndex(const char* const motorName) const;
 
-	
+	Eigen::VectorXd toMotorMapVectorRad(const Eigen::VectorXd& v) const;
     Eigen::VectorXd toMotorMapVector(const Eigen::VectorXd& v) const;
     Eigen::VectorXd fromMotorMapVector(const Eigen::VectorXd& mtv) const;
 	Eigen::VectorXd fromMotorMapVectorRad(const Eigen::VectorXd& mtv) const;

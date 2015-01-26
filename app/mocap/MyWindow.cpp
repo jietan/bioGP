@@ -48,16 +48,15 @@
 #include "dart/collision/CollisionDetector.h"
 #include "dart/constraint/ConstraintSolver.h"
 #include "dart/math/Geometry.h"
+#include "dart/optimizer/snopt/SnoptInterface.h"
+#include "dart/optimizer/snopt/SnoptSolver.h"
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
 #include "myUtils/ConfigManager.h"
 #include "robot/HumanoidController.h"
 #include "robot/Motion.h"
-
-
-
-#define NUM_MOTORS 16
-#define NUM_BYTES_PER_MOTOR 3
+#include "IK/IKProblem.h"
+#include "IK/MocapReader.h"
 
 
 //==============================================================================
@@ -87,6 +86,11 @@ MyWindow::~MyWindow()
 
 int g_cnt = 0;
 
+void MyWindow::setMocap(MocapReader* mocap)
+{
+	mMocapReader = mocap;
+}
+
 void MyWindow::setSerial(CSerial* serial)
 {
 	mSerial = serial;
@@ -101,18 +105,32 @@ void MyWindow::displayTimer(int _val)
 void MyWindow::timeStepping()
 {
 	static dart::common::Timer t;
-
+	static int frameCount = 0;
 	
 	//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
 	//mController->setMotorMapPose(motor_qhat);
 	//Eigen::VectorXd motor_qhat = Eigen::VectorXd::Zero(18);
-	Eigen::VectorXd motor_qhat = mController->getMocapPose(mTime);
+	Eigen::VectorXd motor_qhat = mMocapReader->GetFrame(frameCount).GetRobotPose();
 	mController->setMotorMapPoseRad(motor_qhat);
 
-	mController->keepFeetLevel();
+	IKProblem ik(mController->robot(), true);
+	
+	dart::optimizer::snopt::SnoptSolver solver(&ik);
+	bool ret = solver.solve();
+	if (!ret)
+	{
+		LOG(WARNING) << "IK solve failed.";
+		//CHECK(0);
+	}
+	ik.verifyConstraint();
+	Eigen::VectorXd poseAfterIK = ik.getSkel()->getPositions();
+	Eigen::VectorXd motorPoseAfterIK = mController->motormap()->toMotorMapVectorRad(poseAfterIK);
+	mMocapReader->SetFrameAfterIK(frameCount, motorPoseAfterIK);
+	//mController->keepFeetLevel();
 	double elaspedTime = t.getElapsedTime();
 	LOG(INFO) << elaspedTime;
 	mTime += mController->robot()->getTimeStep();
+	frameCount++;
 	//mTime += elaspedTime;
 	t.start();
 }
@@ -244,29 +262,9 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
     case 'v':  // show or hide markers
         mShowMarkers = !mShowMarkers;
         break;
-    case 'a':  // upper right force
-        mForce[0] = 5;
-        mImpulseDuration = 100;
-        std::cout << "push forward" << std::endl;
-        break;
-    case 's':  // upper right force
-        mForce[0] = -5;
-        mImpulseDuration = 100;
-        std::cout << "push backward" << std::endl;
-        break;
-    case 'd':  // upper right force
-        mForce[2] = 5;
-        mImpulseDuration = 100;
-        std::cout << "push right" << std::endl;
-        break;
-    case 'f':  // upper right force
-        mForce[2] = -5;
-        mImpulseDuration = 100;
-        std::cout << "push left" << std::endl;
-        break;
-    case 'n':  // upper right force
-        mController->setMotionTargetPose(temp);
-        temp++;
+	case 's':
+		mMocapReader->SaveMotionAfterIK("../../mocap/oneFootBalance.mocap");
+		break;
 	case 'r':
 		mController->reset();
 		

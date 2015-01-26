@@ -80,10 +80,6 @@ HumanoidController::HumanoidController(
 HumanoidController::~HumanoidController() {
 }
 
-void HumanoidController::setMocapReader(MocapReader* reader)
-{
-	mMocapReader = reader;
-}
 
 void HumanoidController::reset()
 {
@@ -173,11 +169,6 @@ void HumanoidController::setMotionTargetPose(int index) {
     this->setMotorMapPose(mtv);
 }
 
-Eigen::VectorXd HumanoidController::getMocapPose(double time) const
-{
-	Eigen::VectorXd ret = mMocapReader->GetFrame(time).GetRobotPose();
-	return ret;
-}
 
 Eigen::Vector3d HumanoidController::getCOMChangeFromInitial() const
 {
