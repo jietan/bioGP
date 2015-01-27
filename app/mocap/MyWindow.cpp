@@ -76,6 +76,7 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
     Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
     mTrackBall.setQuaternion(q);
     mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+	mFrameCount = 0;
 }
 
 //==============================================================================
@@ -105,32 +106,36 @@ void MyWindow::displayTimer(int _val)
 void MyWindow::timeStepping()
 {
 	static dart::common::Timer t;
-	static int frameCount = 0;
 	
+	/*frameCount = 0;*/
 	//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
 	//mController->setMotorMapPose(motor_qhat);
 	//Eigen::VectorXd motor_qhat = Eigen::VectorXd::Zero(18);
-	Eigen::VectorXd motor_qhat = mMocapReader->GetFrame(frameCount).GetRobotPose();
+	Eigen::VectorXd motor_qhat = mMocapReader->GetFrame(mFrameCount).GetRobotPose();
 	mController->setMotorMapPoseRad(motor_qhat);
-
-	IKProblem ik(mController->robot(), true);
-	
-	dart::optimizer::snopt::SnoptSolver solver(&ik);
-	bool ret = solver.solve();
-	if (!ret)
+	int isUseIK = 0;
+	DecoConfig::GetSingleton()->GetInt("Mocap", "IsUseIK", isUseIK);
+	if (isUseIK)
 	{
-		LOG(WARNING) << "IK solve failed.";
-		//CHECK(0);
+		IKProblem ik(mController->robot(), true);
+
+		dart::optimizer::snopt::SnoptSolver solver(&ik);
+		bool ret = solver.solve();
+		if (!ret)
+		{
+			LOG(WARNING) << "IK solve failed.";
+			//CHECK(0);
+		}
+		ik.verifyConstraint();
+		Eigen::VectorXd poseAfterIK = ik.getSkel()->getPositions();
+		Eigen::VectorXd motorPoseAfterIK = mController->motormap()->toMotorMapVectorRad(poseAfterIK);
+		mMocapReader->SetFrameAfterIK(mFrameCount, motorPoseAfterIK);
 	}
-	ik.verifyConstraint();
-	Eigen::VectorXd poseAfterIK = ik.getSkel()->getPositions();
-	Eigen::VectorXd motorPoseAfterIK = mController->motormap()->toMotorMapVectorRad(poseAfterIK);
-	mMocapReader->SetFrameAfterIK(frameCount, motorPoseAfterIK);
 	//mController->keepFeetLevel();
 	double elaspedTime = t.getElapsedTime();
 	LOG(INFO) << elaspedTime;
 	mTime += mController->robot()->getTimeStep();
-	frameCount++;
+	mFrameCount++;
 	//mTime += elaspedTime;
 	t.start();
 }
@@ -267,7 +272,7 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
 		break;
 	case 'r':
 		mController->reset();
-		
+		mFrameCount = 0;
 		mTime = 0;
 		break;
     default:

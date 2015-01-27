@@ -12,10 +12,32 @@ Eigen::VectorXd CMUMocapFrame::GetRobotPose() const
 {
 	Eigen::VectorXd ret;
 	ret = Eigen::VectorXd::Zero(numMotors);
-	ret[0] = mDofs[CMU_JointName_rhumerus].mValues[2]; //rShoulder1
-	ret[1] = -mDofs[CMU_JointName_lhumerus].mValues[2]; //lShoulder1
-	ret[2] = mDofs[CMU_JointName_rhumerus].mValues[1]; //rShoulder2
-	ret[3] = -mDofs[CMU_JointName_lhumerus].mValues[1]; //lShoulder2
+
+	Eigen::Matrix3d rHumerusRot;
+	double rx = mDofs[CMU_JointName_rhumerus].mValues[0] * UTILS_PI / 180;
+	double ry = mDofs[CMU_JointName_rhumerus].mValues[1] * UTILS_PI / 180;
+	double rz = mDofs[CMU_JointName_rhumerus].mValues[2] * UTILS_PI / 180;
+	rHumerusRot = Eigen::AngleAxisd(rz, Eigen::Vector3d::UnitZ())
+		* Eigen::AngleAxisd(ry, Eigen::Vector3d::UnitY())
+		* Eigen::AngleAxisd(rx, Eigen::Vector3d::UnitX());
+	Eigen::Vector3d rEulerAngle = rHumerusRot.eulerAngles(1, 2, 0) ;
+
+	Eigen::Matrix3d lHumerusRot;
+	rx = mDofs[CMU_JointName_lhumerus].mValues[0] * UTILS_PI / 180;
+	ry = mDofs[CMU_JointName_lhumerus].mValues[1] * UTILS_PI / 180;
+	rz = mDofs[CMU_JointName_lhumerus].mValues[2] * UTILS_PI / 180;
+	rHumerusRot = Eigen::AngleAxisd(rz, Eigen::Vector3d::UnitZ())
+		* Eigen::AngleAxisd(ry, -Eigen::Vector3d::UnitY())
+		* Eigen::AngleAxisd(rx, -Eigen::Vector3d::UnitX());
+	Eigen::Vector3d lEulerAngle = rHumerusRot.eulerAngles(1, 2, 0);
+	ret[0] = -rEulerAngle[0];
+	ret[1] = -lEulerAngle[0];
+	ret[2] = rEulerAngle[1]; //rShoulder2
+	ret[3] = lEulerAngle[1];
+	//ret[0] = mDofs[CMU_JointName_rhumerus].mValues[2]; //rShoulder1
+	//ret[1] = -mDofs[CMU_JointName_lhumerus].mValues[2]; //lShoulder1
+	//ret[2] = mDofs[CMU_JointName_rhumerus].mValues[1]; //rShoulder2
+	//ret[3] = -mDofs[CMU_JointName_lhumerus].mValues[1]; //lShoulder2
 	ret[4] = mDofs[CMU_JointName_rradius].mValues[0]; //rElbow
 	ret[5] = mDofs[CMU_JointName_lradius].mValues[0]; //lElbow
 	ret[8] = -mDofs[CMU_JointName_rfemur].mValues[2]; //rHip1
@@ -28,7 +50,8 @@ Eigen::VectorXd CMUMocapFrame::GetRobotPose() const
 	ret[15] = -mDofs[CMU_JointName_lfoot].mValues[0]; //lAnkel1
 	ret[16] = -mDofs[CMU_JointName_rfoot].mValues[1]; //rAnkel2
 	ret[17] = -mDofs[CMU_JointName_lfoot].mValues[1]; //lAnkel2
-	ret = UTILS_PI / 180 * ret;
+	ret.tail(numMotors - 4) = UTILS_PI / 180 * ret.tail(numMotors - 4);
+	//ret.tail(numMotors) = UTILS_PI / 180 * ret.tail(numMotors);
 
 	//offset between DART and CMU mocap data
 	double collisionAvoidanceOffset = 0.2; // jie hack

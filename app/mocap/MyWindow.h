@@ -79,7 +79,7 @@ private:
 	MocapReader* mMocapReader;
     /// \brief External force to exert on Atlas robot
     Eigen::Vector3d mForce;
-
+	int mFrameCount;
     /// \brief Number of frames for applying external force
     int mImpulseDuration;
 
