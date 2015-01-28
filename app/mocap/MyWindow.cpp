@@ -106,7 +106,8 @@ void MyWindow::displayTimer(int _val)
 void MyWindow::timeStepping()
 {
 	static dart::common::Timer t;
-	
+	//if (mFrameCount < 300)
+	//	mFrameCount = 300;
 	/*frameCount = 0;*/
 	//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
 	//mController->setMotorMapPose(motor_qhat);
@@ -115,15 +116,21 @@ void MyWindow::timeStepping()
 	mController->setMotorMapPoseRad(motor_qhat);
 	int isUseIK = 0;
 	DecoConfig::GetSingleton()->GetInt("Mocap", "IsUseIK", isUseIK);
+
 	if (isUseIK)
 	{
-		IKProblem ik(mController->robot(), true);
+		Eigen::VectorXd prevPose = mController->robot()->getPositions();
+		int isUseCOM = 0, isAvoidCollision = 0;
+		DecoConfig::GetSingleton()->GetInt("Mocap", "IsUseCOMControl", isUseCOM);
+		DecoConfig::GetSingleton()->GetInt("Mocap", "IsAvoidCollision", isAvoidCollision);
+		IKProblem ik(mController, isUseCOM, isAvoidCollision);
 
 		dart::optimizer::snopt::SnoptSolver solver(&ik);
 		bool ret = solver.solve();
 		if (!ret)
 		{
 			LOG(WARNING) << "IK solve failed.";
+			//ik.getSkel()->setPositions(prevPose);
 			//CHECK(0);
 		}
 		ik.verifyConstraint();
@@ -133,7 +140,7 @@ void MyWindow::timeStepping()
 	}
 	//mController->keepFeetLevel();
 	double elaspedTime = t.getElapsedTime();
-	LOG(INFO) << elaspedTime;
+	//LOG(INFO) << elaspedTime;
 	mTime += mController->robot()->getTimeStep();
 	mFrameCount++;
 	//mTime += elaspedTime;
@@ -183,10 +190,32 @@ void MyWindow::drawSkels()
             glTranslated(0, -0.001, 0);
             mWorld->getSkeleton(i)->draw(mRI);
             glPopMatrix();
-            
-            continue;
         }
-		mWorld->getSkeleton(i)->draw(mRI);      
+		else
+		{
+			mWorld->getSkeleton(i)->draw(mRI);
+			int isShowCollisionSphere = 0;
+			DecoConfig::GetSingleton()->GetInt("Display", "IsShowCollisionSphere", isShowCollisionSphere);
+			if (isShowCollisionSphere)
+			{
+				const std::vector<std::vector<CollisionSphere> >& cspheres = mController->getCollisionSpheres();
+				int numBodies = mController->robot()->getNumBodyNodes();
+				for (int i = 0; i < numBodies; ++i)
+				{
+					int numSpheres = static_cast<int>(cspheres[i].size());
+					Eigen::Isometry3d transform = mController->robot()->getBodyNode(i)->getTransform();
+					for (int j = 0; j < numSpheres; ++j)
+					{
+						Eigen::Vector3d centerWorld = transform * cspheres[i][j].mOffset;
+						glPushMatrix();
+						glTranslated(centerWorld[0], centerWorld[1], centerWorld[2]);
+						glutSolidSphere(cspheres[i][j].mRadius, 16, 16);
+						glPopMatrix();
+					}
+				}
+			}
+		}
+		
     }
 			
 	Eigen::Vector3d C = mWorld->getSkeleton(0)->getWorldCOM();

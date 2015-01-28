@@ -129,6 +129,7 @@
     <ClCompile Include="MocapReader.cpp" />
     <ClCompile Include="PoseConstraint.cpp" />
     <ClCompile Include="PositionConstraint.cpp" />
+    <ClCompile Include="RelativePositionConstraint.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +138,7 @@
     <ClInclude Include="MocapReader.h" />
     <ClInclude Include="poseConstraint.h" />
     <ClInclude Include="PositionConstraint.h" />
+    <ClInclude Include="RelativePositionConstraint.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

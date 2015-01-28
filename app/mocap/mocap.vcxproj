@@ -62,7 +62,7 @@
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FastDebug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -107,6 +107,7 @@
       <AdditionalLibraryDirectories>C:\Golems\lib;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build\lib\Release;..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration />
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -133,9 +134,11 @@
       </EnableCOMDATFolding>
       <OptimizeReferences>
       </OptimizeReferences>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;C:\Qt\4.8.0\lib\QtOpenGL4.lib;C:\Qt\4.8.0\lib\QtGui4.lib;C:\Qt\4.8.0\lib\QtXml4.lib;C:\Qt\4.8.0\lib\QtCore4.lib;glog.lib;tinyxml2.lib;assimp.lib;fcl.lib;dart.lib;dart-core.lib;dart_dynamics.lib;dart_simulation.lib;dart_math.lib;dart_gui.lib;dart_collision.lib;dart_renderer.lib;dart_utils.lib;dart_constraint.lib;dart_integration.lib;dart_common.lib;dart_lcpsolver.lib;dart_collision_fcl.lib;dart_collision_fcl_mesh.lib;dart_utils_sdf.lib;dart_utils_urdf.lib;urdfdom_sensor.lib;urdfdom_model_state.lib;urdfdom_model.lib;urdfdom_world.lib;tinyxml.lib;ccd.lib;console_bridge.lib;C:\local\boost_1_55_0\lib32-msvc-12.0\boost_system-vc120-mt-1_55.lib;robotfd.lib;myUtilsfd.lib;IKfd.lib;optimizer.lib;snopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;glu32.lib;opengl32.lib;C:\Qt\4.8.0\lib\QtOpenGL4.lib;C:\Qt\4.8.0\lib\QtGui4.lib;C:\Qt\4.8.0\lib\QtXml4.lib;C:\Qt\4.8.0\lib\QtCore4.lib;glog.lib;tinyxml2.lib;assimp.lib;fcl.lib;dart.lib;dart-core.lib;dart_dynamics.lib;dart_math.lib;dart_gui.lib;dart_collision.lib;dart_renderer.lib;dart_utils.lib;dart_simulation.lib;dart_lcpsolver.lib;dart_constraint.lib;dart_integration.lib;dart_common.lib;dart_collision_fcl.lib;dart_collision_fcl_mesh.lib;dart_utils_sdf.lib;dart_utils_urdf.lib;urdfdom_sensor.lib;urdfdom_model_state.lib;urdfdom_model.lib;urdfdom_world.lib;tinyxml.lib;ccd.lib;console_bridge.lib;C:\local\boost_1_55_0\lib32-msvc-12.0\boost_system-vc120-mt-1_55.lib;robotfd.lib;myUtilsfd.lib;IKfd.lib;optimizer.lib;snopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Golems\lib;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build\lib\Release;..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration />
+      <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

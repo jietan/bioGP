@@ -18,7 +18,8 @@ class PositionConstraint : public Constraint {
 public:
     PositionConstraint(std::vector<dart::optimizer::Var *>& var, dart::dynamics::Skeleton* skel, dart::dynamics::BodyNode* node,
                         const Eigen::Vector3d& offset,
-                        const Eigen::Vector3d& val);
+                        const Eigen::Vector3d& val,
+						double weight = 1);
 
     virtual Eigen::VectorXd evalCon();
     virtual void fillJac(VVD, int){}

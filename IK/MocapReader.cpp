@@ -54,7 +54,7 @@ Eigen::VectorXd CMUMocapFrame::GetRobotPose() const
 	//ret.tail(numMotors) = UTILS_PI / 180 * ret.tail(numMotors);
 
 	//offset between DART and CMU mocap data
-	double collisionAvoidanceOffset = 0.2; // jie hack
+	double collisionAvoidanceOffset = -0.0; // jie hack
 	double hip1Offset = atan2(0.34202, 0.939693);
 	ret[0] += UTILS_PI / 6;
 	ret[1] += UTILS_PI / 6;

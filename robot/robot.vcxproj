@@ -129,6 +129,7 @@
     <ClCompile Include="MotorMap.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CollisionSphere.h" />
     <ClInclude Include="HumanoidController.h" />
     <ClInclude Include="mocapMotion.h" />
     <ClInclude Include="Motion.h" />

@@ -8,19 +8,19 @@
     
 PositionConstraint::PositionConstraint(
     std::vector<dart::optimizer::Var *>& var, dart::dynamics::Skeleton* skel, dart::dynamics::BodyNode* node,
-    const Eigen::Vector3d& offset, const Eigen::Vector3d& val)
+    const Eigen::Vector3d& offset, const Eigen::Vector3d& val, double weight)
     : Constraint(var), mSkel(skel), mNode(node), mTarget(val), mOffset(offset)
 {
     mNumRows = 3;
 
-    mWeight = VectorXd::Ones(mNumRows);
+    mWeight = weight * VectorXd::Ones(mNumRows);
     mConstTerm = VectorXd::Zero(mNumRows);
     mCompletion = VectorXd::Zero(mNumRows);
 }
 
 VectorXd PositionConstraint::evalCon() {
     Vector3d wp = mNode->getTransform() * mOffset;
-    Vector3d C = wp - mTarget;
+	Vector3d C = mWeight.cwiseProduct(wp - mTarget);
     VectorXd ret(C);
     // cout << "mNode = " << mNode->getModelIndex() << " : "
     //      << ret.transpose() << endl;
@@ -38,9 +38,9 @@ void PositionConstraint::fillJac(VVD jEntry, VVB jMap, int index) {
 		// VLOG(1) << "w = " << w;
 		VectorXd J = jacobian.col(dofIndex);
 		
-		jEntry->at(index + 0)->at(i) = J[0];
-		jEntry->at(index + 1)->at(i) = J[1];
-		jEntry->at(index + 2)->at(i) = J[2];
+		jEntry->at(index + 0)->at(i) = mWeight[0] * J[0];
+		jEntry->at(index + 1)->at(i) = mWeight[1] * J[1];
+		jEntry->at(index + 2)->at(i) = mWeight[2] * J[2];
 		jMap->at(index + 0)->at(i) = true;
 		jMap->at(index + 1)->at(i) = true;
 		jMap->at(index + 2)->at(i) = true;

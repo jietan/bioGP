@@ -35,7 +35,9 @@ HumanoidController::HumanoidController(
     set_motormap( new MotorMap(NMOTORS, NDOFS) );
     motormap()->load(DATA_DIR"/urdf/BioloidGP/BioloidGPMotorMap.xml");
 	set_mocap(new MocapMotion());
-	mocap()->Read("../../mocap/oneFootBalance.mocap");
+	string mocapFileName;
+	DecoConfig::GetSingleton()->GetString("Mocap", "FileName", mocapFileName);
+	mocap()->Read(mocapFileName.c_str());
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
 	//mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
 	//mtvInitPose <<
@@ -70,6 +72,26 @@ HumanoidController::HumanoidController(
     for (int i = 0; i < numBodies; i++) {
         LOG(INFO) << "Joint " << i + 5 << " : name = " << robot()->getJoint(i)->getName();
     }
+	mCollisionSpheres.resize(numBodies);
+	for (int i = 0; i < numBodies; ++i)
+	{
+		dart::dynamics::BodyNode* body = robot()->getBodyNode(i);
+		if (body->getName() == "r_foot")
+		{
+			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.00, 0.0276, -0.02042), 0.015));
+			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.035, 0.0276, -0.02042), 0.015));
+			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(0.035, 0.0276, -0.02042), 0.015));
+		}
+		else if (body->getName() == "l_thigh")
+		{
+			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.001, -0.0637, -0.0115), 0.03));
+		}
+		else if (body->getName() == "l_shin")
+		{
+			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.0127, 0.0341, 0.0156), 0.03));
+		}
+
+	}
 	mIsCOMInitialized = false;
 	mAnkelOffset = 0;
 	mLastControlTime = 0;
@@ -335,6 +357,11 @@ void HumanoidController::printDebugInfo() const {
 }
 
 void HumanoidController::keyboard(unsigned char _key, int _x, int _y, double _currentTime) {
+}
+
+const std::vector<std::vector<CollisionSphere> >& HumanoidController::getCollisionSpheres() const
+{
+	return mCollisionSpheres;
 }
 
 // class HumanoidController ends

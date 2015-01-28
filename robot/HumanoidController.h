@@ -13,6 +13,7 @@
 #include "utils/HppCommon.h"
 #include "MocapMotion.h"
 #include "MotorMap.h"
+#include "CollisionSphere.h"
 
 namespace dart {
 namespace dynamics {
@@ -53,7 +54,7 @@ public:
     virtual void printDebugInfo() const;
 	Eigen::Vector3d getCOMChangeFromInitial() const;
 	Eigen::Vector3d getCOMVelocity();
-	
+	const std::vector<std::vector<CollisionSphere> >& getCollisionSpheres() const;
 	
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
 	void keepFeetLevel();
@@ -77,7 +78,7 @@ protected:
 	double mLastControlTime;
 	double mLatency;
 	std::vector<double> mAnkelOffsetQueue;
-	
+	std::vector<std::vector<CollisionSphere> > mCollisionSpheres;
 	
 }; // class Humanoidcontroller
 

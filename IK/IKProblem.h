@@ -4,6 +4,7 @@
 #include <vector>
 #include "dart/optimizer/Problem.h"
 #include "dart/optimizer/Constraint.h"
+
 using namespace std;
 
 namespace dart {
@@ -12,15 +13,17 @@ namespace dart {
 	} // namespace dynamics
 }
 
-
-class PositionConstraint;
-
+namespace bioloidgp {
+	namespace robot {
+		class HumanoidController;
+	}
+}
 class IKProblem : public dart::optimizer::Problem {
 public:
-	IKProblem(dart::dynamics::Skeleton *skel, bool bCOMControl);
+	IKProblem(bioloidgp::robot::HumanoidController *skel, bool bCOMControl, bool bCollisionAvoidance);
 	virtual ~IKProblem();
 
-	void initProblem(dart::dynamics::Skeleton *skel, bool bCOMControl);
+	void initProblem(bioloidgp::robot::HumanoidController *skel, bool bCOMControl, bool bCollisionAvoidance);
 
 	virtual void update(double* coefs);
 	void verifyConstraint() const;
@@ -28,7 +31,7 @@ public:
 
 	dart::optimizer::Constraint* getConstraint(int index) const;
 protected:
-	dart::dynamics::Skeleton* mSkel;
+	bioloidgp::robot::HumanoidController* mController;
 	std::vector<dart::optimizer::Constraint*> mConstraints;
 	Eigen::VectorXd mInitialPose;
 
