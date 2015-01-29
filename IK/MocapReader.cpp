@@ -114,7 +114,13 @@ void MocapReader::Read(const string& filename)
 		mMotion.push_back(frame);
 	}
 	mMotion.erase(mMotion.end() - 1);
-	mMotionAfterIK.resize(mMotion.size());
+
+	int numFrames = static_cast<int>(mMotion.size());
+	mMotionAfterIK.resize(numFrames);
+	for (int i = 0; i < numFrames; ++i)
+	{
+		mMotionAfterIK[i] = GetFrame(i).GetRobotPose();
+	}
 	LOG(INFO) << "Read " << mMotion.size() << " frames of mocap data.";
 }
 

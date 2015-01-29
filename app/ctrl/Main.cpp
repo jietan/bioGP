@@ -136,7 +136,9 @@ int main(int argc, char* argv[])
 
 
     World* myWorld = new World;
-    myWorld->setTimeStep(0.017);
+	double playBackSpeed = 1.0;
+	DecoConfig::GetSingleton()->GetDouble("Mocap", "PlaybackSpeed", playBackSpeed);
+    myWorld->setTimeStep(playBackSpeed * 0.017);
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;

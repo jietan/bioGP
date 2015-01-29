@@ -78,9 +78,9 @@ HumanoidController::HumanoidController(
 		dart::dynamics::BodyNode* body = robot()->getBodyNode(i);
 		if (body->getName() == "r_foot")
 		{
-			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.00, 0.0276, -0.02042), 0.015));
-			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.035, 0.0276, -0.02042), 0.015));
-			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(0.035, 0.0276, -0.02042), 0.015));
+			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.00, 0.0276, -0.02042), 0.025));
+			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.035, 0.0276, -0.02042), 0.025));
+			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(0.035, 0.0276, -0.02042), 0.025));
 		}
 		else if (body->getName() == "l_thigh")
 		{
