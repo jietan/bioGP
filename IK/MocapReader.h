@@ -50,6 +50,7 @@ class CMUMocapFrame
 {
 public:
 	Eigen::VectorXd GetRobotPose() const;
+	Eigen::VectorXd GetCharacterPose() const;
 	vector<CMUMocapJointDof> mDofs;
 };
 class MocapReader

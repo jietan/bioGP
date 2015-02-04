@@ -114,6 +114,16 @@ void MyWindow::timeStepping()
 	//Eigen::VectorXd motor_qhat = Eigen::VectorXd::Zero(18);
 	Eigen::VectorXd motor_qhat = mMocapReader->GetFrame(mFrameCount).GetRobotPose();
 	mController->setMotorMapPoseRad(motor_qhat);
+
+	//mFrameCount = 0;
+	dart::dynamics::Skeleton* character = mWorld->getSkeleton(2);
+	Eigen::VectorXd q = character->getPositions();
+	Eigen::VectorXd qhat = mMocapReader->GetFrame(mFrameCount).GetCharacterPose();
+
+	//Eigen::VectorXd::Zero(37);//
+	character->setPositions(qhat);
+	character->computeForwardKinematics(true, true, false);
+
 	int isUseIK = 0;
 	DecoConfig::GetSingleton()->GetInt("Mocap", "IsUseIK", isUseIK);
 
@@ -143,6 +153,7 @@ void MyWindow::timeStepping()
 	//LOG(INFO) << elaspedTime;
 	mTime += mController->robot()->getTimeStep();
 	mFrameCount++;
+	LOG(INFO) << mFrameCount;
 	//mTime += elaspedTime;
 	t.start();
 }
@@ -179,31 +190,64 @@ void MyWindow::drawSkels()
 {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    for (unsigned int i = 0; i < mWorld->getNumSkeletons(); i++) {
-        if (i == 1) {
-            glPushMatrix();
-            glTranslated(0, -0.301, 0);
-            bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
-            glPopMatrix();
+	for (unsigned int ithSkel = 0; ithSkel < mWorld->getNumSkeletons(); ithSkel++) {
+		if (ithSkel == 1) {
+            //glPushMatrix();
+            //glTranslated(0, -0.301, 0);
+            //bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
+            //glPopMatrix();
 
-            glPushMatrix();
-            glTranslated(0, -0.001, 0);
-            mWorld->getSkeleton(i)->draw(mRI);
-            glPopMatrix();
+            //glPushMatrix();
+            //glTranslated(0, -0.001, 0);
+            //mWorld->getSkeleton(i)->draw(mRI);
+            //glPopMatrix();
         }
 		else
 		{
-			mWorld->getSkeleton(i)->draw(mRI);
+			mWorld->getSkeleton(ithSkel)->draw(mRI);
 			int isShowCollisionSphere = 0;
 			DecoConfig::GetSingleton()->GetInt("Display", "IsShowCollisionSphere", isShowCollisionSphere);
 			if (isShowCollisionSphere)
 			{
 				const std::vector<std::vector<CollisionSphere> >& cspheres = mController->getCollisionSpheres();
-				int numBodies = mController->robot()->getNumBodyNodes();
+				int numBodies = mWorld->getSkeleton(ithSkel)->getNumBodyNodes();
 				for (int i = 0; i < numBodies; ++i)
 				{
 					int numSpheres = static_cast<int>(cspheres[i].size());
-					Eigen::Isometry3d transform = mController->robot()->getBodyNode(i)->getTransform();
+					Eigen::Isometry3d transform = mWorld->getSkeleton(ithSkel)->getBodyNode(i)->getTransform();
+
+					if (ithSkel == 2)
+					{
+						glPushMatrix();
+						glTranslated(transform.translation()[0], transform.translation()[1], transform.translation()[2]);
+						glDisable(GL_LIGHTING);
+
+						glPushMatrix();
+						// const double LEN = 10.0;
+
+						glColor3d(1.0, 0.0, 0.0);
+						glBegin(GL_LINES);
+						glVertex3d(0, 0.0, 0.0);
+						glVertex3d(transform.linear()(0, 0), transform.linear()(1, 0), transform.linear()(2, 0));
+						glEnd();
+
+						glColor3d(0.0, 1.0, 0.0);
+						glBegin(GL_LINES);
+						glVertex3d(0.0, 0, 0.0);
+						glVertex3d(transform.linear()(0, 1), transform.linear()(1, 1), transform.linear()(2, 1));
+						glEnd();
+
+						glColor3d(0.0, 0.0, 1.0);
+						glBegin(GL_LINES);
+						glVertex3d(0.0, 0.0, 0);
+						glVertex3d(transform.linear()(0, 2), transform.linear()(1, 2), transform.linear()(2, 2));
+						glEnd();
+						glPopMatrix();
+
+						glEnable(GL_LIGHTING);
+						glPopMatrix();
+					}
+
 					for (int j = 0; j < numSpheres; ++j)
 					{
 						Eigen::Vector3d centerWorld = transform * cspheres[i][j].mOffset;
@@ -297,7 +341,7 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
         mShowMarkers = !mShowMarkers;
         break;
 	case 's':
-		mMocapReader->SaveMotionAfterIK("../../mocap/oneFootBalance.mocap");
+		mMocapReader->SaveMotionAfterIK("../../mocap/soccer.mocap");
 		break;
 	case 'r':
 		mController->reset();

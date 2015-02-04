@@ -64,6 +64,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FastDebug|Win32'">
     <OutDir>..\lib</OutDir>
+    <TargetName>$(ProjectName)fd</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -117,13 +118,15 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <OutputFile>$(OutDir)$(TargetName)fd$(TargetExt)</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CMUSkeleton.cpp" />
+    <ClCompile Include="CMUSkeletonReader.cpp" />
     <ClCompile Include="COMConstraint.cpp" />
     <ClCompile Include="IKProblem.cpp" />
     <ClCompile Include="MocapReader.cpp" />
@@ -133,6 +136,8 @@
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CMUSkeleton.h" />
+    <ClInclude Include="CMUSkeletonReader.h" />
     <ClInclude Include="COMConstraint.h" />
     <ClInclude Include="IKProblem.h" />
     <ClInclude Include="MocapReader.h" />

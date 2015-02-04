@@ -64,6 +64,7 @@
 #include "myUtils/ConfigManager.h"
 #include <windows.h>
 #include "IK/MocapReader.h"
+#include "IK/CMUSkeletonReader.h"
 
 using namespace std;
 using namespace dart::dynamics;
@@ -113,7 +114,7 @@ int main(int argc, char* argv[])
     myWorld->setTimeStep(0.017);
 
 	MocapReader mocapReader;
-	mocapReader.Read("../../mocap/oneFootBalance.amc");
+	mocapReader.Read("../../mocap/soccer.amc");
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;
@@ -123,9 +124,12 @@ int main(int argc, char* argv[])
         = urdfLoader.parseSkeleton(
             DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
     robot->enableSelfCollision();
+
+	Skeleton* mocapSkel = ReadCMUSkeleton("../../mocap/oneFootBalance.asf");
 	
     myWorld->addSkeleton(robot);
     myWorld->addSkeleton(ground);
+	myWorld->addSkeleton(mocapSkel);
 
     // Print some info
     LOG(INFO) << "robot.mass = " << robot->getMass();
