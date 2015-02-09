@@ -27,7 +27,7 @@ enum CMUMocapJointType
 	CMU_JointName_lradius,
 	CMU_JointName_lwrist,
 	CMU_JointName_lhand,
-	CMU_JointName_lfingers,
+	CMU_JointName_lfinger,
 	CMU_JointName_lthumb,
 	CMU_JointName_rfemur,
 	CMU_JointName_rtibia,
@@ -38,6 +38,40 @@ enum CMUMocapJointType
 	CMU_JointName_lfoot,
 	CMU_JointName_ltoes,
 	CMU_JointName_max
+};
+
+enum DARTJointSequence
+{
+	DART_JointName_root,
+	DART_JointName_lowerback,
+	DART_JointName_lfemur,
+	DART_JointName_rfemur,
+	DART_JointName_upperback,
+	DART_JointName_ltibia,
+	DART_JointName_rtibia,
+	DART_JointName_thorax,
+	DART_JointName_lfoot,
+	DART_JointName_rfoot,
+	DART_JointName_lowerneck,
+	DART_JointName_lclavicle,
+	DART_JointName_rclavicle,
+	DART_JointName_ltoes,
+	DART_JointName_rtoes,
+	DART_JointName_upperneck,
+	DART_JointName_lhumerus,
+	DART_JointName_rhumerus,
+	DART_JointName_head,
+	DART_JointName_lradius,
+	DART_JointName_rradius,
+	DART_JointName_lwrist,
+	DART_JointName_rwrist,
+	DART_JointName_lhand,
+	DART_JointName_rhand,
+	DART_JointName_lfinger,
+	DART_JointName_rfinger,
+	DART_JointName_lthumb,
+	DART_JointName_rthumb,
+	DART_JointName_max
 };
 class CMUMocapJointDof
 {
@@ -52,6 +86,7 @@ public:
 	Eigen::VectorXd GetRobotPose() const;
 	Eigen::VectorXd GetCharacterPose() const;
 	vector<CMUMocapJointDof> mDofs;
+	static int msJointMapping[62];
 };
 class MocapReader
 {
@@ -64,10 +99,12 @@ public:
 	void SetFrameAfterIK(int ithFrame, const Eigen::VectorXd& pose);
 private:
 	void readHeader(ifstream& inFile);
+	void buildJointMapping();
 
 	string mFileName;
 	vector<CMUMocapFrame> mMotion;
 	vector<Eigen::VectorXd> mMotionAfterIK;
+
 };
 
 #endif

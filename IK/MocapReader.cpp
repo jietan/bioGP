@@ -4,55 +4,69 @@
 #include "utils/CppCommon.h"
 #include <glog/logging.h>
 using namespace google;
+#include "dart/math/Geometry.h"
+#include "myUtils/ConfigManager.h"
 
 const int numMotors = 18;
+
+int CMUMocapFrame::msJointMapping[] = 
+{
+	CMU_JointName_root,
+	CMU_JointName_lowerback,
+	CMU_JointName_lfemur,
+	CMU_JointName_rfemur,
+	CMU_JointName_upperback,
+	CMU_JointName_ltibia,
+	CMU_JointName_rtibia,
+	CMU_JointName_thorax,
+	CMU_JointName_lfoot,
+	CMU_JointName_rfoot,
+	CMU_JointName_lowerneck,
+	CMU_JointName_lclavicle,
+	CMU_JointName_rclavicle,
+	CMU_JointName_ltoes,
+	CMU_JointName_rtoes,
+	CMU_JointName_upperneck,
+	CMU_JointName_lhumerus,
+	CMU_JointName_rhumerus,
+	CMU_JointName_head,
+	CMU_JointName_lradius,
+	CMU_JointName_rradius,
+	CMU_JointName_lwrist,
+	CMU_JointName_rwrist,
+	CMU_JointName_lhand,
+	CMU_JointName_rhand,
+	CMU_JointName_lfinger,
+	CMU_JointName_rfinger,
+	CMU_JointName_lthumb,
+	CMU_JointName_rthumb
+};
 
 Eigen::VectorXd CMUMocapFrame::GetCharacterPose() const
 {
 	Eigen::VectorXd ret;
-	ret = Eigen::VectorXd::Zero(37);
-	//left thigh
-	ret[6] = -mDofs[CMU_JointName_lfemur].mValues[0];
-	ret[7] = mDofs[CMU_JointName_lfemur].mValues[1];
-	ret[8] = mDofs[CMU_JointName_lfemur].mValues[2];
-	//right thigh
-	ret[9] = -mDofs[CMU_JointName_rfemur].mValues[0];
-	ret[10] = mDofs[CMU_JointName_rfemur].mValues[1];
-	ret[11] = mDofs[CMU_JointName_rfemur].mValues[2];
-	//left shin
-	ret[14] = -mDofs[CMU_JointName_ltibia].mValues[0];
+	int count = 0;
+	ret = Eigen::VectorXd::Zero(62);
+	for (int i = 0; i < DART_JointName_max; ++i)
+	{
+		int jointIdx = msJointMapping[i];
+		int nValues = static_cast<int>(mDofs[jointIdx].mValues.size());
+		for (int j = nValues - 1; j >= 0; --j)
+			ret[count++] = mDofs[jointIdx].mValues[j];
+	}
+	ret.tail(56) = UTILS_PI / 180 * ret.tail(56);
+	//ret.head(6) = Eigen::VectorXd::Zero(6);
+
+	Eigen::Matrix3d rotRoot;
+	rotRoot = Eigen::AngleAxisd(ret[0] / 180.0 * M_PI, Eigen::Vector3d::UnitZ())
+		* Eigen::AngleAxisd(ret[1] / 180.0 * M_PI, Eigen::Vector3d::UnitY())
+		* Eigen::AngleAxisd(ret[2] / 180.0 * M_PI, Eigen::Vector3d::UnitX());
 	
-	//right shin
-	ret[15] = -mDofs[CMU_JointName_rtibia].mValues[0];
-
-	// left heel
-	ret[17] = -mDofs[CMU_JointName_lfoot].mValues[0];
-	ret[18] = mDofs[CMU_JointName_lfoot].mValues[1];
-
-	//right heel
-	ret[19] = -mDofs[CMU_JointName_rfoot].mValues[0];
-	ret[20] = mDofs[CMU_JointName_rfoot].mValues[1];
-
-	//left bicep
-	ret[27] = mDofs[CMU_JointName_lhumerus].mValues[2];
-	ret[28] = mDofs[CMU_JointName_lhumerus].mValues[1];
-	ret[29] = mDofs[CMU_JointName_lhumerus].mValues[0];
-
-	//right bicep
-	ret[30] = mDofs[CMU_JointName_rhumerus].mValues[2];
-	ret[31] = mDofs[CMU_JointName_rhumerus].mValues[1];
-	ret[32] = mDofs[CMU_JointName_rhumerus].mValues[0];
-
-	//left elbow
-	ret[33] = mDofs[CMU_JointName_lradius].mValues[0];
-	
-	//right elbow
-	ret[34] = mDofs[CMU_JointName_rradius].mValues[0];
-	ret = UTILS_PI / 180 * ret;
-
-	double hip1Offset = atan2(0.34202, 0.939693);
-	ret[6] += hip1Offset;
-
+	ret.head(3) = dart::math::logMap(rotRoot);
+	double mocapScale = 0.06;
+	DecoConfig::GetSingleton()->GetDouble("Mocap", "Scale", mocapScale);
+	ret.segment(3, 3) = mocapScale * Eigen::Vector3d(ret[5], ret[4], ret[3]);
+	ret[3] += 0.6;
 	return ret;
 }
 

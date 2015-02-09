@@ -114,7 +114,9 @@ int main(int argc, char* argv[])
     myWorld->setTimeStep(0.017);
 
 	MocapReader mocapReader;
-	mocapReader.Read("../../mocap/soccer.amc");
+	string fileName;
+	DecoConfig::GetSingleton()->GetString("Mocap", "OriginalFileName", fileName);
+	mocapReader.Read(fileName);
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;
@@ -124,6 +126,9 @@ int main(int argc, char* argv[])
         = urdfLoader.parseSkeleton(
             DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
     robot->enableSelfCollision();
+
+	//dart::simulation::World* testWorld
+	//	= dart::utils::SkelParser::readWorld("../../data/skel/fullbody1.skel");
 
 	Skeleton* mocapSkel = ReadCMUSkeleton("../../mocap/oneFootBalance.asf");
 	

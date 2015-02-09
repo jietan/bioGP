@@ -77,6 +77,9 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
     mTrackBall.setQuaternion(q);
     mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
 	mFrameCount = 0;
+
+	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
+
 }
 
 //==============================================================================
@@ -105,6 +108,7 @@ void MyWindow::displayTimer(int _val)
 //==============================================================================
 void MyWindow::timeStepping()
 {
+	if (!mSimulating) return;
 	static dart::common::Timer t;
 	//if (mFrameCount < 300)
 	//	mFrameCount = 300;
@@ -207,7 +211,48 @@ void MyWindow::drawSkels()
 			mWorld->getSkeleton(ithSkel)->draw(mRI);
 			int isShowCollisionSphere = 0;
 			DecoConfig::GetSingleton()->GetInt("Display", "IsShowCollisionSphere", isShowCollisionSphere);
-			if (isShowCollisionSphere)
+
+			
+			if (ithSkel == 2)
+			{
+				int numBodies = mWorld->getSkeleton(ithSkel)->getNumBodyNodes();
+				const double axisScale = 0.03;
+				for (int i = 0; i < numBodies; ++i)
+				{
+					Eigen::Isometry3d transform = mWorld->getSkeleton(ithSkel)->getBodyNode(i)->getTransform();
+
+					glPushMatrix();
+					glTranslated(transform.translation()[0], transform.translation()[1], transform.translation()[2]);
+					glDisable(GL_LIGHTING);
+
+					glPushMatrix();
+					// const double LEN = 10.0;
+
+					glColor3d(1.0, 0.0, 0.0);
+					glBegin(GL_LINES);
+					glVertex3d(0, 0.0, 0.0);
+					glVertex3d(axisScale * transform.linear()(0, 0), axisScale * transform.linear()(1, 0), axisScale * transform.linear()(2, 0));
+					glEnd();
+
+					glColor3d(0.0, 1.0, 0.0);
+					glBegin(GL_LINES);
+					glVertex3d(0.0, 0, 0.0);
+					glVertex3d(axisScale * transform.linear()(0, 1), axisScale * transform.linear()(1, 1), axisScale * transform.linear()(2, 1));
+					glEnd();
+
+					glColor3d(0.0, 0.0, 1.0);
+					glBegin(GL_LINES);
+					glVertex3d(0.0, 0.0, 0);
+					glVertex3d(axisScale * transform.linear()(0, 2), axisScale * transform.linear()(1, 2), axisScale * transform.linear()(2, 2));
+					glEnd();
+					glPopMatrix();
+
+					glEnable(GL_LIGHTING);
+					glPopMatrix();
+				}
+			}
+
+			if (isShowCollisionSphere && mWorld->getSkeleton(ithSkel) == mController->robot())
 			{
 				const std::vector<std::vector<CollisionSphere> >& cspheres = mController->getCollisionSpheres();
 				int numBodies = mWorld->getSkeleton(ithSkel)->getNumBodyNodes();
@@ -215,38 +260,6 @@ void MyWindow::drawSkels()
 				{
 					int numSpheres = static_cast<int>(cspheres[i].size());
 					Eigen::Isometry3d transform = mWorld->getSkeleton(ithSkel)->getBodyNode(i)->getTransform();
-
-					if (ithSkel == 2)
-					{
-						glPushMatrix();
-						glTranslated(transform.translation()[0], transform.translation()[1], transform.translation()[2]);
-						glDisable(GL_LIGHTING);
-
-						glPushMatrix();
-						// const double LEN = 10.0;
-
-						glColor3d(1.0, 0.0, 0.0);
-						glBegin(GL_LINES);
-						glVertex3d(0, 0.0, 0.0);
-						glVertex3d(transform.linear()(0, 0), transform.linear()(1, 0), transform.linear()(2, 0));
-						glEnd();
-
-						glColor3d(0.0, 1.0, 0.0);
-						glBegin(GL_LINES);
-						glVertex3d(0.0, 0, 0.0);
-						glVertex3d(transform.linear()(0, 1), transform.linear()(1, 1), transform.linear()(2, 1));
-						glEnd();
-
-						glColor3d(0.0, 0.0, 1.0);
-						glBegin(GL_LINES);
-						glVertex3d(0.0, 0.0, 0);
-						glVertex3d(transform.linear()(0, 2), transform.linear()(1, 2), transform.linear()(2, 2));
-						glEnd();
-						glPopMatrix();
-
-						glEnable(GL_LIGHTING);
-						glPopMatrix();
-					}
 
 					for (int j = 0; j < numSpheres; ++j)
 					{
@@ -299,37 +312,22 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
     {
     case ' ':  // use space key to play or stop the motion
         mSimulating = !mSimulating;
-        if (mSimulating)
-        {
-            mPlay = false;
-            glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
-        }
         break;
-    case 'p':  // playBack
-        mPlay = !mPlay;
-        if (mPlay)
-        {
-            mSimulating = false;
-            glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
-        }
+    case 'p':  // step backward
+		mSimulating = true;
+		mFrameCount -= 2;
+		timeStepping();
+		mSimulating = false;
+        glutPostRedisplay();
+
         break;
-    case '[':  // step backward
-        if (!mSimulating)
-        {
-            mPlayFrame-=10;
-            if (mPlayFrame < 0)
-                mPlayFrame = 0;
-            glutPostRedisplay();
-        }
-        break;
-    case ']':  // step forwardward
-        if (!mSimulating)
-        {
-            mPlayFrame+=10;
-            if (mPlayFrame >= mWorld->getRecording()->getNumFrames())
-                mPlayFrame = 0;
-            glutPostRedisplay();
-        }
+    case 'n':  // step forwardward
+
+		mSimulating = true;
+		timeStepping();
+		mSimulating = false;
+		glutPostRedisplay();
+
         break;
     case 'I':  // print debug information
         calculateInertia();
