@@ -134,6 +134,13 @@
     <ClCompile Include="PositionConstraint.cpp" />
     <ClCompile Include="RelativePositionConstraint.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="SupportInfo.cpp" />
+    <ClCompile Include="SupportState.cpp" />
+    <ClCompile Include="SupportStateDouble.cpp" />
+    <ClCompile Include="SupportStateDouble2Left.cpp" />
+    <ClCompile Include="SupportStateDouble2Right.cpp" />
+    <ClCompile Include="SupportStateLeft.cpp" />
+    <ClCompile Include="SupportStateRight.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CMUSkeleton.h" />
@@ -145,6 +152,13 @@
     <ClInclude Include="PositionConstraint.h" />
     <ClInclude Include="RelativePositionConstraint.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SupportInfo.h" />
+    <ClInclude Include="SupportState.h" />
+    <ClInclude Include="SupportStateDouble.h" />
+    <ClInclude Include="SupportStateDouble2Left.h" />
+    <ClInclude Include="SupportStateDouble2Right.h" />
+    <ClInclude Include="SupportStateLeft.h" />
+    <ClInclude Include="SupportStateRight.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

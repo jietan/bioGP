@@ -65,6 +65,7 @@
 #include <windows.h>
 #include "IK/MocapReader.h"
 #include "IK/CMUSkeletonReader.h"
+#include "IK/SupportInfo.h"
 
 using namespace std;
 using namespace dart::dynamics;
@@ -113,10 +114,7 @@ int main(int argc, char* argv[])
     World* myWorld = new World;
     myWorld->setTimeStep(0.017);
 
-	MocapReader mocapReader;
-	string fileName;
-	DecoConfig::GetSingleton()->GetString("Mocap", "OriginalFileName", fileName);
-	mocapReader.Read(fileName);
+
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;
@@ -153,9 +151,20 @@ int main(int argc, char* argv[])
 
     // Create a window and link it to the world
     // MyWindow window(new Controller(robot, myWorld->getConstraintSolver()));
+
+	MocapReader mocapReader;
+	string fileName;
+	DecoConfig::GetSingleton()->GetString("Mocap", "OriginalFileName", fileName);
+	mocapReader.Read(fileName);
+
+	fileName.replace(fileName.length() - 4, 4, ".state");
+	SupportInfo supportInfo(fileName);
+	supportInfo.SetSkeletons(mocapSkel, con->robot());
+
     MyWindow window(con);
     window.setWorld(myWorld);
 	window.setMocap(&mocapReader);
+	window.setSupportInfo(&supportInfo);
     // Print manual
     LOG(INFO) << "space bar: simulation on/off";
     LOG(INFO) << "'p': playback/stop";

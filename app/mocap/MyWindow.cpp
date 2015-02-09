@@ -57,7 +57,7 @@
 #include "robot/Motion.h"
 #include "IK/IKProblem.h"
 #include "IK/MocapReader.h"
-
+#include "IK/SupportInfo.h"
 
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
@@ -90,6 +90,11 @@ MyWindow::~MyWindow()
 
 int g_cnt = 0;
 
+
+void MyWindow::setSupportInfo(SupportInfo* support)
+{
+	mSupportInfo = support;
+}
 void MyWindow::setMocap(MocapReader* mocap)
 {
 	mMocapReader = mocap;
@@ -138,7 +143,9 @@ void MyWindow::timeStepping()
 		DecoConfig::GetSingleton()->GetInt("Mocap", "IsUseCOMControl", isUseCOM);
 		DecoConfig::GetSingleton()->GetInt("Mocap", "IsAvoidCollision", isAvoidCollision);
 		IKProblem ik(mController, isUseCOM, isAvoidCollision);
-
+		SupportStateType supportType = mSupportInfo->GetSupportType(mFrameCount);
+		LOG(INFO) << "Current Support Type: " << supportType;
+		mSupportInfo->AddConstraints(mFrameCount, &ik);
 		dart::optimizer::snopt::SnoptSolver solver(&ik);
 		bool ret = solver.solve();
 		if (!ret)

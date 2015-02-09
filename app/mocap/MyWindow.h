@@ -50,6 +50,7 @@ class HumanoidController;
 
 class MocapReader;
 class CSerial;
+class SupportInfo;
 /// \brief class MyWindow
 class MyWindow : public dart::gui::SimWindow
 {
@@ -71,12 +72,14 @@ public:
 
 	virtual void displayTimer(int _val);
 	void setMocap(MocapReader* mocap);
+	void setSupportInfo(SupportInfo* support);
     void calculateInertia();
 	void setSerial(CSerial* serial);
 private:
 	double mTime;
 	CSerial* mSerial;
 	MocapReader* mMocapReader;
+	SupportInfo* mSupportInfo;
     /// \brief External force to exert on Atlas robot
     Eigen::Vector3d mForce;
 	int mFrameCount;
