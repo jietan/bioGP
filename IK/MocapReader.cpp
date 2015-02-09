@@ -66,7 +66,7 @@ Eigen::VectorXd CMUMocapFrame::GetCharacterPose() const
 	double mocapScale = 0.06;
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "Scale", mocapScale);
 	ret.segment(3, 3) = mocapScale * Eigen::Vector3d(ret[5], ret[4], ret[3]);
-	ret[3] += 0.6;
+	
 	return ret;
 }
 

@@ -46,6 +46,8 @@
 #include "utils/CppCommon.h"
 
 #include "dart/dynamics/Skeleton.h"
+#include "dart/dynamics/BodyNode.h"
+#include "dart/dynamics/Marker.h"
 #include "dart/simulation/World.h"
 #include "dart/simulation/World.h"
 #include "dart/utils/Paths.h"
@@ -66,6 +68,7 @@
 #include "IK/MocapReader.h"
 #include "IK/CMUSkeletonReader.h"
 #include "IK/SupportInfo.h"
+
 
 using namespace std;
 using namespace dart::dynamics;
@@ -93,6 +96,26 @@ void AddWeldConstraint(World* myWorld)
 //	return 1;
 //}
 
+void AddMarkers(dart::dynamics::Skeleton* mocapSkel, dart::dynamics::Skeleton* robotSkel)
+{
+	double scale = 0.06;
+	DecoConfig::GetSingleton()->GetDouble("Mocap", "Scale", scale);
+	dart::dynamics::BodyNode* mocapLFoot = mocapSkel->getBodyNode("ltoes");
+	dart::dynamics::Marker* lFootMarker = new dart::dynamics::Marker("ltoes", Eigen::Vector3d(0, 2.13962 / 3 * scale, 0), mocapLFoot);
+	mocapLFoot->addMarker(lFootMarker);
+
+	dart::dynamics::BodyNode* mocapRFoot = mocapSkel->getBodyNode("rtoes");
+	dart::dynamics::Marker* rFootMarker = new dart::dynamics::Marker("rtoes", Eigen::Vector3d(0, 2.13962 / 3 * scale, 0), mocapRFoot);
+	mocapRFoot->addMarker(rFootMarker);
+
+	dart::dynamics::BodyNode* robotLFoot = robotSkel->getBodyNode("l_foot");
+	dart::dynamics::Marker* robotLFootMarker = new dart::dynamics::Marker("l_foot", Eigen::Vector3d(0, 0.0275947483062579, 0), robotLFoot);
+	robotLFoot->addMarker(robotLFootMarker);
+
+	dart::dynamics::BodyNode* robotRFoot = robotSkel->getBodyNode("r_foot");
+	dart::dynamics::Marker* robotRFootMarker = new dart::dynamics::Marker("r_foot", Eigen::Vector3d(0, 0.0275947483062579, 0), robotRFoot);
+	robotRFoot->addMarker(robotRFootMarker);
+}
 
 
 int main(int argc, char* argv[])
@@ -133,6 +156,7 @@ int main(int argc, char* argv[])
     myWorld->addSkeleton(robot);
     myWorld->addSkeleton(ground);
 	myWorld->addSkeleton(mocapSkel);
+	AddMarkers(mocapSkel, robot);
 
     // Print some info
     LOG(INFO) << "robot.mass = " << robot->getMass();

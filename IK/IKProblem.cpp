@@ -105,9 +105,13 @@ void IKProblem::initProblem(bioloidgp::robot::HumanoidController *skel, bool bCO
 	offsets.push_back(Eigen::Vector3d(0, 1, 0));
 	offsets.push_back(Eigen::Vector3d(0, 0, 1));
 
-	targets.push_back(Eigen::Vector3d(0.0281, -0.26867, 0));
-	targets.push_back(Eigen::Vector3d(0.0281, -1.2687,	0));
-	targets.push_back(Eigen::Vector3d(-0.9719, -0.2687,	0));
+	//targets.push_back(Eigen::Vector3d(0.0281, -0.26867, 0));
+	//targets.push_back(Eigen::Vector3d(0.0281, -1.2687,	0));
+	//targets.push_back(Eigen::Vector3d(-0.9719, -0.2687,	0));
+
+	targets.push_back(Eigen::Vector3d(0.0281, 0, 0));
+	targets.push_back(Eigen::Vector3d(0.0281, -1, 0));
+	targets.push_back(Eigen::Vector3d(-0.9719, 0, 0));
 
 	weights.push_back(1.0);
 	weights.push_back(1e-3);

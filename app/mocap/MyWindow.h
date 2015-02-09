@@ -89,6 +89,7 @@ private:
     /// \brief Constroller
     bioloidgp::robot::HumanoidController* mController;
 	string mTmpBuffer;
+	int mDisplayMode;
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_

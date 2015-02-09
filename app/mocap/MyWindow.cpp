@@ -65,7 +65,8 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
       mController(_controller),
 	  mSerial(NULL),
 	  mTmpBuffer(""),
-	  mTime(0)
+	  mTime(0),
+	  mDisplayMode(3)
 {
     mForce = Eigen::Vector3d::Zero();
     mImpulseDuration = 0.0;
@@ -73,9 +74,11 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	mDisplayTimeout = 10;
 	DecoConfig::GetSingleton()->GetDouble("Server", "timeout", mDisplayTimeout);
     // 0.166622 0.548365 0.118241 0.810896
-    Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
-    mTrackBall.setQuaternion(q);
-    mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+	//Eigen::Quaterniond q(0.15743952233047084, 0.53507160411429699, 0.10749289301287825, 0.82301687360383402);
+ //   mTrackBall.setQuaternion(q);
+    //mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+	
+	mTrans = Eigen::Vector3d(0, -212.85, 0); 
 	mFrameCount = 0;
 
 	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
@@ -201,12 +204,15 @@ void MyWindow::drawSkels()
 {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	for (unsigned int ithSkel = 0; ithSkel < mWorld->getNumSkeletons(); ithSkel++) {
+	for (unsigned int ithSkel = 0; ithSkel < mWorld->getNumSkeletons(); ithSkel++) 
+	{
+		if (ithSkel != mDisplayMode && mDisplayMode < mWorld->getNumSkeletons())
+			continue;
 		if (ithSkel == 1) {
-            //glPushMatrix();
+            glPushMatrix();
             //glTranslated(0, -0.301, 0);
-            //bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
-            //glPopMatrix();
+            bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
+            glPopMatrix();
 
             //glPushMatrix();
             //glTranslated(0, -0.001, 0);
@@ -216,48 +222,49 @@ void MyWindow::drawSkels()
 		else
 		{
 			mWorld->getSkeleton(ithSkel)->draw(mRI);
+			mWorld->getSkeleton(ithSkel)->drawMarkers(mRI);
 			int isShowCollisionSphere = 0;
 			DecoConfig::GetSingleton()->GetInt("Display", "IsShowCollisionSphere", isShowCollisionSphere);
 
 			
-			if (ithSkel == 2)
-			{
-				int numBodies = mWorld->getSkeleton(ithSkel)->getNumBodyNodes();
-				const double axisScale = 0.03;
-				for (int i = 0; i < numBodies; ++i)
-				{
-					Eigen::Isometry3d transform = mWorld->getSkeleton(ithSkel)->getBodyNode(i)->getTransform();
+			//if (ithSkel == 2)
+			//{
+			//	int numBodies = mWorld->getSkeleton(ithSkel)->getNumBodyNodes();
+			//	const double axisScale = 0.03;
+			//	for (int i = 0; i < numBodies; ++i)
+			//	{
+			//		Eigen::Isometry3d transform = mWorld->getSkeleton(ithSkel)->getBodyNode(i)->getTransform();
 
-					glPushMatrix();
-					glTranslated(transform.translation()[0], transform.translation()[1], transform.translation()[2]);
-					glDisable(GL_LIGHTING);
+			//		glPushMatrix();
+			//		glTranslated(transform.translation()[0], transform.translation()[1], transform.translation()[2]);
+			//		glDisable(GL_LIGHTING);
 
-					glPushMatrix();
-					// const double LEN = 10.0;
+			//		glPushMatrix();
+			//		// const double LEN = 10.0;
 
-					glColor3d(1.0, 0.0, 0.0);
-					glBegin(GL_LINES);
-					glVertex3d(0, 0.0, 0.0);
-					glVertex3d(axisScale * transform.linear()(0, 0), axisScale * transform.linear()(1, 0), axisScale * transform.linear()(2, 0));
-					glEnd();
+			//		glColor3d(1.0, 0.0, 0.0);
+			//		glBegin(GL_LINES);
+			//		glVertex3d(0, 0.0, 0.0);
+			//		glVertex3d(axisScale * transform.linear()(0, 0), axisScale * transform.linear()(1, 0), axisScale * transform.linear()(2, 0));
+			//		glEnd();
 
-					glColor3d(0.0, 1.0, 0.0);
-					glBegin(GL_LINES);
-					glVertex3d(0.0, 0, 0.0);
-					glVertex3d(axisScale * transform.linear()(0, 1), axisScale * transform.linear()(1, 1), axisScale * transform.linear()(2, 1));
-					glEnd();
+			//		glColor3d(0.0, 1.0, 0.0);
+			//		glBegin(GL_LINES);
+			//		glVertex3d(0.0, 0, 0.0);
+			//		glVertex3d(axisScale * transform.linear()(0, 1), axisScale * transform.linear()(1, 1), axisScale * transform.linear()(2, 1));
+			//		glEnd();
 
-					glColor3d(0.0, 0.0, 1.0);
-					glBegin(GL_LINES);
-					glVertex3d(0.0, 0.0, 0);
-					glVertex3d(axisScale * transform.linear()(0, 2), axisScale * transform.linear()(1, 2), axisScale * transform.linear()(2, 2));
-					glEnd();
-					glPopMatrix();
+			//		glColor3d(0.0, 0.0, 1.0);
+			//		glBegin(GL_LINES);
+			//		glVertex3d(0.0, 0.0, 0);
+			//		glVertex3d(axisScale * transform.linear()(0, 2), axisScale * transform.linear()(1, 2), axisScale * transform.linear()(2, 2));
+			//		glEnd();
+			//		glPopMatrix();
 
-					glEnable(GL_LIGHTING);
-					glPopMatrix();
-				}
-			}
+			//		glEnable(GL_LIGHTING);
+			//		glPopMatrix();
+			//	}
+			//}
 
 			if (isShowCollisionSphere && mWorld->getSkeleton(ithSkel) == mController->robot())
 			{
@@ -320,6 +327,9 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
     case ' ':  // use space key to play or stop the motion
         mSimulating = !mSimulating;
         break;
+	case '1':
+		mDisplayMode = (mDisplayMode + 1) % 4;
+		break;
     case 'p':  // step backward
 		mSimulating = true;
 		mFrameCount -= 2;
@@ -329,7 +339,6 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
 
         break;
     case 'n':  // step forwardward
-
 		mSimulating = true;
 		timeStepping();
 		mSimulating = false;
@@ -350,6 +359,7 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
 		break;
 	case 'r':
 		mController->reset();
+		
 		mFrameCount = 0;
 		mTime = 0;
 		break;

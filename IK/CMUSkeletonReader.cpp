@@ -23,9 +23,14 @@ void convertFromCMUBones(Bone* bone, Bone* parentBone, const Eigen::Isometry3d& 
 	if (!dartSkel || !bone)
 		return;
 	dart::dynamics::BodyNode* body = new dart::dynamics::BodyNode;
-	dart::dynamics::Shape* shape = new dart::dynamics::CylinderShape(0.005, bone->length);
-	//shape->setOffset(Eigen::Vector3d(0, 0, bone->length / 2));
-	body->addVisualizationShape(shape);
+	dart::dynamics::Shape* shape = NULL;
+	if (parentBone)
+	{
+		shape = new dart::dynamics::CylinderShape(0.001, bone->length);
+		//shape->setOffset(Eigen::Vector3d(0, 0, bone->length / 2));
+		body->addVisualizationShape(shape);
+
+	}
 	body->setName(bone->name);
 	if (!strcmp(bone->name, "lhumerus"))
 		printf("hello");
@@ -75,7 +80,7 @@ void convertFromCMUBones(Bone* bone, Bone* parentBone, const Eigen::Isometry3d& 
 	parentToJoint = parentWorld.inverse()*childWorld*childToJoint;
 	//childToJoint = (childWorld.inverse() * parentWorld * parentToJoint);
 	Eigen::Vector3d dirGlobal(bone->dir[0], bone->dir[1], bone->dir[2]);
-	if (dirGlobal.norm() > 1e-6)
+	if (parentBone && dirGlobal.norm() > 1e-6)
 	{
 		Eigen::Vector3d dirLocal = childWorldLinear.inverse() * dirGlobal;
 		Eigen::Vector3d dirX(1, 1, 1);
