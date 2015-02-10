@@ -24,12 +24,12 @@ public:
 	virtual ~IKProblem();
 
 	void initProblem(bioloidgp::robot::HumanoidController *skel, bool bCOMControl, bool bCollisionAvoidance);
-
 	virtual void update(double* coefs);
 	void verifyConstraint() const;
 	dart::dynamics::Skeleton* getSkel() const;
-
 	dart::optimizer::Constraint* getConstraint(int index) const;
+	void addConstraint(dart::optimizer::Constraint* c);
+	void addObjective(dart::optimizer::Constraint* o);
 protected:
 	bioloidgp::robot::HumanoidController* mController;
 	std::vector<dart::optimizer::Constraint*> mConstraints;

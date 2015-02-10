@@ -118,8 +118,8 @@ void MyWindow::timeStepping()
 {
 	if (!mSimulating) return;
 	static dart::common::Timer t;
-	//if (mFrameCount < 300)
-	//	mFrameCount = 300;
+	//if (mFrameCount < 560)
+	//	mFrameCount = 560;
 	/*frameCount = 0;*/
 	//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
 	//mController->setMotorMapPose(motor_qhat);

@@ -10,8 +10,8 @@ PoseConstraint::PoseConstraint(std::vector<dart::optimizer::Var *>& var, dart::d
 	
 	mNumRows = static_cast<int>(var.size());
 	mWeight = VectorXd::Ones(mNumRows);
-	mWeight.head(6) = Eigen::VectorXd::Zero(6);
-
+	//mWeight.head(6) = Eigen::VectorXd::Zero(6);
+	//mWeight.segment(3, 3) = Eigen::VectorXd::Zero(3);
 	mConstTerm = VectorXd::Zero(mNumRows);
 	mCompletion = VectorXd::Zero(mNumRows);
 

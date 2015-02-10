@@ -12,5 +12,14 @@ SupportStateRight::~SupportStateRight()
 
 void SupportStateRight::AddConstraint(int frameNum, IKProblem* ik)
 {
+	snapshotInitialFootLocations(frameNum);
+	addRightFootConstraint(frameNum, mInitialRightFoot, true, ik);
 
+	Eigen::Vector3d leftFootTarget = mOrig->getMarker("lfoot")->getWorldPosition();
+	if (leftFootTarget[1] < 0)
+		leftFootTarget[1] = 0;
+	addLeftFootObjective(frameNum, leftFootTarget, false, ik);
+
+	Eigen::Vector3d comTarget = mInitialRightFoot;
+	addCOMObjective(frameNum, comTarget, ik);
 }

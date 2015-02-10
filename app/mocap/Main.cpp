@@ -100,21 +100,29 @@ void AddMarkers(dart::dynamics::Skeleton* mocapSkel, dart::dynamics::Skeleton* r
 {
 	double scale = 0.06;
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "Scale", scale);
-	dart::dynamics::BodyNode* mocapLFoot = mocapSkel->getBodyNode("ltoes");
-	dart::dynamics::Marker* lFootMarker = new dart::dynamics::Marker("ltoes", Eigen::Vector3d(0, 2.13962 / 3 * scale, 0), mocapLFoot);
+	dart::dynamics::BodyNode* mocapLFoot = mocapSkel->getBodyNode("lfoot");
+	dart::dynamics::Marker* lFootMarker = new dart::dynamics::Marker("lfoot", Eigen::Vector3d(0, -2.13962 / 2 * scale, 0), mocapLFoot);
 	mocapLFoot->addMarker(lFootMarker);
 
-	dart::dynamics::BodyNode* mocapRFoot = mocapSkel->getBodyNode("rtoes");
-	dart::dynamics::Marker* rFootMarker = new dart::dynamics::Marker("rtoes", Eigen::Vector3d(0, 2.13962 / 3 * scale, 0), mocapRFoot);
+	dart::dynamics::BodyNode* mocapRFoot = mocapSkel->getBodyNode("rfoot");
+	dart::dynamics::Marker* rFootMarker = new dart::dynamics::Marker("rfoot", Eigen::Vector3d(0, -2.13962 / 2 * scale, 0), mocapRFoot);
 	mocapRFoot->addMarker(rFootMarker);
 
 	dart::dynamics::BodyNode* robotLFoot = robotSkel->getBodyNode("l_foot");
-	dart::dynamics::Marker* robotLFootMarker = new dart::dynamics::Marker("l_foot", Eigen::Vector3d(0, 0.0275947483062579, 0), robotLFoot);
+	dart::dynamics::Marker* robotLFootMarker = new dart::dynamics::Marker("l_foot", Eigen::Vector3d(0, 0.0275947483062579, -0.005), robotLFoot);
+	dart::dynamics::Marker* robotLFootMarkerUp = new dart::dynamics::Marker("l_footUp", Eigen::Vector3d(0, 0.0275947483062579 - 0.1, -0.005), robotLFoot);
+	dart::dynamics::Marker* robotLFootMarkerLeft = new dart::dynamics::Marker("l_footLeft", Eigen::Vector3d(0, 0.0275947483062579, -0.005 - 0.1), robotLFoot);
 	robotLFoot->addMarker(robotLFootMarker);
+	robotLFoot->addMarker(robotLFootMarkerUp);
+	robotLFoot->addMarker(robotLFootMarkerLeft);
 
 	dart::dynamics::BodyNode* robotRFoot = robotSkel->getBodyNode("r_foot");
-	dart::dynamics::Marker* robotRFootMarker = new dart::dynamics::Marker("r_foot", Eigen::Vector3d(0, 0.0275947483062579, 0), robotRFoot);
+	dart::dynamics::Marker* robotRFootMarker = new dart::dynamics::Marker("r_foot", Eigen::Vector3d(0, 0.0275947483062579, 0.005), robotRFoot);
+	dart::dynamics::Marker* robotRFootMarkerUp = new dart::dynamics::Marker("r_footUp", Eigen::Vector3d(0, 0.0275947483062579 - 0.1, 0.005), robotRFoot);
+	dart::dynamics::Marker* robotRFootMarkerLeft = new dart::dynamics::Marker("r_footLeft", Eigen::Vector3d(0, 0.0275947483062579, 0.005 - 0.1), robotRFoot);
 	robotRFoot->addMarker(robotRFootMarker);
+	robotRFoot->addMarker(robotRFootMarkerUp);
+	robotRFoot->addMarker(robotRFootMarkerLeft);
 }
 
 
@@ -184,7 +192,7 @@ int main(int argc, char* argv[])
 	fileName.replace(fileName.length() - 4, 4, ".state");
 	SupportInfo supportInfo(fileName);
 	supportInfo.SetSkeletons(mocapSkel, con->robot());
-
+	supportInfo.SetLeftGlobal(0.1 * Eigen::Vector3d(0, 0, 1));
     MyWindow window(con);
     window.setWorld(myWorld);
 	window.setMocap(&mocapReader);

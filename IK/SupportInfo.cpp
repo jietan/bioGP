@@ -26,10 +26,25 @@ SupportInfo::~SupportInfo()
 	}
 	mStates.clear();
 }
+
+void SupportInfo::SetLeftGlobal(const Eigen::Vector3d& left)
+{
+	int nStates = static_cast<int>(mStates.size());
+	for (int i = 0; i < nStates; ++i)
+	{
+		mStates[i]->SetLeftGlobal(left);
+	}
+
+}
 void SupportInfo::SetSkeletons(dart::dynamics::Skeleton* origSkel, dart::dynamics::Skeleton* targetSkel)
 {
 	mOrig = origSkel;
 	mTarget = targetSkel;
+	int nStates = static_cast<int>(mStates.size());
+	for (int i = 0; i < nStates; ++i)
+	{
+		mStates[i]->SetSkeletons(mOrig, mTarget);
+	}
 }
 
 SupportStateType SupportInfo::GetSupportType(int frameNumber)

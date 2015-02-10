@@ -41,7 +41,7 @@ void IKProblem::initProblem(bioloidgp::robot::HumanoidController *skel, bool bCO
     // add variables
 	int startDofId = 0;
     for (int i = startDofId; i < getSkel()->getNumDofs(); i++) {
-        addVariable(getSkel()->getPosition(i), getSkel()->getPositionLowerLimit(i), getSkel()->getPositionUpperLimit(i));
+		addVariable(getSkel()->getPosition(i), getSkel()->getPositionLowerLimit(i), getSkel()->getPositionUpperLimit(i));
     }
     //LOG(INFO) << "add # " << getNumVariables() << " Variables";
 
@@ -56,18 +56,6 @@ void IKProblem::initProblem(bioloidgp::robot::HumanoidController *skel, bool bCO
 	p->setTarget(mInitialPose);
 	objBox()->add(p);
 	mConstraints.push_back(p);
-
-	if (bCOMControl)
-	{
-		COMConstraint* pCOM = new COMConstraint(this->vars(), getSkel());
-		Eigen::Vector3d targetCOM = getSkel()->getWorldCOM();
-		targetCOM[0] = 0.0281 + 0.01;
-		//targetCOM[1] = -0.26867;
-		targetCOM[2] = 0 + 0.005;
-		pCOM->setTarget(targetCOM, COM_CONSTRAINT_X | COM_CONSTRAINT_Z);
-		objBox()->add(pCOM);
-		mConstraints.push_back(pCOM);
-	}
 	
 	if (bCollisionAvoidance)
 	{
@@ -97,34 +85,7 @@ void IKProblem::initProblem(bioloidgp::robot::HumanoidController *skel, bool bCO
 			
 		}
 	}
-	int numMarkerConstraints = 3;
-	vector<Eigen::Vector3d> offsets;
-	vector<Eigen::Vector3d> targets;
-	vector<double> weights;
-	offsets.push_back(Eigen::Vector3d(0, 0, 0));
-	offsets.push_back(Eigen::Vector3d(0, 1, 0));
-	offsets.push_back(Eigen::Vector3d(0, 0, 1));
 
-	//targets.push_back(Eigen::Vector3d(0.0281, -0.26867, 0));
-	//targets.push_back(Eigen::Vector3d(0.0281, -1.2687,	0));
-	//targets.push_back(Eigen::Vector3d(-0.9719, -0.2687,	0));
-
-	targets.push_back(Eigen::Vector3d(0.0281, 0, 0));
-	targets.push_back(Eigen::Vector3d(0.0281, -1, 0));
-	targets.push_back(Eigen::Vector3d(-0.9719, 0, 0));
-
-	weights.push_back(1.0);
-	weights.push_back(1e-3);
-	weights.push_back(1e-3);
-	for (int i = 0; i < numMarkerConstraints; i++) {
-		
-		BodyNode* node = mController->robot()->getBodyNode("l_foot");
-		
-		PositionConstraint* p = new PositionConstraint(this->vars(), getSkel(), node, offsets[i], targets[i], weights[i]);
-		conBox()->add(p);
-		
-		mConstraints.push_back(p);
-	}
 
 
 
@@ -145,6 +106,17 @@ void IKProblem::update(double* coefs) {
     // cout << pose.transpose() << endl;
     getSkel()->setPositions(pose);
 	getSkel()->computeForwardKinematics(true, false, false);
+}
+
+void IKProblem::addObjective(dart::optimizer::Constraint* o)
+{
+	objBox()->add(o);
+	mConstraints.push_back(o);
+}
+void IKProblem::addConstraint(dart::optimizer::Constraint* c)
+{
+	conBox()->add(c);
+	mConstraints.push_back(c);
 }
 void IKProblem::verifyConstraint() const
 {

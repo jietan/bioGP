@@ -17,6 +17,7 @@ public:
 	~SupportInfo();
 	void SetSkeletons(dart::dynamics::Skeleton* origSkel, dart::dynamics::Skeleton* targetSkel);
 	void AddConstraints(int frameNumber, IKProblem* ik);
+	void SetLeftGlobal(const Eigen::Vector3d& left);
 	SupportStateType GetSupportType(int frameNumber);
 private:
 	void loadFromFile(const string& fileName);
