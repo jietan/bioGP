@@ -194,9 +194,12 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	mDisplayTimeout = 10;
 	DecoConfig::GetSingleton()->GetDouble("Server", "timeout", mDisplayTimeout);
     // 0.166622 0.548365 0.118241 0.810896
-    Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
-    mTrackBall.setQuaternion(q);
-    mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+	// 0.166622 0.548365 0.118241 0.810896
+	//Eigen::Quaterniond q(0.15743952233047084, 0.53507160411429699, 0.10749289301287825, 0.82301687360383402);
+	//   mTrackBall.setQuaternion(q);
+	//mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+
+	mTrans = Eigen::Vector3d(0, -212.85, 0);
 }
 
 //==============================================================================

@@ -40,7 +40,8 @@ void SupportState::addCOMObjective(int frameNum, const Eigen::Vector3d& comTarge
 		COMConstraint* pCOM = new COMConstraint(ik->vars(), mTarget);
 
 		pCOM->setTarget(comTarget, COM_CONSTRAINT_X | COM_CONSTRAINT_Z);
-		ik->addObjective(pCOM);
+		//ik->addObjective(pCOM);
+		ik->addConstraint(pCOM);
 	}
 }
 
@@ -121,13 +122,13 @@ void SupportState::addLeftFootConstraint(int frameNum, const Eigen::Vector3d& fo
 	dart::dynamics::BodyNode* node = NULL;
 	PositionConstraint* p = NULL;
 
-	weight = 1.0;
+	weight = 0.1;
 	node = mTarget->getBodyNode("l_foot");
 	offset = mTarget->getMarker("l_foot")->getLocalPosition();
 	p = new PositionConstraint(ik->vars(), mTarget, node, offset, footConstraint, weight);
 	ik->addConstraint(p);
 
-	weight = 1e-3;
+	weight = 1e-2;
 	node = mTarget->getBodyNode("l_foot");
 	offset = mTarget->getMarker("l_footUp")->getLocalPosition();
 	target = footConstraint;
@@ -155,13 +156,13 @@ void SupportState::addRightFootConstraint(int frameNum, const Eigen::Vector3d& f
 	dart::dynamics::BodyNode* node = NULL;
 	PositionConstraint* p = NULL;
 
-	weight = 1.0;
+	weight = 0.1;
 	node = mTarget->getBodyNode("r_foot");
 	offset = mTarget->getMarker("r_foot")->getLocalPosition();
 	p = new PositionConstraint(ik->vars(), mTarget, node, offset, footConstraint, weight);
 	ik->addConstraint(p);
 
-	weight = 1e-3;
+	weight = 1e-2;
 	node = mTarget->getBodyNode("r_foot");
 	offset = mTarget->getMarker("r_footUp")->getLocalPosition();
 	target = footConstraint;
@@ -185,18 +186,23 @@ void SupportState::addRightFootConstraint(int frameNum, const Eigen::Vector3d& f
 
 void SupportState::addDoubleFootConstraint(int frameNum, const Eigen::Vector3d& leftFootConstraint, const Eigen::Vector3d& rightFootConstraint, IKProblem* ik)
 {
-	addLeftFootConstraint(frameNum, leftFootConstraint, true, ik);
-	addRightFootConstraint(frameNum, rightFootConstraint, false, ik);
+	Eigen::Vector3d realLeftFootConstraint = leftFootConstraint;
+	Eigen::Vector3d realRightFootConstraint = rightFootConstraint;
+	realLeftFootConstraint[1] = realRightFootConstraint[1] = 0;
+	addLeftFootConstraint(frameNum, realLeftFootConstraint, true, ik);
+	addRightFootConstraint(frameNum, realRightFootConstraint, false, ik);
 }
 
 void SupportState::snapshotInitialFootLocations(int frameNum)
 {
-	//if (frameNum == mStartFrame)
+	if (frameNum == mStartFrame)
 	{
 		mInitialLeftFoot = mOrig->getMarker("lfoot")->getWorldPosition();
-		mInitialLeftFoot[1] = 0;
+		//mInitialLeftFoot[1] = 0;
 
 		mInitialRightFoot = mOrig->getMarker("rfoot")->getWorldPosition();
-		mInitialRightFoot[1] = 0;
+		//mInitialRightFoot[1] = 0;
+
+		mInitialCOM = mTarget->getWorldCOM();
 	}
 }

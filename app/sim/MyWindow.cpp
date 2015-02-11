@@ -55,18 +55,19 @@
 
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
-    : SimWindow(),
-      mController(_controller)
+	: SimWindow(),
+	mController(_controller)
 {
-    mForce = Eigen::Vector3d::Zero();
-    mImpulseDuration = 0.0;
+	mForce = Eigen::Vector3d::Zero();
+	mImpulseDuration = 0.0;
 
-    // 0.166622 0.548365 0.118241 0.810896
-    Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
-    mTrackBall.setQuaternion(q);
-    mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+	// 0.166622 0.548365 0.118241 0.810896
+	//Eigen::Quaterniond q(0.15743952233047084, 0.53507160411429699, 0.10749289301287825, 0.82301687360383402);
+	//   mTrackBall.setQuaternion(q);
+	//mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+
+	mTrans = Eigen::Vector3d(0, -212.85, 0);
 }
-
 //==============================================================================
 MyWindow::~MyWindow()
 {
@@ -206,14 +207,14 @@ void MyWindow::drawSkels()
     for (unsigned int i = 0; i < mWorld->getNumSkeletons(); i++) {
         if (i == 1) {
             glPushMatrix();
-            glTranslated(0, -0.301, 0);
+            glTranslated(0, -0.001, 0);
             bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
             glPopMatrix();
 
-            glPushMatrix();
-            glTranslated(0, -0.001, 0);
-            mWorld->getSkeleton(i)->draw(mRI);
-            glPopMatrix();
+            //glPushMatrix();
+            //glTranslated(0, -0.001, 0);
+            //mWorld->getSkeleton(i)->draw(mRI);
+            //glPopMatrix();
             
             continue;
         }

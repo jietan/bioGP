@@ -9,5 +9,6 @@ public:
 	SupportStateDouble2Left();
 	virtual ~SupportStateDouble2Left();
 	virtual void AddConstraint(int frameNum, IKProblem* ik);
+	
 };
 #endif

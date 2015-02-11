@@ -9,6 +9,7 @@
 #include "IKProblem.h"
 #include "PositionConstraint.h"
 #include "COMConstraint.h"
+#include "myUtils/ConfigManager.h"
 class IKProblem;
 namespace dart
 {
@@ -56,7 +57,7 @@ protected:
 	Eigen::Vector3d mLeftGlobal;
 	Eigen::Vector3d mInitialLeftFoot;
 	Eigen::Vector3d mInitialRightFoot;
-
+	Eigen::Vector3d mInitialCOM;
 
 };
 #endif

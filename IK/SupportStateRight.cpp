@@ -13,13 +13,24 @@ SupportStateRight::~SupportStateRight()
 void SupportStateRight::AddConstraint(int frameNum, IKProblem* ik)
 {
 	snapshotInitialFootLocations(frameNum);
-	addRightFootConstraint(frameNum, mInitialRightFoot, true, ik);
+	Eigen::Vector3d realRightFootConstraint = mInitialRightFoot;
+	realRightFootConstraint[1] = 0;
+	addRightFootConstraint(frameNum, realRightFootConstraint, true, ik);
 
 	Eigen::Vector3d leftFootTarget = mOrig->getMarker("lfoot")->getWorldPosition();
-	if (leftFootTarget[1] < 0)
-		leftFootTarget[1] = 0;
-	addLeftFootObjective(frameNum, leftFootTarget, false, ik);
+	//leftFootTarget[1] = leftFootTarget[1] - mInitialRightFoot[1];
+	//if (leftFootTarget[1] < 0)
+	//	leftFootTarget[1] = 0;
+	double stepHeight = 0;
+	DecoConfig::GetSingleton()->GetDouble("Mocap", "StepHeight", stepHeight);
+	leftFootTarget[1] = stepHeight * sin(static_cast<double>(frameNum - mStartFrame) / (mEndFrame - mStartFrame) * M_PI);
+	addLeftFootConstraint(frameNum, leftFootTarget, false, ik);
 	//addLeftFootConstraint(frameNum, leftFootTarget, false, ik);
-	Eigen::Vector3d comTarget = mInitialRightFoot;
+
+	double comOffsetX = 0;
+	double comOffsetZ = 0;
+	DecoConfig::GetSingleton()->GetDouble("Mocap", "COMOffsetX", comOffsetX);
+	DecoConfig::GetSingleton()->GetDouble("Mocap", "COMOffsetZ", comOffsetZ);
+	Eigen::Vector3d comTarget = mInitialRightFoot + Eigen::Vector3d(-comOffsetX, 0, comOffsetZ);
 	addCOMObjective(frameNum, comTarget, ik);
 }

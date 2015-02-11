@@ -54,6 +54,7 @@ Eigen::VectorXd CMUMocapFrame::GetCharacterPose() const
 		for (int j = nValues - 1; j >= 0; --j)
 			ret[count++] = mDofs[jointIdx].mValues[j];
 	}
+
 	ret.tail(56) = UTILS_PI / 180 * ret.tail(56);
 	//ret.head(6) = Eigen::VectorXd::Zero(6);
 
@@ -92,14 +93,18 @@ Eigen::VectorXd CMUMocapFrame::GetRobotPose() const
 		* Eigen::AngleAxisd(ry, -Eigen::Vector3d::UnitY())
 		* Eigen::AngleAxisd(rx, -Eigen::Vector3d::UnitX());
 	Eigen::Vector3d lEulerAngle = rHumerusRot.eulerAngles(1, 2, 0);
-	ret[0] = -rEulerAngle[0];
-	ret[1] = -lEulerAngle[0];
-	ret[2] = rEulerAngle[1]; //rShoulder2
-	ret[3] = lEulerAngle[1];
+	//ret[0] = -rEulerAngle[0];
+	//ret[1] = -lEulerAngle[0];
+	//ret[2] = rEulerAngle[1]; //rShoulder2
+	//ret[3] = lEulerAngle[1];
 	//ret[0] = mDofs[CMU_JointName_rhumerus].mValues[2]; //rShoulder1
 	//ret[1] = -mDofs[CMU_JointName_lhumerus].mValues[2]; //lShoulder1
 	//ret[2] = mDofs[CMU_JointName_rhumerus].mValues[1]; //rShoulder2
 	//ret[3] = -mDofs[CMU_JointName_lhumerus].mValues[1]; //lShoulder2
+	ret[0] -= UTILS_PI / 6;
+	ret[1] -= UTILS_PI / 6;
+	ret[2] -= UTILS_PI / 2 - 0.2;
+	ret[3] -= -UTILS_PI / 2 + 0.2;
 	ret[4] = mDofs[CMU_JointName_rradius].mValues[0]; //rElbow
 	ret[5] = mDofs[CMU_JointName_lradius].mValues[0]; //lElbow
 	ret[8] = -mDofs[CMU_JointName_rfemur].mValues[2]; //rHip1
@@ -173,6 +178,16 @@ void MocapReader::Read(const string& filename)
 				frame.mDofs[ithJoint].mValues.push_back(value);
 			}
 		}
+		// jie hack to make to feet separate
+		if (!frame.mDofs[CMU_JointName_ltibia].mValues.empty())
+		{
+			frame.mDofs[CMU_JointName_ltibia].mValues[0] += 40;
+			frame.mDofs[CMU_JointName_rtibia].mValues[0] += 40;
+			frame.mDofs[CMU_JointName_lfemur].mValues[2] += 11;
+			frame.mDofs[CMU_JointName_rfemur].mValues[2] -= 11;
+		}
+
+
 		mMotion.push_back(frame);
 	}
 	mMotion.erase(mMotion.end() - 1);

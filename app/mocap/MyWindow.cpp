@@ -210,7 +210,7 @@ void MyWindow::drawSkels()
 			continue;
 		if (ithSkel == 1) {
             glPushMatrix();
-            //glTranslated(0, -0.301, 0);
+            glTranslated(0, -0.003, 0);
             bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
             glPopMatrix();
 
@@ -355,7 +355,7 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
         mShowMarkers = !mShowMarkers;
         break;
 	case 's':
-		mMocapReader->SaveMotionAfterIK("../../mocap/soccer.mocap");
+		mMocapReader->SaveMotionAfterIK("../../mocap/stepRight.mocap");
 		break;
 	case 'r':
 		mController->reset();

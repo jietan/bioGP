@@ -14,8 +14,12 @@ void SupportStateDouble2Left::AddConstraint(int frameNum, IKProblem* ik)
 {
 	snapshotInitialFootLocations(frameNum);
 	addDoubleFootConstraint(frameNum, mInitialLeftFoot, mInitialRightFoot, ik);
-	Eigen::Vector3d currentCOM = mTarget->getWorldCOM();
-	Eigen::Vector3d endCOM = mInitialLeftFoot;
-	Eigen::Vector3d comTarget = endCOM;//  currentCOM + (endCOM - currentCOM) / (mEndFrame - frameNum);
+	
+	double comOffsetX = 0;
+	double comOffsetZ = 0;
+	DecoConfig::GetSingleton()->GetDouble("Mocap", "COMOffsetX", comOffsetX);
+	DecoConfig::GetSingleton()->GetDouble("Mocap", "COMOffsetZ", comOffsetZ);
+	Eigen::Vector3d endCOM = mInitialLeftFoot + Eigen::Vector3d(comOffsetX, 0, comOffsetZ);
+	Eigen::Vector3d comTarget = mInitialCOM + (endCOM - mInitialCOM) / (mEndFrame - mStartFrame) * (frameNum - mStartFrame);//  currentCOM + (endCOM - currentCOM) / (mEndFrame - frameNum);
 	addCOMObjective(frameNum, comTarget, ik);
 }

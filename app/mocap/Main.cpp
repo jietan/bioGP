@@ -101,11 +101,12 @@ void AddMarkers(dart::dynamics::Skeleton* mocapSkel, dart::dynamics::Skeleton* r
 	double scale = 0.06;
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "Scale", scale);
 	dart::dynamics::BodyNode* mocapLFoot = mocapSkel->getBodyNode("lfoot");
-	dart::dynamics::Marker* lFootMarker = new dart::dynamics::Marker("lfoot", Eigen::Vector3d(0, -2.13962 / 2 * scale, 0), mocapLFoot);
+	dart::dynamics::Marker* lFootMarker = new dart::dynamics::Marker("lfoot", Eigen::Vector3d(0, -2.13962 * scale, 0), mocapLFoot);
 	mocapLFoot->addMarker(lFootMarker);
 
 	dart::dynamics::BodyNode* mocapRFoot = mocapSkel->getBodyNode("rfoot");
-	dart::dynamics::Marker* rFootMarker = new dart::dynamics::Marker("rfoot", Eigen::Vector3d(0, -2.13962 / 2 * scale, 0), mocapRFoot);
+	dart::dynamics::Marker* rFootMarker = new dart::dynamics::Marker("rfoot", Eigen::Vector3d(0, -2.13962 * scale, 0), mocapRFoot);
+	
 	mocapRFoot->addMarker(rFootMarker);
 
 	dart::dynamics::BodyNode* robotLFoot = robotSkel->getBodyNode("l_foot");

@@ -10,5 +10,6 @@ public:
 	virtual ~SupportStateDouble2Right();
 	
 	virtual void AddConstraint(int frameNum, IKProblem* ik);
+
 };
 #endif
