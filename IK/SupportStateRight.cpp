@@ -23,7 +23,9 @@ void SupportStateRight::AddConstraint(int frameNum, IKProblem* ik)
 	//	leftFootTarget[1] = 0;
 	double stepHeight = 0;
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "StepHeight", stepHeight);
-	leftFootTarget[1] = stepHeight * sin(static_cast<double>(frameNum - mStartFrame) / (mEndFrame - mStartFrame) * M_PI);
+	leftFootTarget[1] = stepHeight * sin(static_cast<double>(frameNum - mStartFrame) / (mEndFrame - mStartFrame) * (M_PI + 0.1));
+	if (leftFootTarget[1] < 0)
+		leftFootTarget[1] = 0;
 	addLeftFootConstraint(frameNum, leftFootTarget, false, ik);
 	//addLeftFootConstraint(frameNum, leftFootTarget, false, ik);
 
@@ -31,6 +33,8 @@ void SupportStateRight::AddConstraint(int frameNum, IKProblem* ik)
 	double comOffsetZ = 0;
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "COMOffsetX", comOffsetX);
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "COMOffsetZ", comOffsetZ);
+	Eigen::Vector3d currentCOM = mTarget->getWorldCOM();
+
 	Eigen::Vector3d comTarget = mInitialRightFoot + Eigen::Vector3d(-comOffsetX, 0, comOffsetZ);
 	addCOMObjective(frameNum, comTarget, ik);
 }

@@ -1,5 +1,6 @@
 #include "SupportState.h"
 #include "myUtils/ConfigManager.h"
+#include "DirectionConstraint.h"
 
 SupportState::SupportState() : mOrig(NULL), mTarget(NULL)
 {
@@ -128,23 +129,37 @@ void SupportState::addLeftFootConstraint(int frameNum, const Eigen::Vector3d& fo
 	p = new PositionConstraint(ik->vars(), mTarget, node, offset, footConstraint, weight);
 	ik->addConstraint(p);
 
-	weight = 1e-2;
-	node = mTarget->getBodyNode("l_foot");
-	offset = mTarget->getMarker("l_footUp")->getLocalPosition();
-	target = footConstraint;
-	target[1] = 0.1;
-	p = new PositionConstraint(ik->vars(), mTarget, node, offset, target, weight);
-	ik->addConstraint(p);
+	//weight = 1e-2;
+	//node = mTarget->getBodyNode("l_foot");
+	//offset = mTarget->getMarker("l_footUp")->getLocalPosition();
+	//target = footConstraint;
+	//target[1] = 0.1;
+	//p = new PositionConstraint(ik->vars(), mTarget, node, offset, target, weight);
+	//ik->addConstraint(p);
 
+	weight = 10;
+	node = mTarget->getBodyNode("l_foot");
+	Eigen::Vector3d offset1 = mTarget->getMarker("l_foot")->getLocalPosition();
+	Eigen::Vector3d offset2 = mTarget->getMarker("l_footUp")->getLocalPosition();
+	target = Eigen::Vector3d(0, 1, 0);
+	DirectionConstraint* pd = new DirectionConstraint(ik->vars(), mTarget, node, offset1, offset2, target, weight);
+	ik->addConstraint(pd);
+	
 	if (bUseLeftDir)
 	{
-		weight = 1e-3;
+		weight = 1e-2;
 		node = mTarget->getBodyNode("l_foot");
 		offset = mTarget->getMarker("l_footLeft")->getLocalPosition();
 		target = footConstraint + mLeftGlobal;;
 		p = new PositionConstraint(ik->vars(), mTarget, node, offset, target, weight);
 		ik->addConstraint(p);
-
+		//weight = 0.1;
+		//node = mTarget->getBodyNode("l_foot");
+		//Eigen::Vector3d offset1 = mTarget->getMarker("l_foot")->getLocalPosition();
+		//Eigen::Vector3d offset2 = mTarget->getMarker("l_footLeft")->getLocalPosition();
+		//target = mLeftGlobal;
+		//DirectionConstraint* pd = new DirectionConstraint(ik->vars(), mTarget, node, offset1, offset2, target, weight);
+		//ik->addConstraint(pd);
 	}
 
 }
@@ -162,22 +177,38 @@ void SupportState::addRightFootConstraint(int frameNum, const Eigen::Vector3d& f
 	p = new PositionConstraint(ik->vars(), mTarget, node, offset, footConstraint, weight);
 	ik->addConstraint(p);
 
-	weight = 1e-2;
+	//weight = 1e-2;
+	//node = mTarget->getBodyNode("r_foot");
+	//offset = mTarget->getMarker("r_footUp")->getLocalPosition();
+	//target = footConstraint;
+	//target[1] = 0.1;
+	//p = new PositionConstraint(ik->vars(), mTarget, node, offset, target, weight);
+	//ik->addConstraint(p);
+	weight = 10;
 	node = mTarget->getBodyNode("r_foot");
-	offset = mTarget->getMarker("r_footUp")->getLocalPosition();
-	target = footConstraint;
-	target[1] = 0.1;
-	p = new PositionConstraint(ik->vars(), mTarget, node, offset, target, weight);
-	ik->addConstraint(p);
+	Eigen::Vector3d offset1 = mTarget->getMarker("r_foot")->getLocalPosition();
+	Eigen::Vector3d offset2 = mTarget->getMarker("r_footUp")->getLocalPosition();
+	target = Eigen::Vector3d(0, 1, 0);
+	DirectionConstraint* pd = new DirectionConstraint(ik->vars(), mTarget, node, offset1, offset2, target, weight);
+	ik->addConstraint(pd);
+
 
 	if (bUseLeftDir)
 	{
-		weight = 1e-3;
+		weight = 1e-2;
 		node = mTarget->getBodyNode("r_foot");
 		offset = mTarget->getMarker("r_footLeft")->getLocalPosition();
 		target = footConstraint + mLeftGlobal;
 		p = new PositionConstraint(ik->vars(), mTarget, node, offset, target, weight);
 		ik->addConstraint(p);
+
+		//weight = 0.1;
+		//node = mTarget->getBodyNode("r_foot");
+		//Eigen::Vector3d offset1 = mTarget->getMarker("r_foot")->getLocalPosition();
+		//Eigen::Vector3d offset2 = mTarget->getMarker("r_footLeft")->getLocalPosition();
+		//target = mLeftGlobal;
+		//DirectionConstraint* pd = new DirectionConstraint(ik->vars(), mTarget, node, offset1, offset2, target, weight);
+		//ik->addConstraint(pd);
 	}
 
 
@@ -189,16 +220,15 @@ void SupportState::addDoubleFootConstraint(int frameNum, const Eigen::Vector3d& 
 	Eigen::Vector3d realLeftFootConstraint = leftFootConstraint;
 	Eigen::Vector3d realRightFootConstraint = rightFootConstraint;
 	realLeftFootConstraint[1] = realRightFootConstraint[1] = 0;
-	addLeftFootConstraint(frameNum, realLeftFootConstraint, true, ik);
 	addRightFootConstraint(frameNum, realRightFootConstraint, false, ik);
+
+	addLeftFootConstraint(frameNum, realLeftFootConstraint, true, ik);
 }
 
 void SupportState::snapshotInitialFootLocations(int frameNum)
 {
 	if (frameNum == mStartFrame)
 	{
-
-
 		mInitialCOM = mTarget->getWorldCOM();
 	}
 	mInitialLeftFoot = mOrig->getMarker("lfoot")->getWorldPosition();

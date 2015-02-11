@@ -15,7 +15,7 @@ COMConstraint::COMConstraint(
 	
 	mNumRows = 3;
 
-	mWeight = 0.01 * VectorXd::Ones(mNumRows);
+	mWeight = 1 * VectorXd::Ones(mNumRows);
 	mConstTerm = VectorXd::Zero(mNumRows);
 	mCompletion = VectorXd::Zero(mNumRows);
 }
