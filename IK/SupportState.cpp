@@ -197,12 +197,11 @@ void SupportState::snapshotInitialFootLocations(int frameNum)
 {
 	if (frameNum == mStartFrame)
 	{
-		mInitialLeftFoot = mOrig->getMarker("lfoot")->getWorldPosition();
-		//mInitialLeftFoot[1] = 0;
 
-		mInitialRightFoot = mOrig->getMarker("rfoot")->getWorldPosition();
-		//mInitialRightFoot[1] = 0;
 
 		mInitialCOM = mTarget->getWorldCOM();
 	}
+	mInitialLeftFoot = mOrig->getMarker("lfoot")->getWorldPosition();
+	mInitialRightFoot = mOrig->getMarker("rfoot")->getWorldPosition();
+
 }

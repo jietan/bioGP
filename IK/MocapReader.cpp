@@ -183,6 +183,8 @@ void MocapReader::Read(const string& filename)
 		{
 			frame.mDofs[CMU_JointName_ltibia].mValues[0] += 40;
 			frame.mDofs[CMU_JointName_rtibia].mValues[0] += 40;
+			//frame.mDofs[CMU_JointName_lfemur].mValues[0] -= 10;
+			//frame.mDofs[CMU_JointName_rfemur].mValues[0] -= 10;
 			frame.mDofs[CMU_JointName_lfemur].mValues[2] += 11;
 			frame.mDofs[CMU_JointName_rfemur].mValues[2] -= 11;
 		}
