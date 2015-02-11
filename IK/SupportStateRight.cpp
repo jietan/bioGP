@@ -19,7 +19,7 @@ void SupportStateRight::AddConstraint(int frameNum, IKProblem* ik)
 	if (leftFootTarget[1] < 0)
 		leftFootTarget[1] = 0;
 	addLeftFootObjective(frameNum, leftFootTarget, false, ik);
-
+	//addLeftFootConstraint(frameNum, leftFootTarget, false, ik);
 	Eigen::Vector3d comTarget = mInitialRightFoot;
 	addCOMObjective(frameNum, comTarget, ik);
 }

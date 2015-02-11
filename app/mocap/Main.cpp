@@ -192,7 +192,8 @@ int main(int argc, char* argv[])
 	fileName.replace(fileName.length() - 4, 4, ".state");
 	SupportInfo supportInfo(fileName);
 	supportInfo.SetSkeletons(mocapSkel, con->robot());
-	supportInfo.SetLeftGlobal(0.1 * Eigen::Vector3d(0, 0, 1));
+	//supportInfo.SetLeftGlobal(0.1 * Eigen::Vector3d(0, 0, 1));
+	supportInfo.SetLeftGlobal(0.1 * Eigen::Vector3d(-1, 0, 0));
     MyWindow window(con);
     window.setWorld(myWorld);
 	window.setMocap(&mocapReader);

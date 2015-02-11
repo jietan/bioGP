@@ -52,13 +52,13 @@ void SupportState::addLeftFootObjective(int frameNum, const Eigen::Vector3d& foo
 	dart::dynamics::BodyNode* node = NULL;
 	PositionConstraint* p = NULL;
 
-	weight = 1.0;
+	weight = 50;
 	node = mTarget->getBodyNode("l_foot");
 	offset = mTarget->getMarker("l_foot")->getLocalPosition();
 	p = new PositionConstraint(ik->vars(), mTarget, node, offset, footConstraint, weight);
 	ik->addObjective(p);
 
-	weight = 1e-3;
+	weight = 50;
 	node = mTarget->getBodyNode("l_foot");
 	offset = mTarget->getMarker("l_footUp")->getLocalPosition();
 	target = footConstraint;
@@ -86,13 +86,13 @@ void SupportState::addRightFootObjective(int frameNum, const Eigen::Vector3d& fo
 	dart::dynamics::BodyNode* node = NULL;
 	PositionConstraint* p = NULL;
 
-	weight = 1.0;
+	weight = 50.0;
 	node = mTarget->getBodyNode("r_foot");
 	offset = mTarget->getMarker("r_foot")->getLocalPosition();
 	p = new PositionConstraint(ik->vars(), mTarget, node, offset, footConstraint, weight);
 	ik->addObjective(p);
 
-	weight = 1e-3;
+	weight = 50;
 	node = mTarget->getBodyNode("r_foot");
 	offset = mTarget->getMarker("r_footUp")->getLocalPosition();
 	target = footConstraint;
