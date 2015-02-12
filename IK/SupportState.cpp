@@ -2,7 +2,7 @@
 #include "myUtils/ConfigManager.h"
 #include "DirectionConstraint.h"
 
-SupportState::SupportState() : mOrig(NULL), mTarget(NULL)
+SupportState::SupportState() : mOrig(NULL), mTarget(NULL), mNext(NULL)
 {
 }
 SupportState::~SupportState()
@@ -227,11 +227,16 @@ void SupportState::addDoubleFootConstraint(int frameNum, const Eigen::Vector3d& 
 
 void SupportState::snapshotInitialFootLocations(int frameNum)
 {
-	if (frameNum == mStartFrame)
-	{
-		mInitialCOM = mTarget->getWorldCOM();
-	}
+	//if (frameNum == mStartFrame)
+	//{
+	//	mInitialCOM = mTarget->getWorldCOM();
+	//}
 	mInitialLeftFoot = mOrig->getMarker("lfoot")->getWorldPosition();
 	mInitialRightFoot = mOrig->getMarker("rfoot")->getWorldPosition();
 
+}
+
+void SupportState::SetInitialCOMLocation(const Eigen::Vector3d& com)
+{
+	mInitialCOM = com;
 }

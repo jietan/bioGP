@@ -37,4 +37,9 @@ void SupportStateRight::AddConstraint(int frameNum, IKProblem* ik)
 
 	Eigen::Vector3d comTarget = mInitialRightFoot + Eigen::Vector3d(-comOffsetX, 0, comOffsetZ);
 	addCOMObjective(frameNum, comTarget, ik);
+
+	if (frameNum == mEndFrame - 1 && mNext)
+	{
+		mNext->SetInitialCOMLocation(comTarget);
+	}
 }

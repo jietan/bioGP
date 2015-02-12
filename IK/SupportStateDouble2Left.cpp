@@ -22,4 +22,9 @@ void SupportStateDouble2Left::AddConstraint(int frameNum, IKProblem* ik)
 	Eigen::Vector3d endCOM = mInitialLeftFoot + Eigen::Vector3d(comOffsetX, 0, comOffsetZ);
 	Eigen::Vector3d comTarget = mInitialCOM + (endCOM - mInitialCOM) / (mEndFrame - mStartFrame) * (frameNum - mStartFrame);//  currentCOM + (endCOM - currentCOM) / (mEndFrame - frameNum);
 	addCOMObjective(frameNum, comTarget, ik);
+
+	if (frameNum == mEndFrame - 1 && mNext)
+	{
+		mNext->SetInitialCOMLocation(comTarget);
+	}
 }

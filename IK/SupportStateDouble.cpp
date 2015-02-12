@@ -28,4 +28,8 @@ void SupportStateDouble::AddConstraint(int frameNum, IKProblem* ik)
 	if (mStartFrame != 0)
 		comTarget = mInitialCOM + (endCOM - mInitialCOM) / (mEndFrame - mStartFrame) * (frameNum - mStartFrame);//  currentCOM + (endCOM - currentCOM) / (mEndFrame - frameNum);
 	addCOMObjective(frameNum, comTarget, ik);
+	if (frameNum == mEndFrame - 1 && mNext)
+	{
+		mNext->SetInitialCOMLocation(comTarget);
+	}
 }

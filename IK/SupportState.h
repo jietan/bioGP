@@ -40,6 +40,8 @@ public:
 	void SetSkeletons(dart::dynamics::Skeleton* origSkel, dart::dynamics::Skeleton* targetSkel);
 	void SetLeftGlobal(const Eigen::Vector3d& left);
 	virtual void AddConstraint(int frameNum, IKProblem* ik);
+	void SetInitialCOMLocation(const Eigen::Vector3d& com);
+	SupportState* mNext;
 protected:
 	void addDoubleFootConstraint(int frameNum, const Eigen::Vector3d& leftFootConstraint, const Eigen::Vector3d& rightFootConstraint, IKProblem* ik);
 	void addLeftFootConstraint(int frameNum, const Eigen::Vector3d& footConstraint, bool bUseLeftDir, IKProblem* ik);
@@ -58,6 +60,6 @@ protected:
 	Eigen::Vector3d mInitialLeftFoot;
 	Eigen::Vector3d mInitialRightFoot;
 	Eigen::Vector3d mInitialCOM;
-
+	
 };
 #endif

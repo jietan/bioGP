@@ -32,4 +32,9 @@ void SupportStateLeft::AddConstraint(int frameNum, IKProblem* ik)
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "COMOffsetZ", comOffsetZ);
 	Eigen::Vector3d comTarget = mInitialLeftFoot + Eigen::Vector3d(comOffsetX, 0, comOffsetZ);
 	addCOMObjective(frameNum, comTarget, ik);
+
+	if (frameNum == mEndFrame - 1 && mNext)
+	{
+		mNext->SetInitialCOMLocation(comTarget);
+	}
 }

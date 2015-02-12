@@ -111,6 +111,10 @@ void SupportInfo::loadFromFile(const string& fileName)
 	{
 		mStates[i]->SetFrameRange(mStartFrames[i], mStartFrames[i + 1]);
 		mStates[i]->SetSkeletons(mOrig, mTarget);
+		if (i < nStates - 1)
+			mStates[i]->mNext = mStates[i + 1];
+		else
+			mStates[i]->mNext = NULL;
 	}
 }
 
