@@ -64,6 +64,13 @@
 #include "myUtils/ConfigManager.h"
 #include <windows.h>
 #include "Serial.h"
+#include "Client.h"
+using namespace ViconDataStreamSDK::CPP;
+
+#ifdef WIN32
+#include <conio.h>   // For _kbhit()
+#include <cstdio>   // For getchar()
+#endif // WIN32
 
 using namespace std;
 using namespace dart::dynamics;
@@ -71,6 +78,7 @@ using namespace dart::simulation;
 using namespace dart::utils;
 
 dart::constraint::WeldJointConstraint* gWeldJoint;
+bool gTransmitMulticast = false;
 
 void AddWeldConstraint(World* myWorld)
 {
@@ -93,6 +101,100 @@ void AddWeldConstraint(World* myWorld)
 
 
 
+void SetupMocapClient(Client* MyClient)
+{
+	int isUseMocap = 0;
+	DecoConfig::GetSingleton()->GetInt("Ctrl", "UseMocap", isUseMocap);
+	if (!isUseMocap) return;
+
+	std::string HostName = "localhost:801";
+	// Make a new client
+		
+
+	for (int i = 0; i != 3; ++i) // repeat to check disconnecting doesn't wreck next connect
+	{
+		// Connect to a server
+		std::cout << "Connecting to " << HostName << " ..." << std::flush;
+		while (!MyClient->IsConnected().Connected)
+		{
+			// Direct connection
+			MyClient->Connect(HostName);
+
+			// Multicast connection
+			// MyClient.ConnectToMulticast( HostName, "224.0.0.0" );
+
+			std::cout << ".";
+#ifdef WIN32
+			Sleep(10);
+#else
+			sleep(1);
+#endif
+		}
+		std::cout << std::endl;
+
+		// Enable some different data types
+		//MyClient.EnableSegmentData();
+		MyClient->EnableMarkerData();
+		//MyClient.EnableUnlabeledMarkerData();
+		//MyClient.EnableDeviceData();
+
+		//std::cout << "Segment Data Enabled: "          << Adapt( MyClient.IsSegmentDataEnabled().Enabled )         << std::endl;
+		std::cout << "Marker Data Enabled: " << (MyClient->IsMarkerDataEnabled().Enabled) << std::endl;
+		//std::cout << "Unlabeled Marker Data Enabled: " << Adapt( MyClient.IsUnlabeledMarkerDataEnabled().Enabled ) << std::endl;
+		//std::cout << "Device Data Enabled: "           << Adapt( MyClient.IsDeviceDataEnabled().Enabled )          << std::endl;
+
+		// Set the streaming mode
+		MyClient->SetStreamMode(ViconDataStreamSDK::CPP::StreamMode::ClientPull);
+		// MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ClientPullPreFetch );
+		// MyClient.SetStreamMode( ViconDataStreamSDK::CPP::StreamMode::ServerPush );
+
+		// Set the global up axis
+		MyClient->SetAxisMapping(Direction::Forward,
+			Direction::Left,
+			Direction::Up); // Z-up
+		// MyClient.SetGlobalUpAxis( Direction::Forward, 
+		//                           Direction::Up, 
+		//                           Direction::Right ); // Y-up
+
+		Output_GetAxisMapping _Output_GetAxisMapping = MyClient->GetAxisMapping();
+		std::cout << "Axis Mapping: X-" << (_Output_GetAxisMapping.XAxis)
+			<< " Y-" << (_Output_GetAxisMapping.YAxis)
+			<< " Z-" << (_Output_GetAxisMapping.ZAxis) << std::endl;
+
+		// Discover the version number
+		Output_GetVersion _Output_GetVersion = MyClient->GetVersion();
+		std::cout << "Version: " << _Output_GetVersion.Major << "."
+			<< _Output_GetVersion.Minor << "."
+			<< _Output_GetVersion.Point << std::endl;
+
+		if (gTransmitMulticast)
+		{
+			MyClient->StartTransmittingMulticast("localhost", "224.0.0.0");
+		}
+	}
+		
+}
+void DestroyMocapClient(Client* MyClient)
+{
+	int isUseMocap = 0;
+	DecoConfig::GetSingleton()->GetInt("Ctrl", "UseMocap", isUseMocap);
+	if (!isUseMocap) return;
+
+	if (gTransmitMulticast)
+	{
+		MyClient->StopTransmittingMulticast();
+	}
+	//MyClient.DisableSegmentData();
+	MyClient->DisableMarkerData();
+	//MyClient.DisableUnlabeledMarkerData();
+	//MyClient.DisableDeviceData();
+
+	// Disconnect and dispose
+		
+	std::cout << " Disconnecting..." << std::endl;
+	MyClient->Disconnect();
+}
+
 int main(int argc, char* argv[])
 {
    // google::ParseCommandLineFlags(&argc, &argv, true);
@@ -111,7 +213,10 @@ int main(int argc, char* argv[])
 	//serial communication setup
 	CSerial serial;
 	LONG    lLastError = ERROR_SUCCESS;
-	lLastError = serial.Open(_T("COM3"), 0, 0, false);
+	std::string portName = "";
+	DecoConfig::GetSingleton()->GetString("Server", "clientPort", portName);
+	lLastError = serial.Open(_T("COM2"), 0, 0, false);
+	//lLastError = serial.Open(LPCTSTR(portName.c_str()), 0, 0, false);
 	if (lLastError != ERROR_SUCCESS)
 		LOG(FATAL) << serial.GetLastError() << " Unable to open COM-port.";
 	lLastError = serial.Setup(CSerial::EBaud57600, CSerial::EData8, CSerial::EParNone, CSerial::EStop1);
@@ -133,7 +238,8 @@ int main(int argc, char* argv[])
 	//if (lLastError != ERROR_SUCCESS)
 	//	LOG(FATAL) << serial.GetLastError() << " Unable to send data.";
 	// end serial communication setup
-
+	Client myClient;
+	SetupMocapClient(&myClient);
 
     World* myWorld = new World;
 	double playBackSpeed = 1.0;
@@ -172,6 +278,7 @@ int main(int argc, char* argv[])
     MyWindow window(con);
     window.setWorld(myWorld);
 	window.setSerial(&serial);
+	window.setMocapClient(&myClient);
     // Print manual
     LOG(INFO) << "space bar: simulation on/off";
     LOG(INFO) << "'p': playback/stop";
@@ -184,6 +291,6 @@ int main(int argc, char* argv[])
     window.initWindow(1280, 720, "BioloidGP Robot - with Dart4.0");
 
     glutMainLoop();
-
+	DestroyMocapClient(&myClient);
     return 0;
 }

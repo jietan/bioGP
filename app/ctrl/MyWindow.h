@@ -39,8 +39,9 @@
 #define APPS_ATLASROBOT_MYWINDOW_H_
 #include <string>
 #include "dart/gui/SimWindow.h"
+#include "Client.h"
 using namespace std;
-
+using namespace ViconDataStreamSDK::CPP;
 
 namespace bioloidgp {
 namespace robot {
@@ -63,6 +64,7 @@ public:
     // Documentation inherited
     virtual void timeStepping();
 	virtual void draw();
+	virtual void drawMocapMarkers();
     // Documentation inherited
     virtual void drawSkels();
 
@@ -72,9 +74,14 @@ public:
 	virtual void displayTimer(int _val);
     void calculateInertia();
 	void setSerial(CSerial* serial);
+	void setMocapClient(Client* client);
+	
 private:
+	void processMocapData();
+
 	double mTime;
 	CSerial* mSerial;
+	Client* mMocapClient;
     /// \brief External force to exert on Atlas robot
     Eigen::Vector3d mForce;
 
@@ -84,6 +91,11 @@ private:
     /// \brief Constroller
     bioloidgp::robot::HumanoidController* mController;
 	string mTmpBuffer;
+
+	std::vector<Eigen::Vector3d> mMarkerPos;
+	std::vector<int> mMarkerOccluded;
+
+	Eigen::VectorXd mFirst6DofsFromMocap;
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_

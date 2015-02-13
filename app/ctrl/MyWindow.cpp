@@ -207,6 +207,10 @@ MyWindow::~MyWindow()
 
 int g_cnt = 0;
 
+void MyWindow::setMocapClient(Client* client)
+{
+	mMocapClient = client;
+}
 void MyWindow::setSerial(CSerial* serial)
 {
 	mSerial = serial;
@@ -217,12 +221,91 @@ void MyWindow::displayTimer(int _val)
 	glutPostRedisplay();
 	glutTimerFunc(mDisplayTimeout, refreshTimer, _val);
 }
+
+void MyWindow::processMocapData()
+{
+	int isUseMocap = 0;
+	DecoConfig::GetSingleton()->GetInt("Ctrl", "UseMocap", isUseMocap);
+	if (!isUseMocap) return;
+	while (mMocapClient->GetFrame().Result != Result::Success)
+	{
+		// Sleep a little so that we don't lumber the CPU with a busy poll
+#ifdef WIN32
+		Sleep(10);
+#else
+		sleep(1);
+#endif
+
+		std::cout << ".";
+	}
+	//std::cout << std::endl;
+
+	// Get the frame number
+	Output_GetFrameNumber _Output_GetFrameNumber = mMocapClient->GetFrameNumber();
+	//std::cout << "Frame Number: " << _Output_GetFrameNumber.FrameNumber << std::endl;
+
+	// Get the timecode
+	Output_GetTimecode _Output_GetTimecode = mMocapClient->GetTimecode();
+
+
+	for (unsigned int LatencySampleIndex = 0; LatencySampleIndex < mMocapClient->GetLatencySampleCount().Count; ++LatencySampleIndex)
+	{
+		std::string SampleName = mMocapClient->GetLatencySampleName(LatencySampleIndex).Name;
+		double      SampleValue = mMocapClient->GetLatencySampleValue(SampleName).Value;
+
+		//std::cout << "  " << SampleName << " " << SampleValue << "s" << std::endl;
+	}
+	//std::cout << std::endl;
+
+	// Count the number of subjects
+	unsigned int SubjectCount = mMocapClient->GetSubjectCount().SubjectCount;
+	//std::cout << "Subjects (" << SubjectCount << "):" << std::endl;
+	for (unsigned int SubjectIndex = 0; SubjectIndex < SubjectCount; ++SubjectIndex)
+	{
+		//std::cout << "  Subject #" << SubjectIndex << std::endl;
+
+		// Get the subject name
+		std::string SubjectName = mMocapClient->GetSubjectName(SubjectIndex).SubjectName;
+		//std::cout << "            Name: " << SubjectName << std::endl;
+
+
+
+		// Count the number of markers
+		unsigned int MarkerCount = mMocapClient->GetMarkerCount(SubjectName).MarkerCount;
+		//std::cout << "    Markers (" << MarkerCount << "):" << std::endl;
+
+		mMarkerPos.resize(MarkerCount);
+		mMarkerOccluded.resize(MarkerCount);
+		for (unsigned int MarkerIndex = 0; MarkerIndex < MarkerCount; ++MarkerIndex)
+		{
+			// Get the marker name
+			std::string MarkerName = mMocapClient->GetMarkerName(SubjectName, MarkerIndex).MarkerName;
+
+			// Get the marker parent
+			std::string MarkerParentName = mMocapClient->GetMarkerParentName(SubjectName, MarkerName).SegmentName;
+
+			// Get the global marker translation
+			Output_GetMarkerGlobalTranslation _Output_GetMarkerGlobalTranslation =
+				mMocapClient->GetMarkerGlobalTranslation(SubjectName, MarkerName);
+			mMarkerPos[MarkerIndex] = Eigen::Vector3d(_Output_GetMarkerGlobalTranslation.Translation[0], _Output_GetMarkerGlobalTranslation.Translation[1], _Output_GetMarkerGlobalTranslation.Translation[2]);
+			mMarkerPos[MarkerIndex] /= 1000.0; //convert unit from mm to m
+			mMarkerOccluded[MarkerIndex] = _Output_GetMarkerGlobalTranslation.Occluded;
+			//std::cout << "      Marker #" << MarkerIndex << ": "
+			//	<< MarkerName << " ("
+			//	<< _Output_GetMarkerGlobalTranslation.Translation[0] << ", "
+			//	<< _Output_GetMarkerGlobalTranslation.Translation[1] << ", "
+			//	<< _Output_GetMarkerGlobalTranslation.Translation[2] << ") "
+			//	<< (_Output_GetMarkerGlobalTranslation.Occluded) << std::endl;
+		}
+	}
+
+}
 //==============================================================================
 void MyWindow::timeStepping()
 {
 	static dart::common::Timer t;
 
-	
+	processMocapData();
 	// Wait for an event
 	Eigen::VectorXd motorAngle;
 	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
@@ -248,126 +331,79 @@ void MyWindow::timeStepping()
 	commands[2 * 16] = '\t';
 	commands[2 * 16 + 1] = '\n';
 	mSerial->Write(commands, 2 * 16 + 2);
-//	commands[3 * 16] = '\n';
-//	mSerial->Write(commands, 3 * 16 + 1);
-	//LOG(INFO) << motor_qhat_noGriper[14];
-	//LONG lLastError = mSerial->WaitEvent();
 
-	//if (lLastError != ERROR_SUCCESS)
-	//	LOG(FATAL) << mSerial->GetLastError() << " Unable to wait for a COM-port event.";
+	DWORD dwBytesRead = 0;
+	char szBuffer[101];
+	bool bUpdated = false;
+	do
+	{
+		// Read data from the COM-port
+		LONG lLastError = mSerial->Read(szBuffer, sizeof(szBuffer) - 1, &dwBytesRead);
 
-	//// Save event
-	//const CSerial::EEvent eEvent = mSerial->GetEventType();
+		if (lLastError != ERROR_SUCCESS)
+			LOG(FATAL) << mSerial->GetLastError() << " Unable to read from COM-port.";
 
-	//// Handle break event
-	//if (eEvent & CSerial::EEventBreak)
-	//{
-	//	printf("\n### BREAK received ###\n");
-	//}
-
-	//// Handle CTS event
-	//if (eEvent & CSerial::EEventCTS)
-	//{
-	//	printf("\n### Clear to send %s ###\n", mSerial->GetCTS() ? "on" : "off");
-	//}
-
-	//// Handle DSR event
-	//if (eEvent & CSerial::EEventDSR)
-	//{
-	//	printf("\n### Data set ready %s ###\n", mSerial->GetDSR() ? "on" : "off");
-	//}
-
-	//// Handle error event
-	//if (eEvent & CSerial::EEventError)
-	//{
-	//	printf("\n### ERROR: ");
-	//	switch (mSerial->GetError())
-	//	{
-	//	case CSerial::EErrorBreak:		printf("Break condition");			break;
-	//	case CSerial::EErrorFrame:		printf("Framing error");			break;
-	//	case CSerial::EErrorIOE:		printf("IO device error");			break;
-	//	case CSerial::EErrorMode:		printf("Unsupported mode");			break;
-	//	case CSerial::EErrorOverrun:	printf("Buffer overrun");			break;
-	//	case CSerial::EErrorRxOver:		printf("Input buffer overflow");	break;
-	//	case CSerial::EErrorParity:		printf("Input parity error");		break;
-	//	case CSerial::EErrorTxFull:		printf("Output buffer full");		break;
-	//	default:						printf("Unknown");					break;
-	//	}
-	//	printf(" ###\n");
-	//}
-
-	//// Handle ring event
-	//if (eEvent & CSerial::EEventRing)
-	//{
-	//	printf("\n### RING ###\n");
-	//}
-
-	//// Handle RLSD/CD event
-	//if (eEvent & CSerial::EEventRLSD)
-	//{
-	//	printf("\n### RLSD/CD %s ###\n", mSerial->GetRLSD() ? "on" : "off");
-	//}
-
-	//// Handle data receive event
-	//if (eEvent & CSerial::EEventRecv)
-	//{
-		// Read data, until there is nothing left
-		DWORD dwBytesRead = 0;
-		char szBuffer[101];
-		bool bUpdated = false;
-		do
+		if (dwBytesRead > 0)
 		{
-			// Read data from the COM-port
-			LONG lLastError = mSerial->Read(szBuffer, sizeof(szBuffer) - 1, &dwBytesRead);
+			mTmpBuffer.insert(mTmpBuffer.size(), szBuffer, dwBytesRead);
 
-			if (lLastError != ERROR_SUCCESS)
-				LOG(FATAL) << mSerial->GetLastError() << " Unable to read from COM-port.";
-
-			if (dwBytesRead > 0)
+			if (mTmpBuffer.size() >= NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
 			{
-				mTmpBuffer.insert(mTmpBuffer.size(), szBuffer, dwBytesRead);
 
-				if (mTmpBuffer.size() >= NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
+				bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
+
+				if (bUpdated)
 				{
-
-					bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
-
-					if (bUpdated)
-					{
-						Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
-						fullMotorAngle.head(6) = motorAngle.head(6);
-						fullMotorAngle.tail(10) = motorAngle.tail(10);
-						mController->setMotorMapPose(fullMotorAngle);						
-					}
-					//for (int i = 0; i < 3; ++i)
-					//{
-					//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
-					//}
-					//std::cout << std::endl;
+					Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
+					fullMotorAngle.head(6) = motorAngle.head(6);
+					fullMotorAngle.tail(10) = motorAngle.tail(10);
+					mController->setMotorMapPose(fullMotorAngle);						
 				}
+				//for (int i = 0; i < 3; ++i)
+				//{
+				//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
+				//}
+				//std::cout << std::endl;
 			}
-			else
-			{
-				std::cout << "Noting received." << endl;
-			}
-		} while (dwBytesRead == sizeof(szBuffer) - 1);
-	//}
-		mController->keepFeetLevel();
-		double elaspedTime = t.getElapsedTime();
-		//LOG(INFO) << elaspedTime;
-		std::cout << elaspedTime << endl;
-		//mTime += elaspedTime;
-		mTime += mController->robot()->getTimeStep();
-		t.start();
+		}
+		else
+		{
+			std::cout << "Noting received." << endl;
+		}
+	} while (dwBytesRead == sizeof(szBuffer) - 1);
+	mController->keepFeetLevel();
+	double elaspedTime = t.getElapsedTime();
+	//LOG(INFO) << elaspedTime;
+	std::cout << elaspedTime << endl;
+	//mTime += elaspedTime;
+	mTime += mController->robot()->getTimeStep();
+	t.start();
 }
 
+
+void MyWindow::drawMocapMarkers()
+{
+	int nMarkers = static_cast<int>(mMarkerPos.size());
+	{
+		for (int i = 0; i < nMarkers; ++i)
+		{
+			if (mMarkerOccluded[i]) continue;
+			glPushMatrix();
+			glTranslated(mMarkerPos[i][0], mMarkerPos[i][1], mMarkerPos[i][2]);
+			glColor3f(1.0, 0.0, 0.0);
+			glutSolidSphere(0.007, 16, 16);
+			glPopMatrix();
+
+		}
+	}
+}
 void MyWindow::draw()
 {
 	glDisable(GL_LIGHTING);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	drawSkels();
-
+	drawMocapMarkers();
 	// display the frame count in 2D text
 	char buff[64];
 	if (!mSimulating)
