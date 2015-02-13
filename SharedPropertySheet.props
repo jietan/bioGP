@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>
