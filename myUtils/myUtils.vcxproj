@@ -123,10 +123,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="mathlib.cpp" />
+    <ClCompile Include="PCA.cpp" />
+    <ClCompile Include="polarDecomposition.cpp" />
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="mathlib.h" />
     <ClInclude Include="Misc.h" />
+    <ClInclude Include="PCA.h" />
+    <ClInclude Include="polarDecomposition.h" />
+    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

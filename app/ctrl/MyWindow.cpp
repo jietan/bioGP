@@ -51,6 +51,7 @@
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
 #include "myUtils/ConfigManager.h"
+#include "myUtils/mathlib.h"
 #include "robot/HumanoidController.h"
 #include "robot/Motion.h"
 #include "Serial.h"
@@ -182,11 +183,12 @@ bool ProcessBuffer(string& buff, Eigen::VectorXd& motorAngle)
 }
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
-    : SimWindow(),
-      mController(_controller),
-	  mSerial(NULL),
-	  mTmpBuffer(""),
-	  mTime(0)
+	: SimWindow(),
+	mController(_controller),
+	mSerial(NULL),
+	mTmpBuffer(""),
+	mTime(0),
+	mIsInitialMarkersCaptured(false)
 {
     mForce = Eigen::Vector3d::Zero();
     mImpulseDuration = 0.0;
@@ -222,6 +224,171 @@ void MyWindow::displayTimer(int _val)
 	glutTimerFunc(mDisplayTimeout, refreshTimer, _val);
 }
 
+int MyWindow::numUnocculudedMarkers() const
+{
+	int numMarkers = static_cast<int>(mMarkerPos.size());
+	int ret = 0;
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		if (!mMarkerOccluded[i])
+			ret++;
+	}
+	return ret;
+}
+
+void MyWindow::buildMarkerDistanceField()
+{
+	int numMarkers = static_cast<int>(mMarkerPos.size());
+	if (numMarkers != numUnocculudedMarkers()) return;
+	LOG(INFO) << "Num of Markers: " << numMarkers;
+	mMarkerDistances = computeMarkerDistances();
+	Eigen::Vector3d marker0To1Dir = (mMarkerPos[1] - mMarkerPos[0]).normalized();
+	Eigen::Vector3d marker3To2Dir = (mMarkerPos[2] - mMarkerPos[3]).normalized();
+	Eigen::Vector3d y = computeYFromMarkers();
+	mMarker3To2AngleToXAxis = asin(marker3To2Dir.cross(marker0To1Dir).dot(y));
+	mIsInitialMarkersCaptured = true;
+}
+
+Eigen::Vector3d MyWindow::computeYFromMarkers() const
+{
+	int numUnOcculudedMarkers = numUnocculudedMarkers();
+	int numMarkders = static_cast<int>(mMarkerPos.size());
+	std::vector<Eigen::Vector3d> unocculudedMarkers;
+	for (int i = 0; i < numUnOcculudedMarkers; ++i)
+	{
+		if (!mMarkerOccluded[i])
+			unocculudedMarkers.push_back(mMarkerPos[i]);
+	}
+	std::vector<Eigen::Vector3d> axis;
+	Eigen::Vector3d mean;
+	PCAOnPoints(unocculudedMarkers, mean, axis);
+	Eigen::Vector3d y = axis[2];
+	if (y[1] < 0)
+	{
+		y = -y;
+	}
+	return y.normalized();
+}
+Eigen::Vector3d MyWindow::computeXFromMarkers(const Eigen::Vector3d& y) const
+{
+	Eigen::Vector3d x;
+	if (!mMarkerOccluded[0] && !mMarkerOccluded[1])
+	{
+		x = (mMarkerPos[1] - mMarkerPos[0]).normalized();
+	}
+	else if (!mMarkerOccluded[2] && !mMarkerOccluded[3])
+	{
+		x = (mMarkerPos[2] - mMarkerPos[3]).normalized();
+		Eigen::Matrix3d rot;
+		rot = Eigen::AngleAxisd(mMarker3To2AngleToXAxis, y);
+		x = rot * x;
+	}
+	else
+	{
+		LOG(FATAL) << "Should not reach here.";
+	}
+	return x.normalized();
+}
+
+Eigen::Vector3d MyWindow::computeZFromMarkers(const Eigen::Vector3d& x, const Eigen::Vector3d& y) const
+{
+	Eigen::Vector3d z = x.cross(y);
+	return z.normalized();
+}
+
+vector<vector<double> > MyWindow::computeMarkerDistances() const
+{
+	int numMarkers = static_cast<int>(mMarkerPos.size());
+	vector<vector<double> > ret;
+	ret.resize(numMarkers);
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		ret[i].resize(numMarkers, 0);
+		if (mMarkerOccluded[i]) continue;
+		for (int j = 0; j < numMarkers; ++j)
+		{
+			if (mMarkerOccluded[j]) continue;
+			ret[i][j] = (mMarkerPos[i] - mMarkerPos[j]).norm();
+		}
+	}
+	return ret;
+}
+
+double MyWindow::computeDistanceOfMarkerDistances(const vector<int>& labelCandidate)
+{
+	vector<vector<double> > currentMarkerDistance = computeMarkerDistances();
+	int numMarkers = static_cast<int>(labelCandidate.size());
+	double distAccum = 0;
+	int unOcculudedCount = 0;
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		if (mMarkerOccluded[i]) continue;
+		int realI = labelCandidate[i];
+		
+		for (int j = 0; j < numMarkers; ++j)
+		{
+			if (mMarkerOccluded[j]) continue;
+			int realJ = labelCandidate[j];
+			distAccum += abs(currentMarkerDistance[realI][realJ] - mMarkerDistances[i][j]);
+			unOcculudedCount += 1;
+		}
+
+	}
+	return distAccum / unOcculudedCount;
+}
+void MyWindow::reorderMarkers()
+{
+	//based on the assumption that only one marker can be occuluded.
+	int numMarkers = static_cast<int>(mMarkerPos.size());
+	vector<vector<int> > candidateLabels = GetPermutation(0, numMarkers);
+	int numCandidates = static_cast<int>(candidateLabels.size());
+	vector<double> candidateDistances;
+	candidateDistances.resize(numCandidates);
+	for (int i = 0; i < numCandidates; ++i)
+	{
+		candidateDistances[i] = computeDistanceOfMarkerDistances(candidateLabels[i]);
+	}
+	vector<double>::const_iterator labelIt = std::min_element(candidateDistances.begin(), candidateDistances.end());
+	vector<int> newLabel = candidateLabels[labelIt - candidateDistances.begin()];
+
+	vector<Eigen::Vector3d> orderedMarkerPos;
+	vector<int> orderedMarkerOcculuded;
+
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		if (i != newLabel[i])
+			LOG(WARNING) << "The markers are relabeled.";
+		orderedMarkerPos[newLabel[i]] = mMarkerPos[i];
+		orderedMarkerOcculuded[newLabel[i]] = mMarkerOccluded[i];
+	}
+	mMarkerPos = orderedMarkerPos;
+	mMarkerOccluded = orderedMarkerOcculuded;
+}
+bool MyWindow::fromMarkersTo6Dofs()
+{
+	int isUseMocap = 0;
+	DecoConfig::GetSingleton()->GetInt("Ctrl", "UseMocap", isUseMocap);
+	if (!isUseMocap) return false;
+
+	if (!mIsInitialMarkersCaptured)
+	{
+		buildMarkerDistanceField();
+	}
+	if (!mIsInitialMarkersCaptured)
+		return false;
+	int numUnOcculudedMarkers = numUnocculudedMarkers();
+	if (numUnOcculudedMarkers <= 2) return false;
+	reorderMarkers();
+	Eigen::Vector3d y = computeYFromMarkers();
+	Eigen::Vector3d x = computeXFromMarkers(y);
+	Eigen::Vector3d z = computeZFromMarkers(x, y);
+	Eigen::Matrix3d rot;
+	rot.col(0) = x;
+	rot.col(1) = y;
+	rot.col(2) = z;
+	mFirst6DofsFromMocap.head(3) = dart::math::logMap(rot);
+}
+
 void MyWindow::processMocapData()
 {
 	int isUseMocap = 0;
@@ -252,28 +419,17 @@ void MyWindow::processMocapData()
 	{
 		std::string SampleName = mMocapClient->GetLatencySampleName(LatencySampleIndex).Name;
 		double      SampleValue = mMocapClient->GetLatencySampleValue(SampleName).Value;
-
-		//std::cout << "  " << SampleName << " " << SampleValue << "s" << std::endl;
 	}
-	//std::cout << std::endl;
 
 	// Count the number of subjects
 	unsigned int SubjectCount = mMocapClient->GetSubjectCount().SubjectCount;
-	//std::cout << "Subjects (" << SubjectCount << "):" << std::endl;
 	for (unsigned int SubjectIndex = 0; SubjectIndex < SubjectCount; ++SubjectIndex)
 	{
-		//std::cout << "  Subject #" << SubjectIndex << std::endl;
 
-		// Get the subject name
 		std::string SubjectName = mMocapClient->GetSubjectName(SubjectIndex).SubjectName;
-		//std::cout << "            Name: " << SubjectName << std::endl;
-
-
 
 		// Count the number of markers
 		unsigned int MarkerCount = mMocapClient->GetMarkerCount(SubjectName).MarkerCount;
-		//std::cout << "    Markers (" << MarkerCount << "):" << std::endl;
-
 		mMarkerPos.resize(MarkerCount);
 		mMarkerOccluded.resize(MarkerCount);
 		for (unsigned int MarkerIndex = 0; MarkerIndex < MarkerCount; ++MarkerIndex)
@@ -306,6 +462,7 @@ void MyWindow::timeStepping()
 	static dart::common::Timer t;
 
 	processMocapData();
+	bool isFirst6DofsValid = fromMarkersTo6Dofs();
 	// Wait for an event
 	Eigen::VectorXd motorAngle;
 	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
@@ -357,7 +514,9 @@ void MyWindow::timeStepping()
 					Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
 					fullMotorAngle.head(6) = motorAngle.head(6);
 					fullMotorAngle.tail(10) = motorAngle.tail(10);
-					mController->setMotorMapPose(fullMotorAngle);						
+					mController->setMotorMapPose(fullMotorAngle);	
+					if (isFirst6DofsValid)
+						mController->setFreeDofs(mFirst6DofsFromMocap);
 				}
 				//for (int i = 0; i < 3; ++i)
 				//{
@@ -371,7 +530,7 @@ void MyWindow::timeStepping()
 			std::cout << "Noting received." << endl;
 		}
 	} while (dwBytesRead == sizeof(szBuffer) - 1);
-	mController->keepFeetLevel();
+	//mController->keepFeetLevel();
 	double elaspedTime = t.getElapsedTime();
 	//LOG(INFO) << elaspedTime;
 	std::cout << elaspedTime << endl;

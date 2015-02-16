@@ -78,6 +78,15 @@ public:
 	
 private:
 	void processMocapData();
+	bool fromMarkersTo6Dofs();
+	void buildMarkerDistanceField();
+	int numUnocculudedMarkers() const;
+	void reorderMarkers();
+	double computeDistanceOfMarkerDistances(const vector<int>& labelCandidate);
+	vector<vector<double> > computeMarkerDistances() const;
+	Eigen::Vector3d computeYFromMarkers() const;
+	Eigen::Vector3d computeXFromMarkers(const Eigen::Vector3d& y) const;
+	Eigen::Vector3d computeZFromMarkers(const Eigen::Vector3d& x, const Eigen::Vector3d& y) const;
 
 	double mTime;
 	CSerial* mSerial;
@@ -94,8 +103,10 @@ private:
 
 	std::vector<Eigen::Vector3d> mMarkerPos;
 	std::vector<int> mMarkerOccluded;
-
 	Eigen::VectorXd mFirst6DofsFromMocap;
+	bool mIsInitialMarkersCaptured;
+	vector<vector<double> > mMarkerDistances;
+	double mMarker3To2AngleToXAxis;
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_
