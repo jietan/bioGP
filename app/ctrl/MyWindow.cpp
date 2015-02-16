@@ -43,6 +43,7 @@
 #include "dart/dynamics/Skeleton.h"
 #include "dart/dynamics/FreeJoint.h"
 #include "dart/dynamics/BoxShape.h"
+#include "dart/dynamics/Marker.h"
 #include "dart/gui/SimWindow.h"
 #include "dart/gui/GLFuncs.h"
 #include "dart/collision/CollisionDetector.h"
@@ -188,17 +189,20 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	mSerial(NULL),
 	mTmpBuffer(""),
 	mTime(0),
-	mIsInitialMarkersCaptured(false)
+	mIsInitialMarkersCaptured(false),
+	mIsTimerRefresherStarted(false)
 {
     mForce = Eigen::Vector3d::Zero();
     mImpulseDuration = 0.0;
 	
 	mDisplayTimeout = 10;
 	DecoConfig::GetSingleton()->GetDouble("Server", "timeout", mDisplayTimeout);
-    // 0.166622 0.548365 0.118241 0.810896
-    Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
-    mTrackBall.setQuaternion(q);
-    mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+    //// 0.166622 0.548365 0.118241 0.810896
+    //Eigen::Quaterniond q(0.810896, 0.166622, 0.548365, 0.118241);
+    //mTrackBall.setQuaternion(q);
+    //mTrans = Eigen::Vector3d(-32.242,  212.85, 21.7107);
+
+	mTrans = Eigen::Vector3d(0, -212.85, 0);
 }
 
 //==============================================================================
@@ -252,9 +256,9 @@ void MyWindow::buildMarkerDistanceField()
 Eigen::Vector3d MyWindow::computeYFromMarkers() const
 {
 	int numUnOcculudedMarkers = numUnocculudedMarkers();
-	int numMarkders = static_cast<int>(mMarkerPos.size());
+	int numMarkers = static_cast<int>(mMarkerPos.size());
 	std::vector<Eigen::Vector3d> unocculudedMarkers;
-	for (int i = 0; i < numUnOcculudedMarkers; ++i)
+	for (int i = 0; i < numMarkers; ++i)
 	{
 		if (!mMarkerOccluded[i])
 			unocculudedMarkers.push_back(mMarkerPos[i]);
@@ -262,7 +266,7 @@ Eigen::Vector3d MyWindow::computeYFromMarkers() const
 	std::vector<Eigen::Vector3d> axis;
 	Eigen::Vector3d mean;
 	PCAOnPoints(unocculudedMarkers, mean, axis);
-	Eigen::Vector3d y = axis[2];
+	Eigen::Vector3d y = axis[0];
 	if (y[1] < 0)
 	{
 		y = -y;
@@ -314,22 +318,23 @@ vector<vector<double> > MyWindow::computeMarkerDistances() const
 	return ret;
 }
 
-double MyWindow::computeDistanceOfMarkerDistances(const vector<int>& labelCandidate)
+double MyWindow::computeDistanceOfMarkerDistances(const vector<int>& labelCandidate, const vector<vector<double> >& currentMarkerDistance)
 {
-	vector<vector<double> > currentMarkerDistance = computeMarkerDistances();
+	
 	int numMarkers = static_cast<int>(labelCandidate.size());
 	double distAccum = 0;
 	int unOcculudedCount = 0;
 	for (int i = 0; i < numMarkers; ++i)
 	{
-		if (mMarkerOccluded[i]) continue;
 		int realI = labelCandidate[i];
-		
+		if (mMarkerOccluded[i]) continue;
+
 		for (int j = 0; j < numMarkers; ++j)
 		{
-			if (mMarkerOccluded[j]) continue;
 			int realJ = labelCandidate[j];
-			distAccum += abs(currentMarkerDistance[realI][realJ] - mMarkerDistances[i][j]);
+			if (mMarkerOccluded[j]) continue;
+
+			distAccum += abs(currentMarkerDistance[i][j] - mMarkerDistances[realI][realJ]);
 			unOcculudedCount += 1;
 		}
 
@@ -338,21 +343,25 @@ double MyWindow::computeDistanceOfMarkerDistances(const vector<int>& labelCandid
 }
 void MyWindow::reorderMarkers()
 {
+
 	//based on the assumption that only one marker can be occuluded.
 	int numMarkers = static_cast<int>(mMarkerPos.size());
 	vector<vector<int> > candidateLabels = GetPermutation(0, numMarkers);
 	int numCandidates = static_cast<int>(candidateLabels.size());
 	vector<double> candidateDistances;
 	candidateDistances.resize(numCandidates);
+	vector<vector<double> > currentMarkerDistance = computeMarkerDistances();
 	for (int i = 0; i < numCandidates; ++i)
 	{
-		candidateDistances[i] = computeDistanceOfMarkerDistances(candidateLabels[i]);
+		candidateDistances[i] = computeDistanceOfMarkerDistances(candidateLabels[i], currentMarkerDistance);
 	}
 	vector<double>::const_iterator labelIt = std::min_element(candidateDistances.begin(), candidateDistances.end());
 	vector<int> newLabel = candidateLabels[labelIt - candidateDistances.begin()];
 
 	vector<Eigen::Vector3d> orderedMarkerPos;
+	orderedMarkerPos.resize(numMarkers);
 	vector<int> orderedMarkerOcculuded;
+	orderedMarkerOcculuded.resize(numMarkers);
 
 	for (int i = 0; i < numMarkers; ++i)
 	{
@@ -360,10 +369,13 @@ void MyWindow::reorderMarkers()
 			LOG(WARNING) << "The markers are relabeled.";
 		orderedMarkerPos[newLabel[i]] = mMarkerPos[i];
 		orderedMarkerOcculuded[newLabel[i]] = mMarkerOccluded[i];
+
+
 	}
 	mMarkerPos = orderedMarkerPos;
 	mMarkerOccluded = orderedMarkerOcculuded;
 }
+
 bool MyWindow::fromMarkersTo6Dofs()
 {
 	int isUseMocap = 0;
@@ -383,10 +395,35 @@ bool MyWindow::fromMarkersTo6Dofs()
 	Eigen::Vector3d x = computeXFromMarkers(y);
 	Eigen::Vector3d z = computeZFromMarkers(x, y);
 	Eigen::Matrix3d rot;
-	rot.col(0) = x;
-	rot.col(1) = y;
-	rot.col(2) = z;
+	//rot.col(0) = x;
+	//rot.col(1) = y;
+	//rot.col(2) = z;
+	rot = Eigen::AngleAxisd(-M_PI / 2, Eigen::Vector3d::UnitX()) * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ());
+	Eigen::Matrix3d rot1;
+	rot1.col(0) = x;
+	rot1.col(1) = y;
+	rot1.col(2) = z;
+	rot = rot1 * rot;
+	mFirst6DofsFromMocap = Eigen::VectorXd::Zero(6);
 	mFirst6DofsFromMocap.head(3) = dart::math::logMap(rot);
+
+	mController->setFreeDofs(mFirst6DofsFromMocap);
+	Eigen::Vector3d centerOfMocapMarkers = Eigen::Vector3d::Zero();
+	Eigen::Vector3d centerOfRobotMarkers = Eigen::Vector3d::Zero();
+	Eigen::Vector3d translation;
+	dart::dynamics::BodyNode* root = mController->robot()->getRootBodyNode();
+	int nMarkers = root->getNumMarkers();
+	for (int i = 0; i < nMarkers; ++i)
+	{
+		if (mMarkerOccluded[i]) continue;
+		centerOfMocapMarkers += mMarkerPos[i];
+		centerOfRobotMarkers += root->getMarker(i)->getWorldPosition();
+	}
+	centerOfMocapMarkers /= numUnOcculudedMarkers;
+	centerOfRobotMarkers /= numUnOcculudedMarkers;
+	translation = centerOfMocapMarkers - centerOfRobotMarkers;
+	mFirst6DofsFromMocap.tail(3) = translation;
+	return true;
 }
 
 void MyWindow::processMocapData()
@@ -463,78 +500,87 @@ void MyWindow::timeStepping()
 
 	processMocapData();
 	bool isFirst6DofsValid = fromMarkersTo6Dofs();
-	// Wait for an event
-	Eigen::VectorXd motorAngle;
-	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
-	//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
-	//if (mTime < 3)
-	//	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
 
-	Eigen::VectorXd mocapPose = mController->mocap()->GetPose(mTime - 1.0);
-	Eigen::VectorXd motor_qhat = mController->motormap()->toMotorMapVectorSameDim(mocapPose);
-	Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
-	motor_qhat_noGriper.head(6) = motor_qhat.head(6);
-	motor_qhat_noGriper.tail(10) = motor_qhat.tail(10);
-	unsigned char commands[256];
-	for (int i = 0; i < NUM_MOTORS; ++i)
+	if (mSimulating)
 	{
-		int command = static_cast<int>(motor_qhat_noGriper[i]);
-		unsigned char highByte, lowByte;
-		SeparateWord(command, &highByte, &lowByte);
-		commands[2 * i] = lowByte;
-		commands[2 * i + 1] = highByte;
-		//commands[3 * i + 2] = ' ';
-	}
-	commands[2 * 16] = '\t';
-	commands[2 * 16 + 1] = '\n';
-	mSerial->Write(commands, 2 * 16 + 2);
+		// Wait for an event
+		Eigen::VectorXd motorAngle;
+		motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
+		//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
+		//if (mTime < 3)
+		//	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
 
-	DWORD dwBytesRead = 0;
-	char szBuffer[101];
-	bool bUpdated = false;
-	do
-	{
-		// Read data from the COM-port
-		LONG lLastError = mSerial->Read(szBuffer, sizeof(szBuffer) - 1, &dwBytesRead);
-
-		if (lLastError != ERROR_SUCCESS)
-			LOG(FATAL) << mSerial->GetLastError() << " Unable to read from COM-port.";
-
-		if (dwBytesRead > 0)
+		Eigen::VectorXd mocapPose = mController->mocap()->GetPose(mTime - 1.0);
+		Eigen::VectorXd motor_qhat = mController->motormap()->toMotorMapVectorSameDim(mocapPose);
+		Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
+		motor_qhat_noGriper.head(6) = motor_qhat.head(6);
+		motor_qhat_noGriper.tail(10) = motor_qhat.tail(10);
+		unsigned char commands[256];
+		for (int i = 0; i < NUM_MOTORS; ++i)
 		{
-			mTmpBuffer.insert(mTmpBuffer.size(), szBuffer, dwBytesRead);
+			int command = static_cast<int>(motor_qhat_noGriper[i]);
+			unsigned char highByte, lowByte;
+			SeparateWord(command, &highByte, &lowByte);
+			commands[2 * i] = lowByte;
+			commands[2 * i + 1] = highByte;
+			//commands[3 * i + 2] = ' ';
+		}
+		commands[2 * 16] = '\t';
+		commands[2 * 16 + 1] = '\n';
+		mSerial->Write(commands, 2 * 16 + 2);
 
-			if (mTmpBuffer.size() >= NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
+		DWORD dwBytesRead = 0;
+		char szBuffer[101];
+		bool bUpdated = false;
+		do
+		{
+			// Read data from the COM-port
+			LONG lLastError = mSerial->Read(szBuffer, sizeof(szBuffer) - 1, &dwBytesRead);
+
+			if (lLastError != ERROR_SUCCESS)
+				LOG(FATAL) << mSerial->GetLastError() << " Unable to read from COM-port.";
+
+			if (dwBytesRead > 0)
 			{
+				mTmpBuffer.insert(mTmpBuffer.size(), szBuffer, dwBytesRead);
 
-				bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
-
-				if (bUpdated)
+				if (mTmpBuffer.size() >= NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
 				{
-					Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
-					fullMotorAngle.head(6) = motorAngle.head(6);
-					fullMotorAngle.tail(10) = motorAngle.tail(10);
-					mController->setMotorMapPose(fullMotorAngle);	
-					if (isFirst6DofsValid)
-						mController->setFreeDofs(mFirst6DofsFromMocap);
+
+					bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
+
+					if (bUpdated)
+					{
+						Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
+						fullMotorAngle.head(6) = motorAngle.head(6);
+						fullMotorAngle.tail(10) = motorAngle.tail(10);
+						mController->setMotorMapPose(fullMotorAngle);
+					}
+					//for (int i = 0; i < 3; ++i)
+					//{
+					//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
+					//}
+					//std::cout << std::endl;
 				}
-				//for (int i = 0; i < 3; ++i)
-				//{
-				//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
-				//}
-				//std::cout << std::endl;
 			}
-		}
-		else
-		{
-			std::cout << "Noting received." << endl;
-		}
-	} while (dwBytesRead == sizeof(szBuffer) - 1);
+			else
+			{
+				std::cout << "Noting received." << endl;
+			}
+		} while (dwBytesRead == sizeof(szBuffer) - 1);
+	}
+	if (isFirst6DofsValid)
+		mController->setFreeDofs(mFirst6DofsFromMocap);
+	if (mSimulating)
+	{
+		Eigen::VectorXd poseToRecord = mController->robot()->getPositions();
+		mRecordedFrames.push_back(pair<double, Eigen::VectorXd>(mTime, poseToRecord));
+	}
 	//mController->keepFeetLevel();
 	double elaspedTime = t.getElapsedTime();
 	//LOG(INFO) << elaspedTime;
 	std::cout << elaspedTime << endl;
-	//mTime += elaspedTime;
+	
 	mTime += mController->robot()->getTimeStep();
 	t.start();
 }
@@ -591,7 +637,7 @@ void MyWindow::drawSkels()
     for (unsigned int i = 0; i < mWorld->getNumSkeletons(); i++) {
         if (i == 1) {
             glPushMatrix();
-            glTranslated(0, -0.301, 0);
+            glTranslated(0, -0.035, 0);
             bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
             glPopMatrix();
 
@@ -603,6 +649,8 @@ void MyWindow::drawSkels()
             continue;
         }
         mWorld->getSkeleton(i)->draw(mRI);
+		mWorld->getSkeleton(i)->drawMarkers(mRI);
+
         // {
         //     Eigen::Vector3d C = mWorld->getSkeleton(i)->getWorldCOM();
         //     glPushMatrix();
@@ -635,7 +683,25 @@ void MyWindow::calculateInertia() {
     
 }
 
+void MyWindow::saveRecordedFrames()
+{
+	string fileName;
+	DecoConfig::GetSingleton()->GetString("Ctrl", "RecordingFileName", fileName);
+	ofstream oFile(fileName.c_str());
+	int nFrames = static_cast<int>(mRecordedFrames.size());
+	oFile << nFrames << endl;
+	for (int i = 0; i < nFrames; ++i)
+	{
+		oFile << mRecordedFrames[i].first << " ";
+		int nDofs = static_cast<int>(mRecordedFrames[i].second.size());
+		for (int j = 0; j < nDofs; ++j)
+		{
+			oFile << mRecordedFrames[i].second[j] << " ";
+		}
+		oFile << endl;
+	}
 
+}
 //==============================================================================
 int temp = 0;
 void MyWindow::keyboard(unsigned char _key, int _x, int _y)
@@ -643,12 +709,17 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
     switch (_key)
     {
     case ' ':  // use space key to play or stop the motion
-        mSimulating = !mSimulating;
-        if (mSimulating)
-        {
-            mPlay = false;
-            glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
-        }
+		if (mIsTimerRefresherStarted)
+		{
+			mSimulating = !mSimulating;
+			mTime = 0;
+		}
+		else
+		{
+			glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
+			mIsTimerRefresherStarted = true;
+		}
+
         break;
     case 'p':  // playBack
         mPlay = !mPlay;
@@ -685,29 +756,9 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
     case 'v':  // show or hide markers
         mShowMarkers = !mShowMarkers;
         break;
-    case 'a':  // upper right force
-        mForce[0] = 5;
-        mImpulseDuration = 100;
-        std::cout << "push forward" << std::endl;
-        break;
     case 's':  // upper right force
-        mForce[0] = -5;
-        mImpulseDuration = 100;
-        std::cout << "push backward" << std::endl;
+		saveRecordedFrames();
         break;
-    case 'd':  // upper right force
-        mForce[2] = 5;
-        mImpulseDuration = 100;
-        std::cout << "push right" << std::endl;
-        break;
-    case 'f':  // upper right force
-        mForce[2] = -5;
-        mImpulseDuration = 100;
-        std::cout << "push left" << std::endl;
-        break;
-    case 'n':  // upper right force
-        mController->setMotionTargetPose(temp);
-        temp++;
 	case 'r':
 		mController->reset();
 		
