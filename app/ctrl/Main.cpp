@@ -46,6 +46,8 @@
 #include "utils/CppCommon.h"
 
 #include "dart/dynamics/Skeleton.h"
+#include "dart/dynamics/BodyNode.h"
+#include "dart/dynamics/Marker.h"
 #include "dart/simulation/World.h"
 #include "dart/simulation/World.h"
 #include "dart/utils/Paths.h"
@@ -195,6 +197,21 @@ void DestroyMocapClient(Client* MyClient)
 	MyClient->Disconnect();
 }
 
+void AddMarkers(dart::dynamics::Skeleton* robotSkel)
+{
+	dart::dynamics::BodyNode* root = robotSkel->getBodyNode("torso");
+	dart::dynamics::Marker* leftFrontMarker = new dart::dynamics::Marker("torso_lf", Eigen::Vector3d(0.037, -0.019, 0.02), root);
+	dart::dynamics::Marker* rightFrontMarker = new dart::dynamics::Marker("torso_rf", Eigen::Vector3d(-0.037, -0.019, 0.02), root);
+	dart::dynamics::Marker* rightBackMarker = new dart::dynamics::Marker("torso_rb", Eigen::Vector3d(-0.042, 0.025, 0.02), root);
+	dart::dynamics::Marker* leftBackMarker = new dart::dynamics::Marker("torso_lb", Eigen::Vector3d(0.052, 0.03, 0.02), root);
+	root->addMarker(leftFrontMarker);
+	root->addMarker(rightFrontMarker);
+	root->addMarker(rightBackMarker);
+	root->addMarker(leftBackMarker);
+
+}
+
+
 int main(int argc, char* argv[])
 {
    // google::ParseCommandLineFlags(&argc, &argv, true);
@@ -268,7 +285,7 @@ int main(int argc, char* argv[])
     // Create a humanoid controller
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
-
+	AddMarkers(con->robot());
 	//Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);
 	//q6[4] = 0;
 	//con->setFreeDofs(q6);
