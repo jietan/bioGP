@@ -36,7 +36,7 @@
  */
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #include "MyWindow.h"
-#include "dart/common/Timer.h"
+
 #include "dart/math/Helpers.h"
 #include "dart/simulation/World.h"
 #include "dart/dynamics/BodyNode.h"
@@ -496,8 +496,6 @@ void MyWindow::processMocapData()
 //==============================================================================
 void MyWindow::timeStepping()
 {
-	static dart::common::Timer t;
-
 	processMocapData();
 	bool isFirst6DofsValid = fromMarkersTo6Dofs();
 
@@ -506,12 +504,12 @@ void MyWindow::timeStepping()
 		// Wait for an event
 		Eigen::VectorXd motorAngle;
 		motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
-		//Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
+		Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
 		//if (mTime < 3)
 		//	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
 
-		Eigen::VectorXd mocapPose = mController->mocap()->GetPose(mTime - 1.0);
-		Eigen::VectorXd motor_qhat = mController->motormap()->toMotorMapVectorSameDim(mocapPose);
+		//Eigen::VectorXd mocapPose = mController->mocap()->GetPose(mTime - 1.0);
+		//Eigen::VectorXd motor_qhat = mController->motormap()->toMotorMapVectorSameDim(mocapPose);
 		Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
 		motor_qhat_noGriper.head(6) = motor_qhat.head(6);
 		motor_qhat_noGriper.tail(10) = motor_qhat.tail(10);
@@ -577,12 +575,15 @@ void MyWindow::timeStepping()
 		mRecordedFrames.push_back(pair<double, Eigen::VectorXd>(mTime, poseToRecord));
 	}
 	//mController->keepFeetLevel();
-	double elaspedTime = t.getElapsedTime();
-	//LOG(INFO) << elaspedTime;
-	std::cout << elaspedTime << endl;
+	if (mTimer.isStarted())
+	{
+		double elaspedTime = mTimer.getElapsedTime();
+		//LOG(INFO) << elaspedTime;
+		std::cout << elaspedTime << endl;
 	
-	mTime += mController->robot()->getTimeStep();
-	t.start();
+		mTime += elaspedTime;// mController->robot()->getTimeStep();
+	}
+	mTimer.start();
 }
 
 

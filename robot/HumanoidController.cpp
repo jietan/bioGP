@@ -35,19 +35,19 @@ HumanoidController::HumanoidController(
     set_motormap( new MotorMap(NMOTORS, NDOFS) );
     motormap()->load(DATA_DIR"/urdf/BioloidGP/BioloidGPMotorMap.xml");
 	set_mocap(new MocapMotion());
-	string mocapFileName;
-	DecoConfig::GetSingleton()->GetString("Mocap", "FileName", mocapFileName);
-	mocap()->Read(mocapFileName.c_str());
+	//string mocapFileName;
+	//DecoConfig::GetSingleton()->GetString("Mocap", "FileName", mocapFileName);
+	//mocap()->Read(mocapFileName.c_str());
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
 	//mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
 	//mtvInitPose <<
 	//    342, 681, 572, 451, 762, 261,
 	//    358, 666,
 	//    515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
-	vector<double> initialPose;
-	DecoConfig::GetSingleton()->GetDoubleVector("Sim", "InitialPose", initialPose);
-	Eigen::Map<Eigen::VectorXd> initialPoseEigen(&(initialPose[0]), NMOTORS);
-	mtvInitPose = motormap()->toMotorMapVectorSameDim(initialPoseEigen);
+	//vector<double> initialPose;
+	//DecoConfig::GetSingleton()->GetDoubleVector("Sim", "InitialPose", initialPose);
+	//Eigen::Map<Eigen::VectorXd> initialPoseEigen(&(initialPose[0]), NMOTORS);
+	//mtvInitPose = motormap()->toMotorMapVectorSameDim(initialPoseEigen);
 
     set_motion( new Motion(NMOTORS, mtvInitPose) );
 	setInitialPose(mtvInitPose);
@@ -56,8 +56,12 @@ HumanoidController::HumanoidController(
     // motion()->loadMTN(DATA_DIR"/mtn/bio_gp_humanoid_kr.mtn", "HandStanding");
     //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_squat.mtn", "Squat");
     //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightHip");
-	//motion()->loadMTN(DATA_DIR"/mtn/bio_gp_bow.mtn", "Bow");
- //   motion()->printSteps();
+	string motionFileName;
+	string motionPageName;
+	DecoConfig::GetSingleton()->GetString("Ctrl", "MotionFileName", motionFileName);
+	DecoConfig::GetSingleton()->GetString("Ctrl", "MotionPageName", motionPageName);
+	motion()->loadMTN(motionFileName.c_str(), motionPageName.c_str());
+    motion()->printSteps();
     // exit(0);
 
     mKp = Eigen::VectorXd::Zero(NDOFS);

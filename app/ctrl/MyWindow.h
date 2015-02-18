@@ -40,6 +40,7 @@
 #include <string>
 #include "dart/gui/SimWindow.h"
 #include "Client.h"
+#include "dart/common/Timer.h"
 using namespace std;
 using namespace ViconDataStreamSDK::CPP;
 
@@ -110,6 +111,7 @@ private:
 	bool mIsTimerRefresherStarted;
 
 	vector<pair<double, Eigen::VectorXd> > mRecordedFrames;
+	dart::common::Timer mTimer;
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_
