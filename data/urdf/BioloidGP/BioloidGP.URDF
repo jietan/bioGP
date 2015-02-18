@@ -303,7 +303,7 @@
           rpy="0 0 0" />
       <geometry>
         <mesh
-            filename="l_foot.STL" />
+            filename="l_foot_box.obj" />
       </geometry>
     </collision>
   </link>
@@ -588,7 +588,7 @@
           rpy="0 0 0" />
       <geometry>
         <mesh
-            filename="r_foot.STL" />
+            filename="r_foot_box.obj" />
       </geometry>
     </collision>
   </link>

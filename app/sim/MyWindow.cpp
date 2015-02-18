@@ -207,12 +207,12 @@ void MyWindow::drawSkels()
     for (unsigned int i = 0; i < mWorld->getNumSkeletons(); i++) {
         if (i == 1) {
             glPushMatrix();
-            glTranslated(0, -0.001, 0);
+            glTranslated(0, -0.000, 0);
             bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
             glPopMatrix();
 
             //glPushMatrix();
-            //glTranslated(0, -0.001, 0);
+            //glTranslated(0, -0.00, 0);
             //mWorld->getSkeleton(i)->draw(mRI);
             //glPopMatrix();
             

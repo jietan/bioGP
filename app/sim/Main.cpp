@@ -91,8 +91,7 @@ int main(int argc, char* argv[])
 
     World* myWorld = new World;
 
-    // myWorld->getConstraintSolver()->setCollisionDetector(
-    //     new dart::collision::BulletCollisionDetector());
+    //myWorld->getConstraintSolver()->setCollisionDetector( new dart::collision::BulletCollisionDetector());
     myWorld->setTimeStep(gTimeStep);
 
     // // Load ground and Atlas robot and add them to the world
