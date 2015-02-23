@@ -498,13 +498,14 @@ void MyWindow::timeStepping()
 {
 	processMocapData();
 	bool isFirst6DofsValid = fromMarkersTo6Dofs();
+	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
+	Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
 
 	if (mSimulating)
 	{
 		// Wait for an event
 		Eigen::VectorXd motorAngle;
 		motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
-		Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
 		//if (mTime < 3)
 		//	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
 
@@ -549,7 +550,6 @@ void MyWindow::timeStepping()
 
 					if (bUpdated)
 					{
-						Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
 						fullMotorAngle.head(6) = motorAngle.head(6);
 						fullMotorAngle.tail(10) = motorAngle.tail(10);
 						mController->setMotorMapPose(fullMotorAngle);
@@ -579,7 +579,7 @@ void MyWindow::timeStepping()
 	{
 		double elaspedTime = mTimer.getElapsedTime();
 		//LOG(INFO) << elaspedTime;
-		std::cout << elaspedTime << endl;
+		LOG(INFO) << mTime << " " << motor_qhat[10] << " " << fullMotorAngle[10] << endl;
 	
 		mTime += elaspedTime;// mController->robot()->getTimeStep();
 	}

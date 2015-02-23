@@ -44,9 +44,14 @@ HumanoidController::HumanoidController(
 	//    342, 681, 572, 451, 762, 261,
 	//    358, 666,
 	//    515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
-	//vector<double> initialPose;
-	//DecoConfig::GetSingleton()->GetDoubleVector("Sim", "InitialPose", initialPose);
-	//Eigen::Map<Eigen::VectorXd> initialPoseEigen(&(initialPose[0]), NMOTORS);
+	vector<int> initialPose;
+	if (DecoConfig::GetSingleton()->GetIntVector("Sim", "InitialPose", initialPose))
+	{
+		for (int i = 0; i < NMOTORS; ++i)
+		{
+			mtvInitPose[i] = static_cast<double>(initialPose[i]);
+		}
+	}
 	//mtvInitPose = motormap()->toMotorMapVectorSameDim(initialPoseEigen);
 
     set_motion( new Motion(NMOTORS, mtvInitPose) );
@@ -67,7 +72,7 @@ HumanoidController::HumanoidController(
     mKp = Eigen::VectorXd::Zero(NDOFS);
     mKd = Eigen::VectorXd::Zero(NDOFS);
     for (int i = 6; i < NDOFS; ++i) {
-        mKp(i) = 9.272;
+		mKp(i) = 13.8;// 9.272;
 		mKd(i) = 0.3069;//1.0;
       //mKp(i) = 600;
 		//mKd(i) = 1;//1.0;
@@ -76,26 +81,26 @@ HumanoidController::HumanoidController(
     for (int i = 0; i < numBodies; i++) {
         LOG(INFO) << "Joint " << i + 5 << " : name = " << robot()->getJoint(i)->getName();
     }
-	mCollisionSpheres.resize(numBodies);
-	for (int i = 0; i < numBodies; ++i)
-	{
-		dart::dynamics::BodyNode* body = robot()->getBodyNode(i);
-		if (body->getName() == "r_foot")
-		{
-			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.00, 0.0276, -0.02042), 0.025));
-			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.035, 0.0276, -0.02042), 0.025));
-			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(0.035, 0.0276, -0.02042), 0.025));
-		}
-		else if (body->getName() == "l_thigh")
-		{
-			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.001, -0.0637, -0.0115), 0.03));
-		}
-		else if (body->getName() == "l_shin")
-		{
-			mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.0127, 0.0341, 0.0156), 0.03));
-		}
+	//mCollisionSpheres.resize(numBodies);
+	//for (int i = 0; i < numBodies; ++i)
+	//{
+	//	dart::dynamics::BodyNode* body = robot()->getBodyNode(i);
+	//	if (body->getName() == "r_foot")
+	//	{
+	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.00, 0.0276, -0.02042), 0.025));
+	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.035, 0.0276, -0.02042), 0.025));
+	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(0.035, 0.0276, -0.02042), 0.025));
+	//	}
+	//	else if (body->getName() == "l_thigh")
+	//	{
+	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.001, -0.0637, -0.0115), 0.03));
+	//	}
+	//	else if (body->getName() == "l_shin")
+	//	{
+	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.0127, 0.0341, 0.0156), 0.03));
+	//	}
 
-	}
+	//}
 	mIsCOMInitialized = false;
 	mAnkelOffset = 0;
 	mLastControlTime = 0;
@@ -119,7 +124,7 @@ void HumanoidController::reset()
 	mLastControlTime = 0;
 
 	double timeStep = robot()->getTimeStep();
-	int numLatencySteps = mLatency / timeStep;
+	int numLatencySteps = static_cast<int>(mLatency / timeStep);
 	mAnkelOffsetQueue.clear();
 	mAnkelOffsetQueue.insert(mAnkelOffsetQueue.end(), numLatencySteps, 0);
 }
@@ -157,6 +162,7 @@ void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 	noise.head<6>().setZero();
 	robot()->setPositions(q + noise);
 	mPrevPos = q + noise;
+	robot()->setVelocities(Eigen::VectorXd::Zero(q.size()));
 	// Update the dynamics
 	robot()->computeForwardKinematics(true, true, false);
 }
@@ -293,6 +299,12 @@ void HumanoidController::keepFeetLevel()
 	Eigen::VectorXd v = (q - mPrevPos) / robot()->getTimeStep();
 	robot()->setVelocities(v);
 }
+
+const Eigen::VectorXd& HumanoidController::getCurrentTargetPose() const
+{
+	return mMotor_qHat;
+}
+
 void HumanoidController::update(double _currentTime) {
 	const int NDOFS = robot()->getNumDofs();
     Eigen::VectorXd q    = robot()->getPositions();
@@ -314,27 +326,33 @@ void HumanoidController::update(double _currentTime) {
     //     358, 666,
     //     515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
     // Eigen::VectorXd qhat = motormap()->fromMotorMapVector( mtvInitPose );
-    //Eigen::VectorXd motor_qhat = motion()->targetPose(_currentTime);
+	double controlInteval = 0;
+	DecoConfig::GetSingleton()->GetDouble("Sim", "ControlInteval", controlInteval);
+	if (_currentTime < robot()->getTimeStep() || (_currentTime - mLastControlTime) > controlInteval)
+	{
+		mLastControlTime = _currentTime;
+		mMotor_qHat = motion()->targetPose(_currentTime);
+	}
+	Eigen::VectorXd motor_qhat = mMotor_qHat;
 
-	Eigen::VectorXd mocapPose = mocap()->GetPose(_currentTime);
-	Eigen::VectorXd motor_qhat = motormap()->toMotorMapVectorSameDim(mocapPose);
-	motor_qhat = useAnkelStrategy(motor_qhat, _currentTime, true);
+	//Eigen::VectorXd mocapPose = mocap()->GetPose(_currentTime);
+	//Eigen::VectorXd motor_qhat = motormap()->toMotorMapVectorSameDim(mocapPose);
+	//motor_qhat = useAnkelStrategy(motor_qhat, _currentTime, true);
 
     Eigen::VectorXd qhat = motormap()->fromMotorMapVector( motor_qhat );
 
+	const double MAX_TORQUE = 0.5 * 1.5;
 	const double friction = 0.03;
     tau.head<6>() = Eigen::Vector6d::Zero();
     for (int i = 6; i < NDOFS; ++i) {
-		tau(i) = -mKp(i) * (q(i) - qhat(i))
-			- mKd(i) * dq(i);
+		tau(i) = -mKp(i) * (q(i) - qhat(i)) - mKd(i) * dq(i);
 		if (abs(dq(i) > 1e-6))
 			tau(i) += -friction * abs(dq(i)) / dq(i);
+
     }
 
-	//tau(20) = 0.001;
     // Confine within the limit: 25% of stall torque
     // Reference: http://support.robotis.com/en/product/dynamixel/ax_series/dxl_ax_actuator.htm
-    const double MAX_TORQUE = 0.5 * 1.5;
     for (int i = 6; i < NDOFS; i++) {
         tau(i) = CONFINE(tau(i), -MAX_TORQUE, MAX_TORQUE);
     }

@@ -60,7 +60,7 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 {
 	mForce = Eigen::Vector3d::Zero();
 	mImpulseDuration = 0.0;
-
+	mIsTimerRefresherStarted = false;
 	// 0.166622 0.548365 0.118241 0.810896
 	//Eigen::Quaterniond q(0.15743952233047084, 0.53507160411429699, 0.10749289301287825, 0.82301687360383402);
 	//   mTrackBall.setQuaternion(q);
@@ -117,6 +117,10 @@ void MyWindow::timeStepping()
         mImpulseDuration = 0;
         mForce.setZero();
     }
+	Eigen::VectorXd p = mController->robot()->getPositions();
+	Eigen::VectorXd mtv = mController->motormap()->toMotorMapVector(p);
+	const Eigen::VectorXd currentTarget = mController->getCurrentTargetPose();
+	LOG(INFO) << mWorld->getTime() << " " << mtv[10] << " " << currentTarget[10];
 }
 
 void MyWindow::draw()
@@ -263,7 +267,7 @@ void MyWindow::calculateInertia() {
         I += bn->getMass() * (y * y + z * z);
     }
     Eigen::Vector3d C = robot->getWorldCOM();
-    cout << m << ", " << I << ", " << C.y() - OFFSET << ", " << C.z() << endl;
+    //cout << m << ", " << I << ", " << C.y() - OFFSET << ", " << C.z() << endl;
     
 }
 
@@ -275,13 +279,16 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
     switch (_key)
     {
     case ' ':  // use space key to play or stop the motion
-        mSimulating = !mSimulating;
-        if (mSimulating)
-        {
-            mPlay = false;
-            glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
-        }
-        break;
+		if (mIsTimerRefresherStarted)
+		{
+			mSimulating = !mSimulating;
+		}
+		else
+		{
+			glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
+			mIsTimerRefresherStarted = true;
+		}
+		break;
     case 'p':  // playBack
         mPlay = !mPlay;
         if (mPlay)

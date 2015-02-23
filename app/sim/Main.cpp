@@ -49,6 +49,7 @@
 #include "dart/constraint/ConstraintSolver.h"
 #include "dart/collision/fcl_mesh/FCLMeshCollisionDetector.h"
 #include "dart/constraint/WeldJointConstraint.h"
+#include "dart/constraint/ContactConstraint.h"
 //#include "dart/collision/bullet/BulletCollisionDetector.h"
 
 #include "MyWindow.h"
@@ -101,16 +102,21 @@ int main(int argc, char* argv[])
     Skeleton* robot
         = urdfLoader.parseSkeleton(
             DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
+	Skeleton* wall = urdfLoader.parseSkeleton(
+		DATA_DIR"/sdf/wall.urdf");
     robot->enableSelfCollision();
 	
     myWorld->addSkeleton(robot);
     myWorld->addSkeleton(ground);
+	myWorld->addSkeleton(wall);
 
     // Print some info
     LOG(INFO) << "robot.mass = " << robot->getMass();
 
     // Set gravity of the world
     myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+	dart::constraint::ContactConstraint::setErrorReductionParameter(0.0);
+	dart::constraint::ContactConstraint::setMaxErrorReductionVelocity(0.1);
 	//myWorld->setGravity(Eigen::Vector3d(0.0, 0, 0.0));
 	//AddWeldConstraint(myWorld);
     // Create a humanoid controller
@@ -134,7 +140,7 @@ int main(int argc, char* argv[])
     // Run glut loop
     glutInit(&argc, argv);
     window.initWindow(1280, 720, "BioloidGP Robot - with Dart4.0");
-
+	
     glutMainLoop();
 
     return 0;

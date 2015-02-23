@@ -48,6 +48,7 @@ public:
     void setMotorMapPose(const Eigen::VectorXd& mtv);
 	void setMotorMapPoseRad(const Eigen::VectorXd& mtv);
     void setMotionTargetPose(int index); // Debug Purpose
+	const Eigen::VectorXd& getCurrentTargetPose() const;
 	void reset();
 	void setInitialPose(const Eigen::VectorXd& init);
     virtual void update(double _currentTime);
@@ -79,7 +80,7 @@ protected:
 	double mLatency;
 	std::vector<double> mAnkelOffsetQueue;
 	std::vector<std::vector<CollisionSphere> > mCollisionSpheres;
-	
+	Eigen::VectorXd mMotor_qHat;
 }; // class Humanoidcontroller
 
 } // namespace robot

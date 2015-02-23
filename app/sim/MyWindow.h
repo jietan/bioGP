@@ -76,7 +76,7 @@ private:
 
     /// \brief Number of frames for applying external force
     int mImpulseDuration;
-
+	bool mIsTimerRefresherStarted;
     /// \brief Constroller
     bioloidgp::robot::HumanoidController* mController;
 };

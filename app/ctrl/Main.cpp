@@ -57,6 +57,7 @@
 #include "dart/constraint/WeldJointConstraint.h"
 #include "dart/constraint/ConstraintSolver.h"
 #include "dart/collision/fcl_mesh/FCLMeshCollisionDetector.h"
+#include "dart/constraint/ContactConstraint.h"
 //#include "dart/collision/bullet/BulletCollisionDetector.h"
 
 #include "MyWindow.h"
@@ -280,6 +281,7 @@ int main(int argc, char* argv[])
 
     // Set gravity of the world
     myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+
 	//AddWeldConstraint(myWorld);
 
     // Create a humanoid controller
