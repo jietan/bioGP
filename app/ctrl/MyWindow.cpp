@@ -497,7 +497,7 @@ void MyWindow::processMocapData()
 void MyWindow::timeStepping()
 {
 	processMocapData();
-	bool isFirst6DofsValid = fromMarkersTo6Dofs();
+	bool isFirst6DofsValid = false;// fromMarkersTo6Dofs();
 	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
 	Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
 
@@ -575,7 +575,12 @@ void MyWindow::timeStepping()
 	if (mSimulating)
 	{
 		Eigen::VectorXd poseToRecord = mController->robot()->getPositions();
-		mRecordedFrames.push_back(pair<double, Eigen::VectorXd>(mTime, poseToRecord));
+		RecordedFrame frame;
+		frame.mTime = mTime;
+		frame.mMarkerPos = mMarkerPos;
+		frame.mMarkerOccluded = mMarkerOccluded;
+		frame.mMotorAngle = poseToRecord;
+		mRecordedFrames.push_back(frame);
 	}
 	//mController->keepFeetLevel();
 	if (mTimer.isStarted())
@@ -693,14 +698,20 @@ void MyWindow::saveRecordedFrames()
 	DecoConfig::GetSingleton()->GetString("Ctrl", "RecordingFileName", fileName);
 	ofstream oFile(fileName.c_str());
 	int nFrames = static_cast<int>(mRecordedFrames.size());
-	oFile << nFrames << endl;
+	if (!nFrames) return;
+	int nMarkers = static_cast<int>(mRecordedFrames[0].mMarkerPos.size());
+	oFile << nFrames << " " << nMarkers << endl;
 	for (int i = 0; i < nFrames; ++i)
 	{
-		oFile << mRecordedFrames[i].first << " ";
-		int nDofs = static_cast<int>(mRecordedFrames[i].second.size());
+		oFile << mRecordedFrames[i].mTime << " ";
+		for (int j = 0; j < nMarkers; ++j)
+		{
+			oFile << mRecordedFrames[i].mMarkerPos[j][0] << " " << mRecordedFrames[i].mMarkerPos[j][1] << " " << mRecordedFrames[i].mMarkerPos[j][2] << " " << mRecordedFrames[i].mMarkerOccluded[j] << " ";
+		}
+		int nDofs = static_cast<int>(mRecordedFrames[i].mMotorAngle.size());
 		for (int j = 0; j < nDofs; ++j)
 		{
-			oFile << mRecordedFrames[i].second[j] << " ";
+			oFile << mRecordedFrames[i].mMotorAngle[j] << " ";
 		}
 		oFile << endl;
 	}

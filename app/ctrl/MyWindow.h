@@ -50,6 +50,13 @@ class HumanoidController;
 } // namespace robot
 } // namespace bioloidgp
 
+struct RecordedFrame
+{
+	double mTime;
+	std::vector<Eigen::Vector3d> mMarkerPos;
+	std::vector<int> mMarkerOccluded;
+	Eigen::VectorXd mMotorAngle;
+};
 
 class CSerial;
 /// \brief class MyWindow
@@ -110,7 +117,7 @@ private:
 	double mMarker3To2AngleToXAxis;
 	bool mIsTimerRefresherStarted;
 
-	vector<pair<double, Eigen::VectorXd> > mRecordedFrames;
+	vector<RecordedFrame> mRecordedFrames;
 	dart::common::Timer mTimer;
 };
 
