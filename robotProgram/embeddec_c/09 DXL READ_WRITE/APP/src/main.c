@@ -19,6 +19,7 @@
 #define P_CCW_COMPLIANCE_SLOPE	29
 #define P_GOAL_POSITION_L		30
 #define P_GOAL_POSITION_H		31
+#define P_MOVING_SPEED_L		32
 #define P_PRESENT_POSITION_L	36
 #define P_PRESENT_POSITION_H	37
 #define P_MOVING				46
@@ -138,6 +139,7 @@ int main(void)
 	for (i = 0; i < NUM_MOTORS; ++i)
 	{
 		id = motorId[i];
+		dxl_write_word( id, P_MOVING_SPEED_L, 0);
 		dxl_write_byte( id, P_CW_COMPLIANCE_SLOPE, 64);
 		dxl_write_byte( id, P_CCW_COMPLIANCE_SLOPE, 64);
 	}

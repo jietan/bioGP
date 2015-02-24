@@ -501,72 +501,75 @@ void MyWindow::timeStepping()
 	Eigen::VectorXd motor_qhat = mController->motion()->targetPose(mTime);
 	Eigen::VectorXd fullMotorAngle = Eigen::VectorXd::Zero(NUM_MOTORS + 2);
 
-	if (mSimulating)
+	if (!mSimulating)
 	{
-		// Wait for an event
-		Eigen::VectorXd motorAngle;
-		motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
-		//if (mTime < 3)
-		//	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
-
-		//Eigen::VectorXd mocapPose = mController->mocap()->GetPose(mTime - 1.0);
-		//Eigen::VectorXd motor_qhat = mController->motormap()->toMotorMapVectorSameDim(mocapPose);
-		Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
-		motor_qhat_noGriper.head(6) = motor_qhat.head(6);
-		motor_qhat_noGriper.tail(10) = motor_qhat.tail(10);
-		unsigned char commands[256];
-		for (int i = 0; i < NUM_MOTORS; ++i)
-		{
-			int command = static_cast<int>(motor_qhat_noGriper[i]);
-			unsigned char highByte, lowByte;
-			SeparateWord(command, &highByte, &lowByte);
-			commands[2 * i] = lowByte;
-			commands[2 * i + 1] = highByte;
-			//commands[3 * i + 2] = ' ';
-		}
-		commands[2 * 16] = '\t';
-		commands[2 * 16 + 1] = '\n';
-		mSerial->Write(commands, 2 * 16 + 2);
-
-		DWORD dwBytesRead = 0;
-		char szBuffer[101];
-		bool bUpdated = false;
-		do
-		{
-			// Read data from the COM-port
-			LONG lLastError = mSerial->Read(szBuffer, sizeof(szBuffer) - 1, &dwBytesRead);
-
-			if (lLastError != ERROR_SUCCESS)
-				LOG(FATAL) << mSerial->GetLastError() << " Unable to read from COM-port.";
-
-			if (dwBytesRead > 0)
-			{
-				mTmpBuffer.insert(mTmpBuffer.size(), szBuffer, dwBytesRead);
-
-				if (mTmpBuffer.size() >= NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
-				{
-
-					bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
-
-					if (bUpdated)
-					{
-						fullMotorAngle.head(6) = motorAngle.head(6);
-						fullMotorAngle.tail(10) = motorAngle.tail(10);
-						mController->setMotorMapPose(fullMotorAngle);
-					}
-					//for (int i = 0; i < 3; ++i)
-					//{
-					//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
-					//}
-					//std::cout << std::endl;
-				}
-			}
-			else
-			{
-				std::cout << "Noting received." << endl;
-			}
-		} while (dwBytesRead == sizeof(szBuffer) - 1);
+		motor_qhat = mController->motion()->getInitialPose();
 	}
+	
+	// Wait for an event
+	Eigen::VectorXd motorAngle;
+	motorAngle = Eigen::VectorXd::Zero(NUM_MOTORS);
+	//if (mTime < 3)
+	//	motor_qhat = mController->useAnkelStrategy(motor_qhat, mTime);
+
+	//Eigen::VectorXd mocapPose = mController->mocap()->GetPose(mTime - 1.0);
+	//Eigen::VectorXd motor_qhat = mController->motormap()->toMotorMapVectorSameDim(mocapPose);
+	Eigen::VectorXd motor_qhat_noGriper = Eigen::VectorXd::Zero(NUM_MOTORS);
+	motor_qhat_noGriper.head(6) = motor_qhat.head(6);
+	motor_qhat_noGriper.tail(10) = motor_qhat.tail(10);
+	unsigned char commands[256];
+	for (int i = 0; i < NUM_MOTORS; ++i)
+	{
+		int command = static_cast<int>(motor_qhat_noGriper[i]);
+		unsigned char highByte, lowByte;
+		SeparateWord(command, &highByte, &lowByte);
+		commands[2 * i] = lowByte;
+		commands[2 * i + 1] = highByte;
+		//commands[3 * i + 2] = ' ';
+	}
+	commands[2 * 16] = '\t';
+	commands[2 * 16 + 1] = '\n';
+	mSerial->Write(commands, 2 * 16 + 2);
+
+	DWORD dwBytesRead = 0;
+	char szBuffer[101];
+	bool bUpdated = false;
+	do
+	{
+		// Read data from the COM-port
+		LONG lLastError = mSerial->Read(szBuffer, sizeof(szBuffer) - 1, &dwBytesRead);
+
+		if (lLastError != ERROR_SUCCESS)
+			LOG(FATAL) << mSerial->GetLastError() << " Unable to read from COM-port.";
+
+		if (dwBytesRead > 0)
+		{
+			mTmpBuffer.insert(mTmpBuffer.size(), szBuffer, dwBytesRead);
+
+			if (mTmpBuffer.size() >= NUM_BYTES_PER_MOTOR * NUM_MOTORS + 1)
+			{
+
+				bUpdated = ProcessBuffer(mTmpBuffer, motorAngle);
+
+				if (bUpdated)
+				{
+					fullMotorAngle.head(6) = motorAngle.head(6);
+					fullMotorAngle.tail(10) = motorAngle.tail(10);
+					mController->setMotorMapPose(fullMotorAngle);
+				}
+				//for (int i = 0; i < 3; ++i)
+				//{
+				//	std::cout << motorAngle[i] << " "; //<< motor_qhat_noGriper[14];
+				//}
+				//std::cout << std::endl;
+			}
+		}
+		else
+		{
+			std::cout << "Noting received." << endl;
+		}
+	} while (dwBytesRead == sizeof(szBuffer) - 1);
+	
 	if (isFirst6DofsValid)
 		mController->setFreeDofs(mFirst6DofsFromMocap);
 	if (mSimulating)
