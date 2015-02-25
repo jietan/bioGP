@@ -287,6 +287,13 @@ int main(int argc, char* argv[])
     // Create a humanoid controller
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
+
+	string controllerDataFileName;
+	ControllerData cData;
+	DecoConfig::GetSingleton()->GetString("Sim", "ControllerData", controllerDataFileName);
+	cData.ReadFromFile(controllerDataFileName);
+	con->motion()->setControllerData(cData);
+
 	AddMarkers(con->robot());
 	//Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);
 	//q6[4] = 0;

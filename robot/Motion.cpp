@@ -263,6 +263,24 @@ Eigen::VectorXd Motion::targetPose(double t) const {
     return steps[ steps.size() - 1 ].targetpose;
 }
 
+void Motion::setControllerData(const ControllerData& data)
+{
+	int nFramesToChange = static_cast<int>(data.mKeyFrameId.size());
+	for (int i = 0; i < nFramesToChange; ++i)
+	{
+		Step& stepToChange = steps[data.mKeyFrameId[i]];
+		int nDofsToChange = static_cast<int>(data.mDofValues[i].size());
+		for (int j = 0; j < nDofsToChange; ++j)
+		{
+			stepToChange.targetpose[data.mDofValues[i][j].first] = data.mDofValues[i][j].second;
+		}
+		if (data.mKeyFrameDuration[i] >= 0)
+		{
+			stepToChange.duration = data.mKeyFrameDuration[i];
+		}
+	}
+}
+
 void Motion::printSteps() {
     for (size_t i = 0; i < steps.size(); i++) {
         const Step& s = steps[i];

@@ -117,10 +117,16 @@ void MyWindow::timeStepping()
         mImpulseDuration = 0;
         mForce.setZero();
     }
-	Eigen::VectorXd p = mController->robot()->getPositions();
-	Eigen::VectorXd mtv = mController->motormap()->toMotorMapVector(p);
-	const Eigen::VectorXd currentTarget = mController->getCurrentTargetPose();
-	LOG(INFO) << mWorld->getTime() << " " << mtv[10] << " " << currentTarget[10];
+	Eigen::Vector3d up = mController->getUpDir();
+	Eigen::Vector3d left = mController->getLeftDir();
+
+	double asinNegativeIfForward = up.cross(Eigen::Vector3d::UnitY()).dot(left);
+	double angleFromUp = asin(asinNegativeIfForward) * 180 / M_PI;
+	LOG(INFO) << mWorld->getTime() << " " << angleFromUp;
+	//Eigen::VectorXd p = mController->robot()->getPositions();
+	//Eigen::VectorXd mtv = mController->motormap()->toMotorMapVector(p);
+	//const Eigen::VectorXd currentTarget = mController->getCurrentTargetPose();
+	//LOG(INFO) << mWorld->getTime() << " " << mtv[10] << " " << currentTarget[10];
 }
 
 void MyWindow::draw()

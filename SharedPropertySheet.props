@@ -4,6 +4,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;C:\Users\JieTan\Documents\MyProjects\bioloid\bullet-2.82-r2704\src;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\local\boost_1_55_0\lib32-msvc-12.0\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

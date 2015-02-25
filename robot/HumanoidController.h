@@ -56,7 +56,10 @@ public:
 	Eigen::Vector3d getCOMChangeFromInitial() const;
 	Eigen::Vector3d getCOMVelocity();
 	const std::vector<std::vector<CollisionSphere> >& getCollisionSpheres() const;
-	
+	Eigen::Vector3d getUpDir() const;
+	Eigen::Vector3d getLeftDir() const;
+	Eigen::Vector3d getForwardDir() const;
+
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
 	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);

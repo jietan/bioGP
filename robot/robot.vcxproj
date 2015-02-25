@@ -67,7 +67,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -85,7 +85,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_IPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>
@@ -123,13 +123,20 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cmaes.cpp" />
+    <ClCompile Include="CMASearcher.cpp" />
+    <ClCompile Include="ControllerData.cpp" />
     <ClCompile Include="HumanoidController.cpp" />
     <ClCompile Include="MocapMotion.cpp" />
     <ClCompile Include="Motion.cpp" />
     <ClCompile Include="MotorMap.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cmaes.h" />
+    <ClInclude Include="cmaes_interface.h" />
+    <ClInclude Include="CMASearcher.h" />
     <ClInclude Include="CollisionSphere.h" />
+    <ClInclude Include="ControllerData.h" />
     <ClInclude Include="HumanoidController.h" />
     <ClInclude Include="mocapMotion.h" />
     <ClInclude Include="Motion.h" />

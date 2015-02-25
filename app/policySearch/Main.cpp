@@ -36,7 +36,7 @@
  */
 
 #include <iostream>
-
+#include <iomanip>
 #include "utils/CppCommon.h"
 
 #include "dart/dynamics/Skeleton.h"
@@ -52,30 +52,80 @@
 #include "dart/constraint/ContactConstraint.h"
 //#include "dart/collision/bullet/BulletCollisionDetector.h"
 
-#include "MyWindow.h"
 #include "robot/HumanoidController.h"
 #include "robot/MotorMap.h"
 #include "robot/Motion.h"
-// #include "robot/Controller.h"
 #include "robot/ControllerData.h"
+#include "robot/CMASearcher.h"
 
 #include "myUtils/ConfigManager.h"
+#include "myUtils/mathlib.h"
+
+#include <boost/interprocess/ipc/message_queue.hpp>
+using namespace boost::interprocess;
 
 using namespace std;
 using namespace dart::dynamics;
 using namespace dart::simulation;
 using namespace dart::utils;
 
-dart::constraint::WeldJointConstraint* gWeldJoint;
+World* gWorld = NULL;
+bioloidgp::robot::HumanoidController* gController = NULL;
+CMASearcher* gPolicySearch = NULL;
 
 double gTimeStep = 0.0002;
 
-// avconv -r 160 -i ./Capture%04d.png output.mp4
-void AddWeldConstraint(World* myWorld)
+
+double eval(const ControllerData& cData, int pop_id, double* timerPerStep)
 {
-	BodyNode* bd = myWorld->getSkeleton(0)->getBodyNode("torso");
-	gWeldJoint = new dart::constraint::WeldJointConstraint(bd);
-	myWorld->getConstraintSolver()->addConstraint(gWeldJoint);
+	double reward = 0;
+	const int testTime = 3.0;
+	gController->reset();
+	gController->motion()->setControllerData(cData);
+	gWorld->setTime(0);
+
+	while (gWorld->getTime() < testTime)
+	{
+		gController->update(gWorld->getTime());
+		gWorld->step();
+
+		Eigen::Vector3d up = gController->getUpDir();
+		Eigen::Vector3d left = gController->getLeftDir();
+
+		double asinNegativeIfForward = up.cross(Eigen::Vector3d::UnitY()).dot(left);
+		double angleFromUp = asin(asinNegativeIfForward);
+		double threshold = 15.0 * M_PI / 180.0;
+		angleFromUp = Clamp<double>(angleFromUp, -threshold, threshold);
+		//LOG(INFO) << gWorld->getTime() << " " << angleFromUp;;
+
+		if (gWorld->getTime() > 1.5)
+		{
+			reward += angleFromUp;
+		}
+	}
+	return reward;
+}
+
+static void buildPolicy()
+{
+	int numParams = 1;
+
+	double* params = new double[numParams];
+	double* lb = new double[numParams];
+	double* ub = new double[numParams];
+	lb[0] = 0.05;
+	ub[0] = 0.15;
+
+	gPolicySearch = new CMASearcher;
+	gPolicySearch->SetDimension(numParams);
+	gPolicySearch->SetEvaluatorFunc(eval);
+	gPolicySearch->Search(lb, ub, params, 50);
+	LOG(INFO) << setprecision(16) << "params " << params[0] << endl;
+
+	delete[] params;
+	delete[] lb;
+	delete[] ub;
+
 }
 
 int main(int argc, char* argv[])
@@ -93,10 +143,8 @@ int main(int argc, char* argv[])
     
     srand( (unsigned int) time (NULL) );
 
-    World* myWorld = new World;
-
-    //myWorld->getConstraintSolver()->setCollisionDetector( new dart::collision::BulletCollisionDetector());
-    myWorld->setTimeStep(gTimeStep);
+    gWorld = new World;
+	gWorld->setTimeStep(gTimeStep);
 
     // // Load ground and Atlas robot and add them to the world
     DartLoader urdfLoader;
@@ -109,48 +157,24 @@ int main(int argc, char* argv[])
 		DATA_DIR"/sdf/wall.urdf");
     robot->enableSelfCollision();
 	
-    myWorld->addSkeleton(robot);
-    myWorld->addSkeleton(ground);
-	myWorld->addSkeleton(wall);
-
-    // Print some info
-    LOG(INFO) << "robot.mass = " << robot->getMass();
+	gWorld->addSkeleton(robot);
+	gWorld->addSkeleton(ground);
+	gWorld->addSkeleton(wall);
 
     // Set gravity of the world
-    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+	gWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
 	dart::constraint::ContactConstraint::setErrorReductionParameter(0.0);
 	dart::constraint::ContactConstraint::setMaxErrorReductionVelocity(0.1);
-	//myWorld->setGravity(Eigen::Vector3d(0.0, 0, 0.0));
-	//AddWeldConstraint(myWorld);
+
     // Create a humanoid controller
-    bioloidgp::robot::HumanoidController* con =
-        new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
-	
-
-
-    // Create a window and link it to the world
-    // MyWindow window(new Controller(robot, myWorld->getConstraintSolver()));
-    MyWindow window(con);
-    window.setWorld(myWorld);
-	con->reset();
+    gController = new bioloidgp::robot::HumanoidController(robot, gWorld->getConstraintSolver());
 
 	string controllerDataFileName;
 	ControllerData cData;
 	DecoConfig::GetSingleton()->GetString("Sim", "ControllerData", controllerDataFileName);
 	cData.ReadFromFile(controllerDataFileName);
-	con->motion()->setControllerData(cData);
-    // Print manual
-    LOG(INFO) << "space bar: simulation on/off";
-    LOG(INFO) << "'p': playback/stop";
-    LOG(INFO) << "'[' and ']': play one frame backward and forward";
-    LOG(INFO) << "'v': visualization on/off";
-    LOG(INFO) << endl;
 
-    // Run glut loop
-    glutInit(&argc, argv);
-    window.initWindow(1280, 720, "BioloidGP Robot - with Dart4.0");
-	
-    glutMainLoop();
+	buildPolicy();
 
     return 0;
 }

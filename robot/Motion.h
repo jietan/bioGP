@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <Eigen/Dense>
+#include "ControllerData.h"
 #include "utils/HppCommon.h"
 
 namespace bioloidgp {
@@ -31,7 +32,7 @@ struct Motion {
 	const Eigen::VectorXd& getInitialPose() const { return initialPose;  }
     Eigen::VectorXd targetPoseAtIndex(int i) const;
     Eigen::VectorXd targetPose(double t) const;
-
+	void setControllerData(const ControllerData& data);
     void printSteps();
 
     int dim;

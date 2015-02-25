@@ -72,7 +72,7 @@ HumanoidController::HumanoidController(
     mKp = Eigen::VectorXd::Zero(NDOFS);
     mKd = Eigen::VectorXd::Zero(NDOFS);
     for (int i = 6; i < NDOFS; ++i) {
-		mKp(i) = 13.8;// 9.272;
+		mKp(i) = 9.272;
 		mKd(i) = 0.3069;//1.0;
       //mKp(i) = 600;
 		//mKd(i) = 1;//1.0;
@@ -106,6 +106,8 @@ HumanoidController::HumanoidController(
 	mLastControlTime = 0;
 	mLatency = 0;
 	DecoConfig::GetSingleton()->GetDouble("Sim", "Latency", mLatency);
+	robot()->getBodyNode("l_foot")->setRestitutionCoeff(1.0);
+	robot()->getBodyNode("r_foot")->setRestitutionCoeff(1.0);
 }
 
 HumanoidController::~HumanoidController() {
@@ -360,6 +362,26 @@ void HumanoidController::update(double _currentTime) {
     // cout << _currentTime << " : " << tau.transpose() << endl;
     robot()->setForces(tau);
 
+}
+
+Eigen::Vector3d HumanoidController::getUpDir() const
+{
+	Eigen::Isometry3d rootTransform = robot()->getRootBodyNode()->getTransform();
+	Eigen::Matrix3d rot = rootTransform.linear();
+	return rot.col(2);
+}
+Eigen::Vector3d HumanoidController::getLeftDir() const
+{
+	Eigen::Isometry3d rootTransform = robot()->getRootBodyNode()->getTransform();
+	Eigen::Matrix3d rot = rootTransform.linear();
+	return rot.col(0);
+
+}
+Eigen::Vector3d HumanoidController::getForwardDir() const
+{
+	Eigen::Isometry3d rootTransform = robot()->getRootBodyNode()->getTransform();
+	Eigen::Matrix3d rot = rootTransform.linear();
+	return -rot.col(1);
 }
 
 void HumanoidController::setJointDamping(double _damping) {
