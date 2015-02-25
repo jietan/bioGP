@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
     LOG(INFO) << "robot.mass = " << robot->getMass();
 
     // Set gravity of the world
-    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0));
 	dart::constraint::ContactConstraint::setErrorReductionParameter(0.0);
 	dart::constraint::ContactConstraint::setMaxErrorReductionVelocity(0.1);
 	//myWorld->setGravity(Eigen::Vector3d(0.0, 0, 0.0));

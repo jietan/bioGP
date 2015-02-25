@@ -105,9 +105,11 @@ HumanoidController::HumanoidController(
 	mAnkelOffset = 0;
 	mLastControlTime = 0;
 	mLatency = 0;
-	DecoConfig::GetSingleton()->GetDouble("Sim", "Latency", mLatency);
-	robot()->getBodyNode("l_foot")->setRestitutionCoeff(1.0);
-	robot()->getBodyNode("r_foot")->setRestitutionCoeff(1.0);
+	//DecoConfig::GetSingleton()->GetDouble("Sim", "Latency", mLatency);
+	//robot()->getBodyNode("l_foot")->setRestitutionCoeff(1.0);
+	//robot()->getBodyNode("r_foot")->setRestitutionCoeff(1.0);
+	//robot()->getBodyNode("l_foot")->setFrictionCoeff(0.5);
+	//robot()->getBodyNode("r_foot")->setFrictionCoeff(0.5);
 }
 
 HumanoidController::~HumanoidController() {
