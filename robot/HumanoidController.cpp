@@ -35,47 +35,43 @@ HumanoidController::HumanoidController(
     set_motormap( new MotorMap(NMOTORS, NDOFS) );
     motormap()->load(DATA_DIR"/urdf/BioloidGP/BioloidGPMotorMap.xml");
 	set_mocap(new MocapMotion());
+	mInitFirst6Dofs = Eigen::VectorXd::Zero(6);
 	//string mocapFileName;
 	//DecoConfig::GetSingleton()->GetString("Mocap", "FileName", mocapFileName);
 	//mocap()->Read(mocapFileName.c_str());
-	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
-	//mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
-	//mtvInitPose <<
-	//    342, 681, 572, 451, 762, 261,
-	//    358, 666,
-	//    515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
-	vector<int> initialPose;
-	if (DecoConfig::GetSingleton()->GetIntVector("Sim", "InitialPose", initialPose))
-	{
-		for (int i = 0; i < NMOTORS; ++i)
-		{
-			mtvInitPose[i] = static_cast<double>(initialPose[i]);
-		}
-	}
-	//mtvInitPose = motormap()->toMotorMapVectorSameDim(initialPoseEigen);
 
-    set_motion( new Motion(NMOTORS, mtvInitPose) );
-	setInitialPose(mtvInitPose);
+	//Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
+	////mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
+	////mtvInitPose <<
+	////    342, 681, 572, 451, 762, 261,
+	////    358, 666,
+	////    515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
+	//vector<int> initialPose;
+	//if (DecoConfig::GetSingleton()->GetIntVector("Sim", "InitialPose", initialPose))
+	//{
+	//	for (int i = 0; i < NMOTORS; ++i)
+	//	{
+	//		mtvInitPose[i] = static_cast<double>(initialPose[i]);
+	//	}
+	//}
+	//
 
-    // motion()->load(DATA_DIR"/xml/motion.xml");
-    // motion()->loadMTN(DATA_DIR"/mtn/bio_gp_humanoid_kr.mtn", "HandStanding");
-    //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_squat.mtn", "Squat");
-    //motion()->loadMTN(DATA_DIR"/mtn/bio_gp_motorTest.mtn", "exerciseRightHip");
-	string motionFileName;
-	string motionPageName;
-	DecoConfig::GetSingleton()->GetString("Ctrl", "MotionFileName", motionFileName);
-	DecoConfig::GetSingleton()->GetString("Ctrl", "MotionPageName", motionPageName);
-	motion()->loadMTN(motionFileName.c_str(), motionPageName.c_str());
-    motion()->printSteps();
-    // exit(0);
+ //   set_motion( new Motion(NMOTORS, mtvInitPose) );
+	//setInitialPose(mtvInitPose);
+
+	//string motionFileName;
+	//string motionPageName;
+	//DecoConfig::GetSingleton()->GetString("Ctrl", "MotionFileName", motionFileName);
+	//DecoConfig::GetSingleton()->GetString("Ctrl", "MotionPageName", motionPageName);
+	//motion()->loadMTN(motionFileName.c_str(), motionPageName.c_str());
+ //   motion()->printSteps();
+
 
     mKp = Eigen::VectorXd::Zero(NDOFS);
     mKd = Eigen::VectorXd::Zero(NDOFS);
     for (int i = 6; i < NDOFS; ++i) {
 		mKp(i) = 9.272;
-		mKd(i) = 0.3069;//1.0;
-      //mKp(i) = 600;
-		//mKd(i) = 1;//1.0;
+		mKd(i) = 0.3069;
     }
 	int numBodies = static_cast<int>(robot()->getNumBodyNodes());
     for (int i = 0; i < numBodies; i++) {
@@ -119,10 +115,7 @@ HumanoidController::~HumanoidController() {
 void HumanoidController::reset()
 {
 	setInitialPose(motion()->getInitialPose());
-	vector<double> freeDof;
-	DecoConfig::GetSingleton()->GetDoubleVector("Sim", "Initial6Dofs", freeDof);
-	Eigen::Map<Eigen::VectorXd> freeDofEigen(&(freeDof[0]), 6);
-	setFreeDofs(freeDofEigen);
+	setFreeDofs(mInitFirst6Dofs);
 	mIsCOMInitialized = false;
 	mAnkelOffset = 0;
 	mLastControlTime = 0;
@@ -140,6 +133,12 @@ void HumanoidController::setFreeDofs(const Eigen::VectorXd& q6)
 	robot()->computeForwardKinematics(true, true, false);
 	mInitialCOM = robot()->getWorldCOM();
 }
+
+void HumanoidController::setInitialFirst6Dofs(const Eigen::VectorXd& init6Dofs)
+{
+	mInitFirst6Dofs = init6Dofs;
+	setFreeDofs(mInitFirst6Dofs);
+}
 void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 {
 	const int NMOTORS = 18;
@@ -151,17 +150,7 @@ void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 	setMotorMapPose(init);
 	motion()->setInitialPose(init);
 
-	// Adjust the global position and orientation
 	Eigen::VectorXd q = robot()->getPositions();
-
-	vector<double> freeDof;
-	DecoConfig::GetSingleton()->GetDoubleVector("Sim", "Initial6Dofs", freeDof);
-	Eigen::Map<Eigen::VectorXd> freeDofEigen(&(freeDof[0]), 6);
-	q.head(6) = freeDofEigen;
-
-	//q.head(6) = Eigen::VectorXd::Zero(6);
-	//q[0] = -0.5 * DART_PI;
-	//q[4] = -0.27;
 	Eigen::VectorXd noise = 0.0 * Eigen::VectorXd::Random(q.size());
 	noise.head<6>().setZero();
 	robot()->setPositions(q + noise);

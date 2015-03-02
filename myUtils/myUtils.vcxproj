@@ -54,16 +54,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>..\lib</OutDir>
+    <OutDir>..\lib\</OutDir>
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
+    <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>..\lib</OutDir>
+    <OutDir>..\lib\</OutDir>
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FastDebug|Win32'">
-    <OutDir>..\lib</OutDir>
+    <OutDir>..\lib\</OutDir>
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
+    <TargetName>$(ProjectName)fd</TargetName>
+    <IntDir>$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -78,7 +81,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <OutputFile>$(OutDir)$(TargetName)d$(TargetExt)</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -115,7 +118,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <OutputFile>$(OutDir)$(TargetName)fd$(TargetExt)</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

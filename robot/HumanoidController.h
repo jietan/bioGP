@@ -51,6 +51,7 @@ public:
 	const Eigen::VectorXd& getCurrentTargetPose() const;
 	void reset();
 	void setInitialPose(const Eigen::VectorXd& init);
+	void setInitialFirst6Dofs(const Eigen::VectorXd& init6Dofs);
     virtual void update(double _currentTime);
     virtual void printDebugInfo() const;
 	Eigen::Vector3d getCOMChangeFromInitial() const;
@@ -84,6 +85,7 @@ protected:
 	std::vector<double> mAnkelOffsetQueue;
 	std::vector<std::vector<CollisionSphere> > mCollisionSpheres;
 	Eigen::VectorXd mMotor_qHat;
+	Eigen::VectorXd mInitFirst6Dofs;
 }; // class Humanoidcontroller
 
 } // namespace robot

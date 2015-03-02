@@ -255,6 +255,22 @@ BOOL DecoConfig::GetDoubleVector(const char* Section, const char* Key, vector<do
 	return 0;
 }
 
+BOOL DecoConfig::GetVectorXd(const char* Section, const char* Key, Eigen::VectorXd& ValueArray) const
+{
+	vector<double> array;
+	BOOL ret = GetDoubleVector(Section, Key, array);
+	if (ret)
+	{
+		int len = static_cast<int>(array.size());
+		ValueArray.resize(len);
+		for (int i = 0; i < len; ++i)
+		{
+			ValueArray[i] = array[i];
+		}
+	}
+	return ret;
+}
+
 BOOL DecoConfig::GetIntVector(const char* Section, const char* Key, vector<int>& ValueArray) const
 {
 	const int MAX_STR_LEN = 512;

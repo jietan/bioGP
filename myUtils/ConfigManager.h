@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <Eigen/Dense>
 
 #undef ERROR
 #include "glog/logging.h"
@@ -62,6 +63,7 @@ public:
 	BOOL GetDouble(const char* Section,const char* Key, DOUBLE& Value) const;
 	BOOL GetBool(const char* Section, const char* Key, BOOL& Value) const;
 	BOOL GetDoubleVector(const char* Section, const char* Key, vector<double>& ValueArray) const;
+	BOOL GetVectorXd(const char* Section, const char* Key, Eigen::VectorXd& ValueArray) const;
 	BOOL GetIntVector(const char* Section, const char* Key, vector<int>& ValueArray) const;
 	const DecoConfigSection* FindSection(const char* Section) const ;
 };

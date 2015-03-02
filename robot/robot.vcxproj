@@ -52,18 +52,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\lib</OutDir>
+    <OutDir>..\lib\</OutDir>
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
+    <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
-    <OutDir>..\lib</OutDir>
+    <OutDir>..\lib\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FastDebug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master\build;$(IncludePath)</IncludePath>
-    <OutDir>..\lib</OutDir>
+    <OutDir>..\lib\</OutDir>
+    <TargetName>$(ProjectName)fd</TargetName>
+    <IntDir>$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -80,7 +83,7 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <Lib>
-      <OutputFile>$(OutDir)$(TargetName)d$(TargetExt)</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -119,7 +122,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <OutputFile>$(OutDir)$(TargetName)fd$(TargetExt)</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -130,6 +133,7 @@
     <ClCompile Include="MocapMotion.cpp" />
     <ClCompile Include="Motion.cpp" />
     <ClCompile Include="MotorMap.cpp" />
+    <ClCompile Include="WorldConstructor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cmaes.h" />
@@ -141,6 +145,7 @@
     <ClInclude Include="mocapMotion.h" />
     <ClInclude Include="Motion.h" />
     <ClInclude Include="MotorMap.h" />
+    <ClInclude Include="WorldConstructor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

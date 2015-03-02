@@ -58,6 +58,7 @@
 #include "robot/Motion.h"
 // #include "robot/Controller.h"
 #include "robot/ControllerData.h"
+#include "robot/WorldConstructor.h"
 
 #include "myUtils/ConfigManager.h"
 
@@ -68,7 +69,7 @@ using namespace dart::utils;
 
 dart::constraint::WeldJointConstraint* gWeldJoint;
 
-double gTimeStep = 0.0002;
+
 
 // avconv -r 160 -i ./Capture%04d.png output.mp4
 void AddWeldConstraint(World* myWorld)
@@ -94,51 +95,14 @@ int main(int argc, char* argv[])
     srand( (unsigned int) time (NULL) );
 
     World* myWorld = new World;
-
-    //myWorld->getConstraintSolver()->setCollisionDetector( new dart::collision::BulletCollisionDetector());
-    myWorld->setTimeStep(gTimeStep);
-
-    // // Load ground and Atlas robot and add them to the world
-    DartLoader urdfLoader;
-    Skeleton* ground = urdfLoader.parseSkeleton(
-        DATA_DIR"/sdf/ground.urdf");
-    Skeleton* robot
-        = urdfLoader.parseSkeleton(
-            DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
-	Skeleton* wall = urdfLoader.parseSkeleton(
-		DATA_DIR"/sdf/wall.urdf");
-    robot->enableSelfCollision();
-	
-    myWorld->addSkeleton(robot);
-    myWorld->addSkeleton(ground);
-	myWorld->addSkeleton(wall);
-
-    // Print some info
-    LOG(INFO) << "robot.mass = " << robot->getMass();
-
-    // Set gravity of the world
-    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0));
-	dart::constraint::ContactConstraint::setErrorReductionParameter(0.0);
-	dart::constraint::ContactConstraint::setMaxErrorReductionVelocity(0.1);
-	//myWorld->setGravity(Eigen::Vector3d(0.0, 0, 0.0));
-	//AddWeldConstraint(myWorld);
-    // Create a humanoid controller
-    bioloidgp::robot::HumanoidController* con =
-        new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
-	
-
-
+	WorldConstructor::Construct(myWorld);
+    
     // Create a window and link it to the world
     // MyWindow window(new Controller(robot, myWorld->getConstraintSolver()));
-    MyWindow window(con);
+	MyWindow window(WorldConstructor::msHumanoid);
     window.setWorld(myWorld);
-	con->reset();
 
-	string controllerDataFileName;
-	ControllerData cData;
-	DecoConfig::GetSingleton()->GetString("Sim", "ControllerData", controllerDataFileName);
-	cData.ReadFromFile(controllerDataFileName);
-	con->motion()->setControllerData(cData);
+
     // Print manual
     LOG(INFO) << "space bar: simulation on/off";
     LOG(INFO) << "'p': playback/stop";

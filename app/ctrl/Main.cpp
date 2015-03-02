@@ -64,6 +64,7 @@
 #include "robot/HumanoidController.h"
 #include "robot/MotorMap.h"
 #include "robot/Motion.h"
+#include "robot/WorldConstructor.h"
 #include "myUtils/ConfigManager.h"
 #include <windows.h>
 #include "Serial.h"
@@ -262,46 +263,18 @@ int main(int argc, char* argv[])
     World* myWorld = new World;
 	double playBackSpeed = 1.0;
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "PlaybackSpeed", playBackSpeed);
-    myWorld->setTimeStep(playBackSpeed * 0.017);
+	WorldConstructor::msTimeStep = playBackSpeed * 0.017;
+    
+	WorldConstructor::Construct(myWorld);
 
-    // // Load ground and Atlas robot and add them to the world
-    DartLoader urdfLoader;
-    Skeleton* ground = urdfLoader.parseSkeleton(
-        DATA_DIR"/sdf/ground.urdf");
-    Skeleton* robot
-        = urdfLoader.parseSkeleton(
-            DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
-    robot->enableSelfCollision();
-	
-    myWorld->addSkeleton(robot);
-    myWorld->addSkeleton(ground);
-
-    // Print some info
-    LOG(INFO) << "robot.mass = " << robot->getMass();
-
-    // Set gravity of the world
-    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
-
-	//AddWeldConstraint(myWorld);
-
-    // Create a humanoid controller
-    bioloidgp::robot::HumanoidController* con =
-        new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
-
-	string controllerDataFileName;
-	ControllerData cData;
-	DecoConfig::GetSingleton()->GetString("Sim", "ControllerData", controllerDataFileName);
-	cData.ReadFromFile(controllerDataFileName);
-	con->motion()->setControllerData(cData);
-
-	AddMarkers(con->robot());
+	AddMarkers(WorldConstructor::msHumanoid->robot());
 	//Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);
 	//q6[4] = 0;
 	//con->setFreeDofs(q6);
 
     // Create a window and link it to the world
     // MyWindow window(new Controller(robot, myWorld->getConstraintSolver()));
-    MyWindow window(con);
+    MyWindow window(WorldConstructor::msHumanoid);
     window.setWorld(myWorld);
 	window.setSerial(&serial);
 	window.setMocapClient(&myClient);
