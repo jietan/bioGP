@@ -22,7 +22,7 @@
           rpy="0 0 0" />
       <geometry>
         <mesh
-            filename="torso.STL" />
+            filename="torsoNoBattery.obj" />
       </geometry>
       <material
           name="">
@@ -36,7 +36,7 @@
           rpy="0 0 0" />
       <geometry>
         <mesh
-            filename="torso.STL" />
+            filename="torsoNoBattery.obj" />
       </geometry>
     </collision>
   </link>
