@@ -68,8 +68,8 @@ maxTimeFractionForEigendecompostion 1  # maximal CPU-time fraction for eigensyst
 ## --- Strategy internal parameter ---
 ##     default values are set in readpara_SupplementDefaults()
 ## -- Selection related parameters
-lambda 8       # number of offspring == samplesize
-mu 4
+lambda 16       # number of offspring == samplesize
+mu 8
 # weights      log # possible values: log (==default), 
                    #   lin (==linearely decreasing), or equal 
 

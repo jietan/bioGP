@@ -28,6 +28,7 @@ void WorldConstructor::Construct(World* world)
 
 void WorldConstructor::commonConstruction(World* world)
 {
+	DecoConfig::GetSingleton()->GetDouble("Sim", "TimeStep", msTimeStep);
 	world->setTimeStep(msTimeStep);
 	// Set gravity of the world
 	world->setGravity(Eigen::Vector3d(0.0, -9.81, 0));
@@ -103,7 +104,12 @@ void WorldConstructor::constructChairWorld(World* world)
 void WorldConstructor::constructKneelWorld(World* world)
 {
 	commonConstruction(world);
-
+	world->getConstraintSolver()->getCollisionDetector()->disablePair(msHumanoid->robot()->getBodyNode("torso"), msHumanoid->robot()->getBodyNode("l_heel"));
+	world->getConstraintSolver()->getCollisionDetector()->disablePair(msHumanoid->robot()->getBodyNode("torso"), msHumanoid->robot()->getBodyNode("r_heel"));
+	world->getConstraintSolver()->getCollisionDetector()->disablePair(msHumanoid->robot()->getBodyNode("l_hip"), msHumanoid->robot()->getBodyNode("l_heel"));
+	world->getConstraintSolver()->getCollisionDetector()->disablePair(msHumanoid->robot()->getBodyNode("r_hip"), msHumanoid->robot()->getBodyNode("r_heel"));
+	world->getConstraintSolver()->getCollisionDetector()->disablePair(msHumanoid->robot()->getBodyNode("l_thigh"), msHumanoid->robot()->getBodyNode("l_heel"));
+	world->getConstraintSolver()->getCollisionDetector()->disablePair(msHumanoid->robot()->getBodyNode("r_thigh"), msHumanoid->robot()->getBodyNode("r_heel"));
 	const int NMOTORS = 18;
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
 	mtvInitPose << 412, 612, 562, 462, 512, 512, 512, 512, 512, 512, 612, 412, 1023, 1, 842, 182, 512, 512;

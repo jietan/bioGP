@@ -298,12 +298,62 @@ const Eigen::VectorXd& HumanoidController::getCurrentTargetPose() const
 	return mMotor_qHat;
 }
 
+Eigen::VectorXd HumanoidController::computeTorque(const Eigen::VectorXd& qhat)
+{
+	const int NDOFS = robot()->getNumDofs();
+	Eigen::VectorXd q = robot()->getPositions();
+	Eigen::VectorXd dq = robot()->getVelocities();
+	Eigen::VectorXd tau = Eigen::VectorXd::Zero(NDOFS);
+
+	int useSPD = 0;
+	DecoConfig::GetSingleton()->GetInt("Sim", "SPD", useSPD);
+	if (useSPD)
+	{
+		Eigen::VectorXd constrForces = robot()->getConstraintForces();
+		double timeStep = robot()->getTimeStep();
+		// SPD tracking
+		//size_t nDof = mSkel->getNumDofs();
+		Eigen::MatrixXd kp = Eigen::MatrixXd::Zero(mKp.size(), mKp.size());
+		Eigen::MatrixXd kd = Eigen::MatrixXd::Zero(mKd.size(), mKd.size());
+		for (int i = 0; i < NDOFS; ++i)
+		{
+			kp(i, i) = mKp[i];
+			kd(i, i) = mKd[i];
+		}
+		Eigen::MatrixXd invM = (robot()->getMassMatrix() + kd * timeStep).inverse();
+		Eigen::VectorXd p = -kp * (q + dq * timeStep - qhat);
+		Eigen::VectorXd d = -kd * dq;
+		Eigen::VectorXd qddot =
+			invM * (-robot()->getCoriolisAndGravityForces() + p + d + constrForces);
+
+		tau = p + d - kd * qddot * timeStep;
+	}
+	else
+	{
+		const double friction = 0.03;
+
+		for (int i = 6; i < NDOFS; ++i) {
+			tau(i) = -mKp(i) * (q(i) - qhat(i)) - mKd(i) * dq(i);
+			if (abs(dq(i) > 1e-6))
+				tau(i) += -friction * abs(dq(i)) / dq(i);
+
+		}
+	}
+	const double MAX_TORQUE = 0.5 * 1.5;
+
+	tau.head<6>() = Eigen::Vector6d::Zero();
+	// Confine within the limit: 25% of stall torque
+	// Reference: http://support.robotis.com/en/product/dynamixel/ax_series/dxl_ax_actuator.htm
+	for (int i = 6; i < NDOFS; i++) {
+		tau(i) = CONFINE(tau(i), -MAX_TORQUE, MAX_TORQUE);
+	}
+	return tau;
+}
 void HumanoidController::update(double _currentTime) {
 	const int NDOFS = robot()->getNumDofs();
-    Eigen::VectorXd q    = robot()->getPositions();
-    Eigen::VectorXd dq   = robot()->getVelocities();
+
     // Eigen::VectorXd qhat = Eigen::VectorXd::Zero(NDOFS);
-    Eigen::VectorXd tau  = Eigen::VectorXd::Zero(NDOFS);
+
 
     // Eigen::VectorXd motor_qhat(18);
     // motor_qhat <<
@@ -333,22 +383,8 @@ void HumanoidController::update(double _currentTime) {
 	//motor_qhat = useAnkelStrategy(motor_qhat, _currentTime, true);
 
     Eigen::VectorXd qhat = motormap()->fromMotorMapVector( motor_qhat );
+	Eigen::VectorXd tau = computeTorque(qhat);
 
-	const double MAX_TORQUE = 0.5 * 1.5;
-	const double friction = 0.03;
-    tau.head<6>() = Eigen::Vector6d::Zero();
-    for (int i = 6; i < NDOFS; ++i) {
-		tau(i) = -mKp(i) * (q(i) - qhat(i)) - mKd(i) * dq(i);
-		if (abs(dq(i) > 1e-6))
-			tau(i) += -friction * abs(dq(i)) / dq(i);
-
-    }
-
-    // Confine within the limit: 25% of stall torque
-    // Reference: http://support.robotis.com/en/product/dynamixel/ax_series/dxl_ax_actuator.htm
-    for (int i = 6; i < NDOFS; i++) {
-        tau(i) = CONFINE(tau(i), -MAX_TORQUE, MAX_TORQUE);
-    }
  	//LOG(INFO) << q(20);
     // cout << _currentTime << " : " << tau.transpose() << endl;
     robot()->setForces(tau);

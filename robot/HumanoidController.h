@@ -66,6 +66,7 @@ public:
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
 
 protected:
+	Eigen::VectorXd computeTorque(const Eigen::VectorXd& qhat);
     void setJointDamping(double _damping = 80.0);
 
 protected:
