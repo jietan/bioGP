@@ -57,6 +57,7 @@
 #include "robot/Motion.h"
 #include "robot/ControllerData.h"
 #include "robot/CMASearcher.h"
+#include "robot/WorldConstructor.h"
 
 #include "myUtils/ConfigManager.h"
 #include "myUtils/mathlib.h"
@@ -79,11 +80,12 @@ double gTimeStep = 0.0002;
 double eval(const ControllerData& cData, int pop_id, double* timerPerStep)
 {
 	double reward = 0;
-	const int testTime = 3.0;
+
 	gController->reset();
 	gController->motion()->setControllerData(cData);
 	gWorld->setTime(0);
-
+	double motionTime = gController->motion()->getMotionLength();
+	const double testTime = motionTime + 1.0;
 	while (gWorld->getTime() < testTime)
 	{
 		gController->update(gWorld->getTime());
@@ -94,13 +96,15 @@ double eval(const ControllerData& cData, int pop_id, double* timerPerStep)
 
 		double asinNegativeIfForward = up.cross(Eigen::Vector3d::UnitY()).dot(left);
 		double angleFromUp = asin(asinNegativeIfForward);
-		double threshold = 15.0 * M_PI / 180.0;
-		angleFromUp = Clamp<double>(angleFromUp, -threshold, threshold);
+		double threshold = 35.0 * M_PI / 180.0;
+
 		//LOG(INFO) << gWorld->getTime() << " " << angleFromUp;;
 
-		if (gWorld->getTime() > 1.5)
+		if (gWorld->getTime() > motionTime)
 		{
-			reward += angleFromUp;
+			if (abs(angleFromUp) > threshold)
+				break;
+			reward += -1.0 / (abs(angleFromUp) + 0.1);
 		}
 	}
 	return reward;
@@ -108,24 +112,18 @@ double eval(const ControllerData& cData, int pop_id, double* timerPerStep)
 
 static void buildPolicy()
 {
-	int numParams = 1;
+	int numParams = WorldConstructor::msCData.GetNumParameters();
 
 	double* params = new double[numParams];
-	double* lb = new double[numParams];
-	double* ub = new double[numParams];
-	lb[0] = 0.05;
-	ub[0] = 0.15;
+
 
 	gPolicySearch = new CMASearcher;
 	gPolicySearch->SetDimension(numParams);
 	gPolicySearch->SetEvaluatorFunc(eval);
-	gPolicySearch->Search(lb, ub, params, 50);
+	gPolicySearch->Search(WorldConstructor::msCData, params, 50);
 	LOG(INFO) << setprecision(16) << "params " << params[0] << endl;
 
 	delete[] params;
-	delete[] lb;
-	delete[] ub;
-
 }
 
 int main(int argc, char* argv[])
@@ -144,35 +142,8 @@ int main(int argc, char* argv[])
     srand( (unsigned int) time (NULL) );
 
     gWorld = new World;
-	gWorld->setTimeStep(gTimeStep);
-
-    // // Load ground and Atlas robot and add them to the world
-    DartLoader urdfLoader;
-    Skeleton* ground = urdfLoader.parseSkeleton(
-        DATA_DIR"/sdf/ground.urdf");
-    Skeleton* robot
-        = urdfLoader.parseSkeleton(
-            DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
-	Skeleton* wall = urdfLoader.parseSkeleton(
-		DATA_DIR"/sdf/wall.urdf");
-    robot->enableSelfCollision();
-	
-	gWorld->addSkeleton(robot);
-	gWorld->addSkeleton(ground);
-	gWorld->addSkeleton(wall);
-
-    // Set gravity of the world
-	gWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
-	dart::constraint::ContactConstraint::setErrorReductionParameter(0.0);
-	dart::constraint::ContactConstraint::setMaxErrorReductionVelocity(0.1);
-
-    // Create a humanoid controller
-    gController = new bioloidgp::robot::HumanoidController(robot, gWorld->getConstraintSolver());
-
-	string controllerDataFileName;
-	ControllerData cData;
-	DecoConfig::GetSingleton()->GetString("Sim", "ControllerData", controllerDataFileName);
-	cData.ReadFromFile(controllerDataFileName);
+	WorldConstructor::Construct(gWorld);
+	gController = WorldConstructor::msHumanoid;
 
 	buildPolicy();
 

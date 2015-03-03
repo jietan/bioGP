@@ -12,8 +12,9 @@ public:
 	virtual ~CMASearcher();
 	virtual void SetDimension(int dim);
 	virtual void SetEvaluatorFunc(double (*Evaluate)(const ControllerData&, int, double*));
-	virtual int Search(double* lower_bound, double* upper_bound, double* argMin, int maxIterations);
-	virtual int RestartSearch(double* lower_bound, double* upper_bound, double* argMin, int maxIterations);
+	virtual int Search(ControllerData cData, double* argMin, int maxIterations);
+	virtual int Search(ControllerData cData, double* lower_bound, double* upper_bound, double* argMin, int maxIterations);
+	
 	void CreateMessageQueue();
 
 protected:

@@ -40,7 +40,7 @@ stopTolX 1e-6   # stop if step sizes/steps in x-space are
                  # smaller than TolX, default=0
 stopTolUpXFactor 1e3 # stop if std dev increases more than by TolUpXFactor, default 1e3
 
-seed 0              # 0 == by time, also regard maxTimeFractionForEigendecomposition
+seed 806311507              # 0 == by time, also regard maxTimeFractionForEigendecomposition
                   #   below, as for values smaller than one the outcome might not be  
                   #   exactly reproducible even with the same seed
 
@@ -68,7 +68,7 @@ maxTimeFractionForEigendecompostion 1  # maximal CPU-time fraction for eigensyst
 ## --- Strategy internal parameter ---
 ##     default values are set in readpara_SupplementDefaults()
 ## -- Selection related parameters
-lambda 32       # number of offspring == samplesize
+lambda 24       # number of offspring == samplesize
 mu 8
 # weights      log # possible values: log (==default), 
                    #   lin (==linearely decreasing), or equal 

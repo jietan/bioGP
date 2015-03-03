@@ -3,6 +3,7 @@
 
 bioloidgp::robot::HumanoidController* WorldConstructor::msHumanoid = NULL;
 double WorldConstructor::msTimeStep = 0.0002;
+ControllerData WorldConstructor::msCData;
 
 void WorldConstructor::Construct(World* world)
 {
@@ -72,9 +73,9 @@ void WorldConstructor::constructWallWorld(World* world)
 
 	msHumanoid->motion()->loadMTN("../../data/mtn/sitPose.mtn", "lean-to-stand-quickStart");
 	msHumanoid->reset();
-	ControllerData cData;
-	cData.ReadFromFile("../../data/controller/lean-to-stand.txt");
-	msHumanoid->motion()->setControllerData(cData);
+	
+	msCData.ReadFromFile("../../data/controller/lean-to-stand.txt");
+	msHumanoid->motion()->setControllerData(msCData);
 }
 void WorldConstructor::constructChairWorld(World* world)
 {
@@ -95,9 +96,9 @@ void WorldConstructor::constructChairWorld(World* world)
 	msHumanoid->setInitialFirst6Dofs(first6Dofs);
 	msHumanoid->motion()->loadMTN("../../data/mtn/sitPose.mtn", "sit-to-stand");
 	msHumanoid->reset();
-	//ControllerData cData;
-	//cData.ReadFromFile("../../data/controller/lean-to-stand.txt");
-	//msHumanoid->motion()->setControllerData(cData);
+	
+	msCData.ReadFromFile("../../data/controller/sit-to-stand.txt");
+	msHumanoid->motion()->setControllerData(msCData);
 }
 void WorldConstructor::constructKneelWorld(World* world)
 {
@@ -116,7 +117,7 @@ void WorldConstructor::constructKneelWorld(World* world)
 	msHumanoid->setInitialFirst6Dofs(first6Dofs);
 	msHumanoid->motion()->loadMTN("../../data/mtn/sitPose.mtn", "kneel-to-stand");
 	msHumanoid->reset();
-	//ControllerData cData;
-	//cData.ReadFromFile("../../data/controller/lean-to-stand.txt");
-	//msHumanoid->motion()->setControllerData(cData);
+	
+	msCData.ReadFromFile("../../data/controller/kneel-to-stand.txt");
+	msHumanoid->motion()->setControllerData(msCData);
 }

@@ -32,6 +32,7 @@ class WorldConstructor
 public:
 	static void Construct(World* world);
 	static bioloidgp::robot::HumanoidController* msHumanoid;
+	static ControllerData msCData;
 	static double msTimeStep;
 private:
 	static void commonConstruction(World* world);

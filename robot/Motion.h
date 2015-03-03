@@ -27,7 +27,7 @@ struct Motion {
     Motion(int _dim, const Eigen::VectorXd& _init);
     bool load(const char* const filename);
     bool loadMTN(const char* const filename, const char* const motionname);
-
+	double getMotionLength() const;
     void setInitialPose(const Eigen::VectorXd& _init) { initialPose = _init; }
 	const Eigen::VectorXd& getInitialPose() const { return initialPose;  }
     Eigen::VectorXd targetPoseAtIndex(int i) const;

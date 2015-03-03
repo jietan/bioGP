@@ -101,13 +101,23 @@ void CMASearcher::setInitialGuess(double* lower_bound, double* upper_bound)
 }
 
 
-int CMASearcher::RestartSearch(double* lower_bound, double* upper_bound, double* argMin, int maxIterations)
+
+
+int CMASearcher::Search(ControllerData cData, double* argMin, int maxIterations)
 {
-	setInitialGuess(lower_bound, upper_bound);
-	return Search(lower_bound, upper_bound, argMin, maxIterations);
+	int nParams = cData.GetNumParameters();
+	double* lb = new double[nParams];
+	double* ub = new double[nParams];
+
+	cData.GetParameterLowerBounds(lb);
+	cData.GetParameterUpperBounds(ub);
+	int ret = Search(cData, lb, ub, argMin, maxIterations);
+	delete[] lb;
+	delete[] ub;
+	return ret;
 }
 
-int CMASearcher::Search(double* lower_bound, double* upper_bound, double* argMin, int maxIterations)
+int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper_bound, double* argMin, int maxIterations)
 {
 	CreateMessageQueue();
 
@@ -206,7 +216,7 @@ int CMASearcher::Search(double* lower_bound, double* upper_bound, double* argMin
 			{
 				mqOut.receive(&values[j], sizeof(double), recvd_size, priority);
 			}
-			arFunvals[i] = abs(values[0]);
+			arFunvals[i] = (values[0]);
 			cmaes_WriteLogFile("(");
 			for (int j = 0; j < mDim; ++j)
 			{
@@ -230,12 +240,7 @@ int CMASearcher::Search(double* lower_bound, double* upper_bound, double* argMin
 		//	EigenSerializer::OutputToMFormat(timingInfoFile, varName, timingInfoPerProcess[i]);
 		//}
 #else
-		ControllerData cData;
-		string controllerDataFileName;
-		DecoConfig::GetSingleton()->GetString("Sim", "ControllerData", controllerDataFileName);
-		cData.ReadFromFile(controllerDataFileName);
-
-
+		
 		for (int i = 0; i < numSamples; ++i) {
 
             //pop[i][0] = 0.788083;
@@ -247,9 +252,9 @@ int CMASearcher::Search(double* lower_bound, double* upper_bound, double* argMin
 
 			char logStr[512];
 			double timePerStep = 0;
-
-			cData.mKeyFrameDuration[0] = pop[i][0];
-			arFunvals[i] = abs(mEvaluator(cData, i, &timePerStep));
+			cData.FromParameterSetting(pop[i]);
+			
+			arFunvals[i] = (mEvaluator(cData, i, &timePerStep));
 			cmaes_WriteLogFile("(");
 			for (int j = 0; j < mDim; ++j)
 			{

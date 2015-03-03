@@ -272,15 +272,26 @@ void Motion::setControllerData(const ControllerData& data)
 		int nDofsToChange = static_cast<int>(data.mDofValues[i].size());
 		for (int j = 0; j < nDofsToChange; ++j)
 		{
-			stepToChange.targetpose[data.mDofValues[i][j].first] = data.mDofValues[i][j].second;
+			stepToChange.targetpose[data.mDofValues[i][j].mId] = data.mDofValues[i][j].mValue;
+			stepToChange.targetpose[data.mDofValues[i][j].mId + 1] = 1024 - data.mDofValues[i][j].mValue;
 		}
-		if (data.mKeyFrameDuration[i] >= 0)
+		if (data.mKeyFrameDuration[i].mKeyFrameDuration >= 0)
 		{
-			stepToChange.duration = data.mKeyFrameDuration[i];
+			stepToChange.duration = data.mKeyFrameDuration[i].mKeyFrameDuration;
 		}
 	}
 }
 
+double Motion::getMotionLength() const
+{
+	double ret = 0;
+	int nSteps = static_cast<int>(steps.size());
+	for (int i = 0; i < nSteps; ++i)
+	{
+		ret += steps[i].duration;
+	}
+	return ret;
+}
 void Motion::printSteps() {
     for (size_t i = 0; i < steps.size(); i++) {
         const Step& s = steps[i];
