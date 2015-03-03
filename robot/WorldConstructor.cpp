@@ -87,7 +87,7 @@ void WorldConstructor::constructChairWorld(World* world)
 
 	const int NMOTORS = 18;
 	Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
-	mtvInitPose << 512,	512, 512, 512, 512, 512, 512, 512, 512, 512, 762, 262, 912, 112, 612, 412, 512, 512;
+	mtvInitPose << 512,	512, 512, 512, 512, 512, 512, 512, 512, 512, 762, 262, 812, 212, 512, 512, 512, 512;
 	msHumanoid->set_motion(new bioloidgp::robot::Motion(NMOTORS, mtvInitPose));
 	msHumanoid->setInitialPose(mtvInitPose);
 

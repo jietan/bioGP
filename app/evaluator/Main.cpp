@@ -61,7 +61,8 @@
 #include "myUtils/ConfigManager.h"
 // #include "robot/Controller.h"
 #include "myUtils/mathlib.h"
-
+#include <sstream>
+#include <iomanip>
 #include <boost/interprocess/ipc/message_queue.hpp>
 using namespace boost::interprocess;
 
@@ -146,7 +147,7 @@ int main(int argc, char* argv[])
 
 
 
-	int policyDim = 1;
+	int policyDim = WorldConstructor::msCData.GetNumParameters();
 
 	vector<vector<double> > parameters;
 	while (true)
@@ -181,8 +182,8 @@ int main(int argc, char* argv[])
 				}
 			}
 
-
 			LOG(INFO) << "calculating.";
+
 			vector<double> values;
 			const int numRetPerEvaluation = 4;
 			values.resize(numEvaluations * numRetPerEvaluation, 0);
@@ -191,8 +192,15 @@ int main(int argc, char* argv[])
 			{
 				double timePerStep = 0;
 				WorldConstructor::msCData.FromParameterSetting(&(parameters[i][0]));
-				values[numRetPerEvaluation * i + 0] = eval(WorldConstructor::msCData, gProcessId, &timePerStep);
 
+				ostringstream out;
+				for (int ithDim = 0; ithDim < policyDim; ++ithDim)
+				{
+					out << setprecision(16) << parameters[i][ithDim] << " ";
+				}
+				LOG(INFO) << "[" << out.str() << "]:";
+
+				values[numRetPerEvaluation * i + 0] = eval(WorldConstructor::msCData, gProcessId, &timePerStep);
 
 				double elapsedTime = 0;
 				values[numRetPerEvaluation * i + 1] = gProcessId;

@@ -22,11 +22,13 @@ protected:
 	double* mPrevSol;
 	double* mStandardDeviation;
 	int* mInfeasibleTime;
+	int NUM_IPC_PROCESS;
 	double (*mEvaluator)(const ControllerData&, int, double*);
 	bool isFeasible(double* value, double* lower_bound, double* upper_bound);
 	void calculateSearchStandardDeviation(double* lower_bound, double* upper_boun);
 	void clear();
 	void setInitialGuess(double* lower_bound, double* upper_boun);
+	
 };
 
 

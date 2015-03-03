@@ -7,9 +7,6 @@
 using namespace boost::interprocess;
 
 
-#define NUM_IPC_PROCESS 8
-
-
 CMASearcher::CMASearcher() : mDim(-1), mPrevSol(NULL), mStandardDeviation(NULL), mInfeasibleTime(NULL)
 {
 	mEvaluator = NULL;
@@ -119,6 +116,7 @@ int CMASearcher::Search(ControllerData cData, double* argMin, int maxIterations)
 
 int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper_bound, double* argMin, int maxIterations)
 {
+	DecoConfig::GetSingleton()->GetInt("CMA", "SearchProcessNum", NUM_IPC_PROCESS);
 	CreateMessageQueue();
 
 	const string cmaInitPath = "initials.par";
@@ -202,7 +200,7 @@ int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper
 		LOG(INFO) <<  "receiving rewards.";
 		for (int i = 0; i < numSamples; ++i)
 		{
-			char logStr[512];
+			char logStr[1024];
 			char queueName[512];
 			int processId = i / workLoadPerProcess;
 
@@ -221,7 +219,7 @@ int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper
 			for (int j = 0; j < mDim; ++j)
 			{
 				memset(logStr, 0, 512 * sizeof(char));
-				sprintf(logStr, " %f ", pop[i][j]);
+				sprintf(logStr, " %0.16f ", pop[i][j]);
 
 				cmaes_WriteLogFile(logStr);
 
