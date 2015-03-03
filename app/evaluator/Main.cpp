@@ -94,15 +94,19 @@ double eval(const ControllerData& cData, int pop_id, double* timerPerStep)
 
 		double asinNegativeIfForward = up.cross(Eigen::Vector3d::UnitY()).dot(left);
 		double angleFromUp = asin(asinNegativeIfForward);
-		double threshold = 35.0 * M_PI / 180.0;
+		double threshold = 60.0 * M_PI / 180.0;
 		
+		if (abs(angleFromUp) > threshold)
+			break;
 		//LOG(INFO) << gWorld->getTime() << " " << angleFromUp;;
 
 		if (gWorld->getTime() > motionTime)
 		{
-			if (abs(angleFromUp) > threshold)
-				break;
 			reward += -1.0 / (abs(angleFromUp) + 0.1);
+		}
+		else
+		{
+			reward += -1;
 		}
 	}
 	return reward;
