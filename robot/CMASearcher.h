@@ -28,6 +28,7 @@ protected:
 	void calculateSearchStandardDeviation(double* lower_bound, double* upper_boun);
 	void clear();
 	void setInitialGuess(double* lower_bound, double* upper_boun);
+	void recoverFromScaling(int n, double* lower_bound, double* upper_bound, double* scaledValue, double* trueValue);
 	
 };
 

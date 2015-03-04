@@ -70,7 +70,7 @@ maxTimeFractionForEigendecompostion 1  # maximal CPU-time fraction for eigensyst
 ## -- Selection related parameters
 lambda 16       # number of offspring == samplesize
 mu 8
-# weights      log # possible values: log (==default), 
+# weights      lin # possible values: log (==default), 
                    #   lin (==linearely decreasing), or equal 
 
 ## -- Adaptation (distribution estimation) related parameters
@@ -78,7 +78,7 @@ mu 8
 # fac*damp      1  # increase or decrease damping for step size control.
 # ccumcov       1  # default is 4/(N+4), 1 means no cumulation for p_c.
 # mucov         1  # 1 means only rank 1 update of C
-# fac*ccov      1  # multiplier for default learning rate for cov. matrix
+fac*ccov      0.5  # multiplier for default learning rate for cov. matrix
 
 
 ## --- Syntax for input vectors xstart, sigma, mincoorstddev

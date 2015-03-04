@@ -90,7 +90,8 @@ void CMASearcher::setInitialGuess(double* lower_bound, double* upper_bound)
     {
 	    for (int i = 0; i < mDim; ++i)
 	    {
-		    mPrevSol[i] = 0.5 * (lower_bound[i] + upper_bound[i]);
+		    //mPrevSol[i] = 0.5 * (lower_bound[i] + upper_bound[i]);
+			mPrevSol[i] = 0.5 * (lower_bound[i] + upper_bound[i]);
 	    }
     }
 	calculateSearchStandardDeviation(lower_bound, upper_bound);
@@ -98,7 +99,13 @@ void CMASearcher::setInitialGuess(double* lower_bound, double* upper_bound)
 }
 
 
-
+void CMASearcher::recoverFromScaling(int n, double* lower_bound, double* upper_bound, double* scaledValue, double* trueValue)
+{
+	for (int i = 0; i < n; ++i)
+	{
+		trueValue[i] = scaledValue[i] * (upper_bound[i] - lower_bound[i]) + lower_bound[i];
+	}
+}
 
 int CMASearcher::Search(ControllerData cData, double* argMin, int maxIterations)
 {
@@ -121,7 +128,10 @@ int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper
 
 	const string cmaInitPath = "initials.par";
 	const string cmaSignalPath = "signals.par";
-	setInitialGuess(lower_bound, upper_bound);
+	vector<double> normalizedLb(mDim, 0);
+	vector<double> normalizedUb(mDim, 1);
+	double* realPop = new double[mDim];
+	setInitialGuess(&normalizedLb[0], &normalizedUb[0]);
 
 	int iterationCount = 0;
 
@@ -156,7 +166,7 @@ int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper
 
 		for (i = 0; i < cmaes_Get(&evo, "popsize"); ++i) 
 		{
-			while (!isFeasible(pop[i], lower_bound, upper_bound)) 
+			while (!isFeasible(pop[i], &normalizedLb[0], &normalizedUb[0]))
 				cmaes_ReSampleSingle(&evo, i);
 		}
 		int numSamples = static_cast<int>(cmaes_Get(&evo, "lambda"));
@@ -215,11 +225,14 @@ int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper
 				mqOut.receive(&values[j], sizeof(double), recvd_size, priority);
 			}
 			arFunvals[i] = (values[0]);
+			recoverFromScaling(mDim, lower_bound, upper_bound, pop[i], realPop);
+
 			cmaes_WriteLogFile("(");
+			
 			for (int j = 0; j < mDim; ++j)
 			{
 				memset(logStr, 0, 512 * sizeof(char));
-				sprintf(logStr, " %0.16f ", pop[i][j]);
+				sprintf(logStr, " %0.16f ", realPop[j]);
 
 				cmaes_WriteLogFile(logStr);
 
@@ -253,11 +266,13 @@ int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper
 			cData.FromParameterSetting(pop[i]);
 			
 			arFunvals[i] = (mEvaluator(cData, i, &timePerStep));
+			recoverFromScaling(mDim, lower_bound, upper_bound, pop[i], realPop);
+
 			cmaes_WriteLogFile("(");
 			for (int j = 0; j < mDim; ++j)
 			{
 				memset(logStr, 0, 512 * sizeof(char));
-				sprintf(logStr, " %f ", pop[i][j]);
+				sprintf(logStr, " %0.16f ", realPop[j]);
 				cmaes_WriteLogFile(logStr);
 
 			}
@@ -349,7 +364,7 @@ int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper
 		mqOut.send(&numEvaluations, sizeof(double), 0);
 	}
 #endif
-
+	delete[] realPop;
 	return 1;
 }
 
@@ -371,7 +386,7 @@ void CMASearcher::calculateSearchStandardDeviation(double* lower_bound, double* 
 		{
 			double minBoundary = abs(mPrevSol[i] - lower_bound[i]);
 			double maxBoundary = abs(mPrevSol[i] - upper_bound[i]);
-			mStandardDeviation[i] = max(minBoundary, maxBoundary) / 2.0;
+			mStandardDeviation[i] = 10 * max(minBoundary, maxBoundary) / 2.0;
 		}
     }
 }

@@ -77,8 +77,8 @@ void ControllerData::FromParameterSetting(double* param)
 		int nDofs = static_cast<int>(mDofValues[i].size());
 		for (int j = 0; j < nDofs; ++j)
 		{
-			mDofValues[i][j].mValue = param[count++];
+			mDofValues[i][j].mValue = param[count++] * (mDofValues[i][j].mMax - mDofValues[i][j].mMin) + mDofValues[i][j].mMin;
 		}
-		mKeyFrameDuration[i].mKeyFrameDuration = param[count++];
+		mKeyFrameDuration[i].mKeyFrameDuration = param[count++] * (mKeyFrameDuration[i].mMax - mKeyFrameDuration[i].mMin) + mKeyFrameDuration[i].mMin;
 	}
 }

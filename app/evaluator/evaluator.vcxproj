@@ -15,7 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{9E674279-E914-44E5-91E9-814BC73EF8E5}</ProjectGuid>
+    <ProjectGuid>{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>sim</RootNamespace>
   </PropertyGroup>
