@@ -84,13 +84,6 @@ using namespace dart::utils;
 dart::constraint::WeldJointConstraint* gWeldJoint;
 bool gTransmitMulticast = false;
 
-void AddWeldConstraint(World* myWorld)
-{
-	BodyNode* bd = myWorld->getSkeleton(0)->getBodyNode("torso");
-	gWeldJoint = new dart::constraint::WeldJointConstraint(bd);
-	myWorld->getConstraintSolver()->addConstraint(gWeldJoint);
-}
-
 
 //int ShowError(LONG lError, LPCTSTR lptszMessage)
 //{

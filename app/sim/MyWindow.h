@@ -37,8 +37,9 @@
 
 #ifndef APPS_ATLASROBOT_MYWINDOW_H_
 #define APPS_ATLASROBOT_MYWINDOW_H_
-
+#include "myUtils/SimFrame.h"
 #include "dart/gui/SimWindow.h"
+#include <vector>
 // #include "robot/Controller.h"
 
 namespace bioloidgp {
@@ -67,15 +68,15 @@ public:
 
     // Documentation inherited
     virtual void keyboard(unsigned char _key, int _x, int _y);
-
+	void saveRecordedFrames();
 	virtual void displayTimer(int _val);
     void calculateInertia();
 private:
     /// \brief External force to exert on Atlas robot
-    Eigen::Vector3d mForce;
+	Eigen::Vector3d mForce; 
+	std::vector<SimFrame> mRecordedFrames;
 
     /// \brief Number of frames for applying external force
-    int mImpulseDuration;
 	bool mIsTimerRefresherStarted;
     /// \brief Constroller
     bioloidgp::robot::HumanoidController* mController;

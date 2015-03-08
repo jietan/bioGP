@@ -39,6 +39,7 @@
 #define APPS_ATLASROBOT_MYWINDOW_H_
 #include <string>
 #include "dart/gui/SimWindow.h"
+#include "myUtils/SimFrame.h"
 using namespace std;
 
 
@@ -77,8 +78,8 @@ private:
 	void readMovieFile(const string& fileName);
 	double mTime;   
 	int mFrameCount;
+	vector<SimFrame> mMovie;
     bioloidgp::robot::HumanoidController* mController;	
-	vector<Eigen::VectorXd>  mMovieContent;
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_

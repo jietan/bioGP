@@ -52,6 +52,9 @@
 #include "utils/CppCommon.h"
 #include "robot/HumanoidController.h"
 
+#include "myUtils/ConfigManager.h"
+#include <fstream>
+
 
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
@@ -59,7 +62,6 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	mController(_controller)
 {
 	mForce = Eigen::Vector3d::Zero();
-	mImpulseDuration = 0.0;
 	mIsTimerRefresherStarted = false;
 	// 0.166622 0.548365 0.118241 0.810896
 	//Eigen::Quaterniond q(0.15743952233047084, 0.53507160411429699, 0.10749289301287825, 0.82301687360383402);
@@ -110,23 +112,42 @@ void MyWindow::timeStepping()
     }
     g_cnt++;
     
-    // for perturbation test
-    mImpulseDuration--;
-    if (mImpulseDuration <= 0)
-    {
-        mImpulseDuration = 0;
-        mForce.setZero();
-    }
+
 	Eigen::Vector3d up = mController->getUpDir();
 	Eigen::Vector3d left = mController->getLeftDir();
 
 	double asinNegativeIfForward = up.cross(Eigen::Vector3d::UnitY()).dot(left);
 	double angleFromUp = asin(asinNegativeIfForward) * 180 / M_PI;
-	LOG(INFO) << mWorld->getTime() << " " << angleFromUp;
+	//LOG(INFO) << mWorld->getTime() << " " << angleFromUp;
+
+	if (mSimulating)
+	{
+		Eigen::VectorXd poseToRecord = mController->robot()->getPositions();
+		SimFrame frame;
+		frame.mTime = mWorld->getTime();
+		frame.mPose = poseToRecord;
+		mRecordedFrames.push_back(frame);
+		LOG(INFO) << mWorld->getTime() << " " << poseToRecord[7];
+	}
 	//Eigen::VectorXd p = mController->robot()->getPositions();
 	//Eigen::VectorXd mtv = mController->motormap()->toMotorMapVector(p);
 	//const Eigen::VectorXd currentTarget = mController->getCurrentTargetPose();
 	//LOG(INFO) << mWorld->getTime() << " " << mtv[10] << " " << currentTarget[10];
+}
+
+void MyWindow::saveRecordedFrames()
+{
+	string fileName;
+	DecoConfig::GetSingleton()->GetString("Sim", "RecordingFileName", fileName);
+	ofstream oFile(fileName.c_str());
+	int nFrames = static_cast<int>(mRecordedFrames.size());
+	if (!nFrames) return;
+	oFile << nFrames << endl;
+	for (int i = 0; i < nFrames; ++i)
+	{
+		oFile << mRecordedFrames[i] << endl;
+	}
+
 }
 
 void MyWindow::draw()
@@ -243,17 +264,7 @@ void MyWindow::drawSkels()
 	glTranslated(C(0), C(1), C(2));
 	bioloidgp::utils::renderAxis(1.0);
 	glPopMatrix();
-    // draw arrow
-    if (mImpulseDuration > 0)
-    {
-        Eigen::Vector3d poa
-            =  mWorld->getSkeleton(0)->getBodyNode(
-                "torso")->getTransform()
-            * Eigen::Vector3d(0.0, 0.0, 0.0);
-        Eigen::Vector3d start = poa - mForce / 500.0;
-        double len = mForce.norm() / 500.0;
-        dart::gui::drawArrow3D(start, mForce, len, 0.05, 0.1);
-    }
+
 }
 
 void MyWindow::calculateInertia() {
@@ -330,29 +341,17 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
     case 'v':  // show or hide markers
         mShowMarkers = !mShowMarkers;
         break;
-    case 'a':  // upper right force
-        mForce[0] = 5;
-        mImpulseDuration = 100;
-        std::cout << "push forward" << std::endl;
-        break;
+
     case 's':  // upper right force
-        mForce[0] = -5;
-        mImpulseDuration = 100;
-        std::cout << "push backward" << std::endl;
+		saveRecordedFrames();
         break;
-    case 'd':  // upper right force
-        mForce[2] = 5;
-        mImpulseDuration = 100;
-        std::cout << "push right" << std::endl;
-        break;
-    case 'f':  // upper right force
-        mForce[2] = -5;
-        mImpulseDuration = 100;
-        std::cout << "push left" << std::endl;
-        break;
-    case 'n':  // upper right force
-        mController->setMotionTargetPose(temp);
-        temp++;
+	case 'n':  // step forwardward
+		mSimulating = true;
+		timeStepping();
+		mSimulating = false;
+		glutPostRedisplay();
+
+		break;
 	case 'r':
 		mController->reset();
 		mWorld->setTime(0);

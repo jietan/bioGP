@@ -1,5 +1,5 @@
 #include "WorldConstructor.h"
-
+#include "dart/dynamics/Joint.h"
 
 bioloidgp::robot::HumanoidController* WorldConstructor::msHumanoid = NULL;
 double WorldConstructor::msTimeStep = 0.0002;
@@ -39,9 +39,24 @@ void WorldConstructor::commonConstruction(World* world)
 	DartLoader urdfLoader;
 	Skeleton* ground = urdfLoader.parseSkeleton(
 		DATA_DIR"/sdf/ground.urdf");
-	Skeleton* robot
+	Skeleton* robot 
 		= urdfLoader.parseSkeleton(
 		DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
+
+	int isHybridDynamics = 0;
+	DecoConfig::GetSingleton()->GetInt("Sim", "HybridDynamics", isHybridDynamics);
+	if (isHybridDynamics)
+	{
+		dart::dynamics::Joint* joint0 = robot->getJoint(0);
+		joint0->setActuatorType(dart::dynamics::Joint::PASSIVE);
+		for (size_t i = 1; i < robot->getNumBodyNodes(); ++i)
+		{
+			dart::dynamics::Joint* joint = robot->getJoint(i);
+			joint->setActuatorType(dart::dynamics::Joint::VELOCITY);
+		}
+
+	}
+	
 
 	robot->enableSelfCollision();
 
@@ -50,6 +65,8 @@ void WorldConstructor::commonConstruction(World* world)
 
 	// Create a humanoid controller
 	msHumanoid = new bioloidgp::robot::HumanoidController(robot, world->getConstraintSolver());
+	double mass = robot->getMass();
+	LOG(INFO) << "The total mass: " << mass;
 	
 }
 

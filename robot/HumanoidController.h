@@ -14,6 +14,7 @@
 #include "MocapMotion.h"
 #include "MotorMap.h"
 #include "CollisionSphere.h"
+#include "myUtils/SimFrame.h"
 
 namespace dart {
 namespace dynamics {
@@ -68,7 +69,7 @@ public:
 protected:
 	Eigen::VectorXd computeTorque(const Eigen::VectorXd& qhat);
     void setJointDamping(double _damping = 80.0);
-
+	void readMovieFile(const string& fileName);
 protected:
     MEMBER_PTR(dart::dynamics::Skeleton*, robot);
     MEMBER_PTR(dart::constraint::ConstraintSolver*, collisionSolver);
@@ -87,6 +88,8 @@ protected:
 	std::vector<std::vector<CollisionSphere> > mCollisionSpheres;
 	Eigen::VectorXd mMotor_qHat;
 	Eigen::VectorXd mInitFirst6Dofs;
+	int mIsHybridDynamics;
+	vector<SimFrame> mRecordedFrames;
 }; // class Humanoidcontroller
 
 } // namespace robot

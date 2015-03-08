@@ -101,6 +101,14 @@ HumanoidController::HumanoidController(
 	mAnkelOffset = 0;
 	mLastControlTime = 0;
 	mLatency = 0;
+	mIsHybridDynamics = 0;
+	DecoConfig::GetSingleton()->GetInt("Sim", "HybridDynamics", mIsHybridDynamics);
+	if (mIsHybridDynamics)
+	{
+		string hybridDynamicsMotionFileName = "";
+		DecoConfig::GetSingleton()->GetString("Sim", "HybridDynamicsMotionFile", hybridDynamicsMotionFileName);
+		readMovieFile(hybridDynamicsMotionFileName);
+	}
 	//DecoConfig::GetSingleton()->GetDouble("Sim", "Latency", mLatency);
 	//robot()->getBodyNode("l_foot")->setRestitutionCoeff(1.0);
 	//robot()->getBodyNode("r_foot")->setRestitutionCoeff(1.0);
@@ -108,6 +116,19 @@ HumanoidController::HumanoidController(
 	//robot()->getBodyNode("r_foot")->setFrictionCoeff(0.5);
 }
 
+void HumanoidController::readMovieFile(const string& fileName)
+{
+	ifstream inFile(fileName.c_str());
+	const int nDofs = 22;
+	int numFrames;
+	inFile >> numFrames;
+	mRecordedFrames.resize(numFrames, SimFrame(nDofs));
+
+	for (int i = 0; i < numFrames; ++i)
+	{
+		inFile >> mRecordedFrames[i];
+	}
+}
 HumanoidController::~HumanoidController() {
 }
 
@@ -352,43 +373,47 @@ Eigen::VectorXd HumanoidController::computeTorque(const Eigen::VectorXd& qhat)
 void HumanoidController::update(double _currentTime) {
 	const int NDOFS = robot()->getNumDofs();
 
-    // Eigen::VectorXd qhat = Eigen::VectorXd::Zero(NDOFS);
-
-
-    // Eigen::VectorXd motor_qhat(18);
-    // motor_qhat <<
-    //     1.0, 1.0, -0.5, 0.5, 0.0, 0.0,
-    //     0.0, 0.0,
-    //     0.0, 0.0,  0.6, 0.6,  -1.0, -1.0,  0.5, 0.5,  0.0, 0.0;
-
-
-    // int m = motormap()->numMotors();
-    // Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(m) * 512;
-    // mtvInitPose <<
-    //     342, 681, 572, 451, 762, 261,
-    //     358, 666,
-    //     515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
-    // Eigen::VectorXd qhat = motormap()->fromMotorMapVector( mtvInitPose );
-	double controlInteval = 0;
-	DecoConfig::GetSingleton()->GetDouble("Sim", "ControlInteval", controlInteval);
-	if (_currentTime < robot()->getTimeStep() || (_currentTime - mLastControlTime) > controlInteval)
+	if (mIsHybridDynamics)
 	{
-		mLastControlTime = _currentTime;
-		mMotor_qHat = motion()->targetPose(_currentTime);
+		double timeStep = robot()->getTimeStep();
+		int ithFrame = static_cast<int>(_currentTime / timeStep);
+		int nFrames = static_cast<int>(mRecordedFrames.size());
+		Eigen::VectorXd vel = Eigen::VectorXd::Zero(NDOFS);
+		
+		if (ithFrame >= nFrames - 1)
+		{
+			vel = Eigen::VectorXd::Zero(NDOFS);
+		}
+		else
+		{
+			vel = (mRecordedFrames[ithFrame + 1].mPose - mRecordedFrames[ithFrame].mPose) / timeStep;
+		}
+		for (int i = 6; i < NDOFS; ++i)
+		{
+			robot()->setCommand(i, vel[i]);
+		}
+		
 	}
-	Eigen::VectorXd motor_qhat = mMotor_qHat;
+	else
+	{
+		double controlInteval = 0;
+		DecoConfig::GetSingleton()->GetDouble("Sim", "ControlInteval", controlInteval);
+		if (_currentTime < robot()->getTimeStep() || (_currentTime - mLastControlTime) > controlInteval)
+		{
+			mLastControlTime = _currentTime;
+			mMotor_qHat = motion()->targetPose(_currentTime);
+		}
+		Eigen::VectorXd motor_qhat = mMotor_qHat;
 
-	//Eigen::VectorXd mocapPose = mocap()->GetPose(_currentTime);
-	//Eigen::VectorXd motor_qhat = motormap()->toMotorMapVectorSameDim(mocapPose);
-	//motor_qhat = useAnkelStrategy(motor_qhat, _currentTime, true);
+		//Eigen::VectorXd mocapPose = mocap()->GetPose(_currentTime);
+		//Eigen::VectorXd motor_qhat = motormap()->toMotorMapVectorSameDim(mocapPose);
+		//motor_qhat = useAnkelStrategy(motor_qhat, _currentTime, true);
 
-    Eigen::VectorXd qhat = motormap()->fromMotorMapVector( motor_qhat );
-	Eigen::VectorXd tau = computeTorque(qhat);
+		Eigen::VectorXd qhat = motormap()->fromMotorMapVector( motor_qhat );
+		Eigen::VectorXd tau = computeTorque(qhat);
 
- 	//LOG(INFO) << q(20);
-    // cout << _currentTime << " : " << tau.transpose() << endl;
-    robot()->setForces(tau);
-
+		robot()->setForces(tau);
+	}
 }
 
 Eigen::Vector3d HumanoidController::getUpDir() const

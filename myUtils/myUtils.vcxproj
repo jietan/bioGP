@@ -129,6 +129,7 @@
     <ClCompile Include="mathlib.cpp" />
     <ClCompile Include="PCA.cpp" />
     <ClCompile Include="polarDecomposition.cpp" />
+    <ClCompile Include="SimFrame.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
@@ -138,6 +139,7 @@
     <ClInclude Include="Misc.h" />
     <ClInclude Include="PCA.h" />
     <ClInclude Include="polarDecomposition.h" />
+    <ClInclude Include="SimFrame.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="timer.h" />
   </ItemGroup>

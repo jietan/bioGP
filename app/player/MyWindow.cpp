@@ -87,18 +87,14 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 void MyWindow::readMovieFile(const string& fileName)
 {
 	ifstream inFile(fileName.c_str());
+	const int nDofs = 22;
 	int numFrames;
 	inFile >> numFrames;
-	mMovieContent.resize(numFrames);
+	mMovie.resize(numFrames, SimFrame(nDofs));
+	
 	for (int i = 0; i < numFrames; ++i)
 	{
-		double time;
-		inFile >> time;
-		mMovieContent[i].resize(22);
-		for (int j = 0; j < 22; ++j)
-		{
-			inFile >> mMovieContent[i][j];
-		}
+		inFile >> mMovie[i];
 	}
 }
 
@@ -121,13 +117,14 @@ void MyWindow::displayTimer(int _val)
 void MyWindow::timeStepping()
 {
 	if (!mSimulating) return;
-	int numFrames = static_cast<int>(mMovieContent.size());
-	Eigen::VectorXd qhat = mMovieContent[mFrameCount % numFrames];
+	int numFrames = static_cast<int>(mMovie.size());
+	Eigen::VectorXd qhat = mMovie[mFrameCount % numFrames].mPose;
 
 	mController->robot()->setPositions(qhat);
 	mController->robot()->computeForwardKinematics(true, true, false);
 
 	mTime += mController->robot()->getTimeStep();
+	LOG(INFO) << mFrameCount << ": " << qhat[7];
 	mFrameCount++;
 	LOG(INFO) << mFrameCount;
 
