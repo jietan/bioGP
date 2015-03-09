@@ -63,10 +63,10 @@
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
     : SimWindow(),
       mController(_controller),
-	  mTime(0)
-	  
+	  mTmpBuffer(""),
+	  mTime(0),
+	  mDisplayMode(3)
 {
-
 	mDisplayTimeout = 10;
 	DecoConfig::GetSingleton()->GetDouble("Server", "timeout", mDisplayTimeout);
     // 0.166622 0.548365 0.118241 0.810896
@@ -76,17 +76,9 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	
 	mTrans = Eigen::Vector3d(0, -212.85, 0); 
 	mFrameCount = 0;
-
-	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
-	string fileName;
 	
-	DecoConfig::GetSingleton()->GetString("Player", "FileName", fileName);
-	readMovieFile(fileName);
-}
+	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
 
-void MyWindow::readMovieFile(const string& fileName)
-{
-	mMovie = ReadSimFrames(fileName);
 }
 
 //==============================================================================
@@ -96,6 +88,29 @@ MyWindow::~MyWindow()
 }
 
 int g_cnt = 0;
+
+
+void MyWindow::readMeasurementFile()
+{
+	string measurementFileName = "";
+	DecoConfig::GetSingleton()->GetString("Measurement", "MeasurementFileName", measurementFileName);
+	mMeasuredFrames = ReadMocapFrames(measurementFileName);
+}
+
+void MyWindow::saveProcessedMeasurement()
+{
+	int nFrames = static_cast<int>(mMeasuredFrames.size());
+	vector<SimFrame> processedFrames(nFrames);
+	for (int i = 0; i < nFrames; ++i)
+	{
+		processedFrames[i].mTime = mMeasuredFrames[i].mTime;
+		processedFrames[i].mPose = mMeasuredFrames[i].mMotorAngle;
+	}
+	string fileName = "";
+	DecoConfig::GetSingleton()->GetString("Measurement", "ProcessedDofFileName", fileName);
+	SaveSimFrames(fileName, processedFrames);
+
+}
 
 
 void MyWindow::displayTimer(int _val) 
@@ -108,17 +123,50 @@ void MyWindow::displayTimer(int _val)
 void MyWindow::timeStepping()
 {
 	if (!mSimulating) return;
-	int numFrames = static_cast<int>(mMovie.size());
-	Eigen::VectorXd qhat = mMovie[mFrameCount % numFrames].mPose;
+	static dart::common::Timer t;
 
-	mController->robot()->setPositions(qhat);
-	mController->robot()->computeForwardKinematics(true, true, false);
+	//Eigen::VectorXd motor_qhat = mMocapReader->GetFrame(mFrameCount).GetRobotPose();
+	//mController->setMotorMapPoseRad(motor_qhat);
 
+	////mFrameCount = 0;
+	//dart::dynamics::Skeleton* character = mWorld->getSkeleton(2);
+	//Eigen::VectorXd q = character->getPositions();
+	//Eigen::VectorXd qhat = mMocapReader->GetFrame(mFrameCount).GetCharacterPose();
+
+	////Eigen::VectorXd::Zero(37);//
+	//character->setPositions(qhat);
+	//character->computeForwardKinematics(true, true, false);
+
+	int isUseIK = 0;
+	DecoConfig::GetSingleton()->GetInt("Mocap", "IsUseIK", isUseIK);
+
+	if (isUseIK)
+	{
+		Eigen::VectorXd prevPose = mController->robot()->getPositions();
+		int isUseCOM = 0, isAvoidCollision = 0;
+		IKProblem ik(mController, isUseCOM, isAvoidCollision);
+		
+		dart::optimizer::snopt::SnoptSolver solver(&ik);
+		bool ret = solver.solve();
+		if (!ret)
+		{
+			LOG(WARNING) << "IK solve failed.";
+			//ik.getSkel()->setPositions(prevPose);
+			//CHECK(0);
+		}
+		ik.verifyConstraint();
+		Eigen::VectorXd poseAfterIK = ik.getSkel()->getPositions();
+		Eigen::VectorXd motorPoseAfterIK = mController->motormap()->toMotorMapVectorRad(poseAfterIK);
+		
+	}
+	//mController->keepFeetLevel();
+	double elaspedTime = t.getElapsedTime();
+	//LOG(INFO) << elaspedTime;
 	mTime += mController->robot()->getTimeStep();
-	LOG(INFO) << mFrameCount << ": " << qhat[7];
 	mFrameCount++;
 	LOG(INFO) << mFrameCount;
-
+	//mTime += elaspedTime;
+	t.start();
 }
 
 void MyWindow::draw()
@@ -155,10 +203,11 @@ void MyWindow::drawSkels()
 
 	for (unsigned int ithSkel = 0; ithSkel < mWorld->getNumSkeletons(); ithSkel++) 
 	{
-
+		if (ithSkel != mDisplayMode && mDisplayMode < mWorld->getNumSkeletons())
+			continue;
 		if (ithSkel == 1) {
             glPushMatrix();
-            glTranslated(0, -0.035, 0);
+            glTranslated(0, -0.00, 0);
             bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
             glPopMatrix();
 
@@ -171,6 +220,28 @@ void MyWindow::drawSkels()
 		{
 			mWorld->getSkeleton(ithSkel)->draw(mRI);
 			mWorld->getSkeleton(ithSkel)->drawMarkers(mRI);
+			int isShowCollisionSphere = 0;
+			DecoConfig::GetSingleton()->GetInt("Display", "IsShowCollisionSphere", isShowCollisionSphere);
+
+			if (isShowCollisionSphere && mWorld->getSkeleton(ithSkel) == mController->robot())
+			{
+				const std::vector<std::vector<CollisionSphere> >& cspheres = mController->getCollisionSpheres();
+				int numBodies = mWorld->getSkeleton(ithSkel)->getNumBodyNodes();
+				for (int i = 0; i < numBodies; ++i)
+				{
+					int numSpheres = static_cast<int>(cspheres[i].size());
+					Eigen::Isometry3d transform = mWorld->getSkeleton(ithSkel)->getBodyNode(i)->getTransform();
+
+					for (int j = 0; j < numSpheres; ++j)
+					{
+						Eigen::Vector3d centerWorld = transform * cspheres[i][j].mOffset;
+						glPushMatrix();
+						glTranslated(centerWorld[0], centerWorld[1], centerWorld[2]);
+						glutSolidSphere(cspheres[i][j].mRadius, 16, 16);
+						glPopMatrix();
+					}
+				}
+			}
 		}
 		
     }
@@ -180,27 +251,6 @@ void MyWindow::drawSkels()
 	glTranslated(C(0), C(1), C(2));
 	bioloidgp::utils::renderAxis(1.0);
 	glPopMatrix();
-}
-
-void MyWindow::calculateInertia() {
-    dart::dynamics::Skeleton* robot = mWorld->getSkeleton(0);
-    int n = robot->getNumBodyNodes();
-
-    double I = 0.0;
-    double m = 0;
-    double OFFSET = -0.30;
-    for (int i = 0; i < n; i++) {
-        dart::dynamics::BodyNode* bn = robot->getBodyNode(i);
-        m += bn->getMass();
-        Eigen::Vector3d p = bn->getWorldCOM();
-        double y = p.y() - (OFFSET); // Subtract the feet height
-        double z = p.z();
-        // cout << bn->getName() << " " << y << " " << z << endl;
-        I += bn->getMass() * (y * y + z * z);
-    }
-    Eigen::Vector3d C = robot->getCOM();
-    cout << m << ", " << I << ", " << C.y() - OFFSET << ", " << C.z() << endl;
-    
 }
 
 
@@ -213,7 +263,9 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
     case ' ':  // use space key to play or stop the motion
         mSimulating = !mSimulating;
         break;
-
+	case '1':
+		mDisplayMode = (mDisplayMode + 1) % 4;
+		break;
     case 'p':  // step backward
 		mSimulating = true;
 		mFrameCount -= 2;
@@ -229,16 +281,12 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
 		glutPostRedisplay();
 
         break;
-    case 'I':  // print debug information
-        calculateInertia();
-        break;
-    case 'i':  // print debug information
-        mController->printDebugInfo();
-        break;
     case 'v':  // show or hide markers
         mShowMarkers = !mShowMarkers;
         break;
-
+	case 's':
+		
+		break;
 	case 'r':
 		mController->reset();
 		

@@ -21,6 +21,8 @@ public:
 	}
 };
 
+vector<SimFrame> ReadSimFrames(const string& fileName);
+void SaveSimFrames(const string& fileName, const vector<SimFrame>& frames);
 istream& operator>> (istream& in, SimFrame& rhs);
 ostream& operator<< (ostream& out, const SimFrame& rhs);
 

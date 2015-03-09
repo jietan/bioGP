@@ -152,7 +152,7 @@ void HumanoidController::setFreeDofs(const Eigen::VectorXd& q6)
 	q.head(6) = q6;
 	robot()->setPositions(q);
 	robot()->computeForwardKinematics(true, true, false);
-	mInitialCOM = robot()->getWorldCOM();
+	mInitialCOM = robot()->getCOM();
 }
 
 void HumanoidController::setInitialFirst6Dofs(const Eigen::VectorXd& init6Dofs)
@@ -218,12 +218,12 @@ void HumanoidController::setMotionTargetPose(int index) {
 
 Eigen::Vector3d HumanoidController::getCOMChangeFromInitial() const
 {
-	Eigen::Vector3d com = robot()->getWorldCOM();
+	Eigen::Vector3d com = robot()->getCOM();
 	return (com - mInitialCOM);
 }
 Eigen::Vector3d HumanoidController::getCOMVelocity()
 {
-	Eigen::Vector3d comV = robot()->getWorldCOMVelocity();
+	Eigen::Vector3d comV = robot()->getCOMLinearVelocity();
 	return comV;
 }
 
@@ -237,7 +237,7 @@ Eigen::VectorXd HumanoidController::useAnkelStrategy(const Eigen::VectorXd& refP
 	Eigen::VectorXd ret = refPose;
 	if (!mIsCOMInitialized)
 	{
-		mInitialCOM = robot()->getWorldCOM();
+		mInitialCOM = robot()->getCOM();
 		mIsCOMInitialized = true;
 		return ret;
 	}
@@ -370,24 +370,56 @@ Eigen::VectorXd HumanoidController::computeTorque(const Eigen::VectorXd& qhat)
 	}
 	return tau;
 }
+
+Eigen::VectorXd HumanoidController::computeDesiredVelocity(double time)
+{
+	double timeOneStepLater = time + robot()->getTimeStep();
+	int nFrames = static_cast<int>(mRecordedFrames.size());
+	int i = 0;
+	if (timeOneStepLater <= mRecordedFrames[i].mTime)
+	{
+		i = -1;
+	}
+	else
+	{
+		for (i = 0; i < nFrames - 1; ++i)
+		{
+			if (timeOneStepLater > mRecordedFrames[i].mTime && timeOneStepLater <= mRecordedFrames[i + 1].mTime)
+			{
+				break;
+			}
+		}
+	}
+
+	if (i + 1 >= nFrames)
+	{
+		return Eigen::VectorXd::Zero(22);
+	}
+	else
+	{
+		Eigen::VectorXd pos = robot()->getPositions();
+		return (mRecordedFrames[i + 1].mPose - pos) / (mRecordedFrames[i + 1].mTime - time);
+	}
+}
 void HumanoidController::update(double _currentTime) {
 	const int NDOFS = robot()->getNumDofs();
 
 	if (mIsHybridDynamics)
 	{
-		double timeStep = robot()->getTimeStep();
-		int ithFrame = static_cast<int>(_currentTime / timeStep);
-		int nFrames = static_cast<int>(mRecordedFrames.size());
-		Eigen::VectorXd vel = Eigen::VectorXd::Zero(NDOFS);
-		
-		if (ithFrame >= nFrames - 1)
-		{
-			vel = Eigen::VectorXd::Zero(NDOFS);
-		}
-		else
-		{
-			vel = (mRecordedFrames[ithFrame + 1].mPose - mRecordedFrames[ithFrame].mPose) / timeStep;
-		}
+		//double timeStep = robot()->getTimeStep();
+		//int ithFrame = static_cast<int>(_currentTime / timeStep);
+		//int nFrames = static_cast<int>(mRecordedFrames.size());
+		//Eigen::VectorXd vel = Eigen::VectorXd::Zero(NDOFS);
+		//Eigen::VectorXd pos = robot()->getPositions();
+		//if (ithFrame >= nFrames - 1)
+		//{
+		//	vel = Eigen::VectorXd::Zero(NDOFS);
+		//}
+		//else
+		//{
+		//	vel = (mRecordedFrames[ithFrame].mPose - pos) / timeStep;
+		//}
+		Eigen::VectorXd vel = computeDesiredVelocity(_currentTime);
 		for (int i = 6; i < NDOFS; ++i)
 		{
 			robot()->setCommand(i, vel[i]);

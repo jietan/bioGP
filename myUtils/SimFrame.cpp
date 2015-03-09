@@ -1,5 +1,34 @@
 #include "SimFrame.h"
 #include <iomanip>
+#include <fstream>
+
+vector<SimFrame> ReadSimFrames(const string& fileName)
+{
+	ifstream inFile(fileName.c_str());
+	const int nDofs = 22;
+	int numFrames;
+	inFile >> numFrames;
+	vector<SimFrame> ret(numFrames, SimFrame(nDofs));
+
+	for (int i = 0; i < numFrames; ++i)
+	{
+		inFile >> ret[i];
+	}
+	return ret;
+}
+void SaveSimFrames(const string& fileName, const vector<SimFrame>& frames)
+{
+	ofstream oFile(fileName.c_str());
+	int nFrames = static_cast<int>(frames.size());
+	if (!nFrames) return;
+	oFile << nFrames << endl;
+	for (int i = 0; i < nFrames; ++i)
+	{
+		oFile << frames[i] << endl;
+	}
+}
+
+
 
 istream& operator>> (istream& in, SimFrame& rhs)
 {

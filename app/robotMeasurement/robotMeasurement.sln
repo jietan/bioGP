@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robot", "..\..\robot\robot.vcxproj", "{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "myUtils", "..\..\myUtils\myUtils.vcxproj", "{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IK", "..\..\IK\IK.vcxproj", "{0A4B4D55-9985-49DE-8A44-43C987E94D7E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robotMeasurement", "robotMeasurement.vcxproj", "{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB} = {7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}
+		{0A4B4D55-9985-49DE-8A44-43C987E94D7E} = {0A4B4D55-9985-49DE-8A44-43C987E94D7E}
+		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC} = {5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		FastDebug|Win32 = FastDebug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}.Debug|Win32.Build.0 = Debug|Win32
+		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}.FastDebug|Win32.ActiveCfg = FastDebug|Win32
+		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}.FastDebug|Win32.Build.0 = FastDebug|Win32
+		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}.Release|Win32.ActiveCfg = Release|Win32
+		{5B0520C9-6433-48B9-A9E3-E7C0AE596FEC}.Release|Win32.Build.0 = Release|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.Debug|Win32.Build.0 = Debug|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.FastDebug|Win32.ActiveCfg = FastDebug|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.FastDebug|Win32.Build.0 = FastDebug|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.Release|Win32.ActiveCfg = Release|Win32
+		{7C1B3C33-E7F8-4CA6-A6E1-95BE9E102DEB}.Release|Win32.Build.0 = Release|Win32
+		{0A4B4D55-9985-49DE-8A44-43C987E94D7E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0A4B4D55-9985-49DE-8A44-43C987E94D7E}.Debug|Win32.Build.0 = Debug|Win32
+		{0A4B4D55-9985-49DE-8A44-43C987E94D7E}.FastDebug|Win32.ActiveCfg = FastDebug|Win32
+		{0A4B4D55-9985-49DE-8A44-43C987E94D7E}.FastDebug|Win32.Build.0 = FastDebug|Win32
+		{0A4B4D55-9985-49DE-8A44-43C987E94D7E}.Release|Win32.ActiveCfg = Release|Win32
+		{0A4B4D55-9985-49DE-8A44-43C987E94D7E}.Release|Win32.Build.0 = Release|Win32
+		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.Debug|Win32.Build.0 = Debug|Win32
+		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.FastDebug|Win32.ActiveCfg = FastDebug|Win32
+		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.FastDebug|Win32.Build.0 = FastDebug|Win32
+		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.Release|Win32.ActiveCfg = Release|Win32
+		{AF9B5927-7E20-4AFA-8B33-818BCEB32CA2}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -39,11 +39,9 @@
 #define APPS_ATLASROBOT_MYWINDOW_H_
 #include <string>
 #include "dart/gui/SimWindow.h"
-#include "Client.h"
-#include "dart/common/Timer.h"
 #include "myUtils/MocapFrame.h"
 using namespace std;
-using namespace ViconDataStreamSDK::CPP;
+
 
 namespace bioloidgp {
 namespace robot {
@@ -51,9 +49,9 @@ class HumanoidController;
 } // namespace robot
 } // namespace bioloidgp
 
-
-
+class MocapReader;
 class CSerial;
+class SupportInfo;
 /// \brief class MyWindow
 class MyWindow : public dart::gui::SimWindow
 {
@@ -67,7 +65,6 @@ public:
     // Documentation inherited
     virtual void timeStepping();
 	virtual void draw();
-	virtual void drawMocapMarkers();
     // Documentation inherited
     virtual void drawSkels();
 
@@ -75,45 +72,18 @@ public:
     virtual void keyboard(unsigned char _key, int _x, int _y);
 
 	virtual void displayTimer(int _val);
-    void calculateInertia();
-	void setSerial(CSerial* serial);
-	void setMocapClient(Client* client);
-	void saveRecordedFrames();
+	void readMeasurementFile();
+	void saveProcessedMeasurement();
+
 private:
-	void processMocapData();
-	bool fromMarkersTo6Dofs();
-	void buildMarkerDistanceField();
-	int numUnocculudedMarkers() const;
-	void reorderMarkers();
-	double computeDistanceOfMarkerDistances(const vector<int>& labelCandidate, const vector<vector<double> >& currentMarkerDistance);
-	vector<vector<double> > computeMarkerDistances() const;
-	Eigen::Vector3d computeYFromMarkers() const;
-	Eigen::Vector3d computeXFromMarkers(const Eigen::Vector3d& y) const;
-	Eigen::Vector3d computeZFromMarkers(const Eigen::Vector3d& x, const Eigen::Vector3d& y) const;
-	
 	double mTime;
-	CSerial* mSerial;
-	Client* mMocapClient;
-    /// \brief External force to exert on Atlas robot
-    Eigen::Vector3d mForce;
 
-    /// \brief Number of frames for applying external force
-    int mImpulseDuration;
-
+	int mFrameCount;
     /// \brief Constroller
     bioloidgp::robot::HumanoidController* mController;
 	string mTmpBuffer;
-
-	std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > mMarkerPos;
-	std::vector<int> mMarkerOccluded;
-	Eigen::VectorXd mFirst6DofsFromMocap;
-	bool mIsInitialMarkersCaptured;
-	vector<vector<double> > mMarkerDistances;
-	double mMarker3To2AngleToXAxis;
-	bool mIsTimerRefresherStarted;
-
-	vector<MocapFrame> mRecordedFrames;
-	dart::common::Timer mTimer;
+	int mDisplayMode;
+	vector<MocapFrame> mMeasuredFrames;
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_

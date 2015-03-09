@@ -358,7 +358,7 @@ void MyWindow::reorderMarkers()
 	vector<double>::const_iterator labelIt = std::min_element(candidateDistances.begin(), candidateDistances.end());
 	vector<int> newLabel = candidateLabels[labelIt - candidateDistances.begin()];
 
-	vector<Eigen::Vector3d> orderedMarkerPos;
+	vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > orderedMarkerPos;
 	orderedMarkerPos.resize(numMarkers);
 	vector<int> orderedMarkerOcculuded;
 	orderedMarkerOcculuded.resize(numMarkers);
@@ -575,7 +575,7 @@ void MyWindow::timeStepping()
 	if (mSimulating)
 	{
 		Eigen::VectorXd poseToRecord = mController->robot()->getPositions();
-		RecordedFrame frame;
+		MocapFrame frame;
 		frame.mTime = mTime;
 		frame.mMarkerPos = mMarkerPos;
 		frame.mMarkerOccluded = mMarkerOccluded;
@@ -681,13 +681,13 @@ void MyWindow::calculateInertia() {
     for (int i = 0; i < n; i++) {
         dart::dynamics::BodyNode* bn = robot->getBodyNode(i);
         m += bn->getMass();
-        Eigen::Vector3d p = bn->getWorldCOM();
+		Eigen::Vector3d p = bn->getCOM();
         double y = p.y() - (OFFSET); // Subtract the feet height
         double z = p.z();
         // cout << bn->getName() << " " << y << " " << z << endl;
         I += bn->getMass() * (y * y + z * z);
     }
-    Eigen::Vector3d C = robot->getWorldCOM();
+	Eigen::Vector3d C = robot->getCOM();
     cout << m << ", " << I << ", " << C.y() - OFFSET << ", " << C.z() << endl;
     
 }
@@ -696,25 +696,7 @@ void MyWindow::saveRecordedFrames()
 {
 	string fileName;
 	DecoConfig::GetSingleton()->GetString("Ctrl", "RecordingFileName", fileName);
-	ofstream oFile(fileName.c_str());
-	int nFrames = static_cast<int>(mRecordedFrames.size());
-	if (!nFrames) return;
-	int nMarkers = static_cast<int>(mRecordedFrames[0].mMarkerPos.size());
-	oFile << nFrames << " " << nMarkers << endl;
-	for (int i = 0; i < nFrames; ++i)
-	{
-		oFile << mRecordedFrames[i].mTime << " ";
-		for (int j = 0; j < nMarkers; ++j)
-		{
-			oFile << mRecordedFrames[i].mMarkerPos[j][0] << " " << mRecordedFrames[i].mMarkerPos[j][1] << " " << mRecordedFrames[i].mMarkerPos[j][2] << " " << mRecordedFrames[i].mMarkerOccluded[j] << " ";
-		}
-		int nDofs = static_cast<int>(mRecordedFrames[i].mMotorAngle.size());
-		for (int j = 0; j < nDofs; ++j)
-		{
-			oFile << mRecordedFrames[i].mMotorAngle[j] << " ";
-		}
-		oFile << endl;
-	}
+	SaveMocapFrames(fileName, mRecordedFrames);
 
 }
 //==============================================================================

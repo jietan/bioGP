@@ -127,6 +127,7 @@
   <ItemGroup>
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="mathlib.cpp" />
+    <ClCompile Include="MocapFrame.cpp" />
     <ClCompile Include="PCA.cpp" />
     <ClCompile Include="polarDecomposition.cpp" />
     <ClCompile Include="SimFrame.cpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="mathlib.h" />
     <ClInclude Include="Misc.h" />
+    <ClInclude Include="MocapFrame.h" />
     <ClInclude Include="PCA.h" />
     <ClInclude Include="polarDecomposition.h" />
     <ClInclude Include="SimFrame.h" />

@@ -70,6 +70,7 @@ protected:
 	Eigen::VectorXd computeTorque(const Eigen::VectorXd& qhat);
     void setJointDamping(double _damping = 80.0);
 	void readMovieFile(const string& fileName);
+	Eigen::VectorXd computeDesiredVelocity(double time);
 protected:
     MEMBER_PTR(dart::dynamics::Skeleton*, robot);
     MEMBER_PTR(dart::constraint::ConstraintSolver*, collisionSolver);

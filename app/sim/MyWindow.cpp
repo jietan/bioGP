@@ -51,6 +51,7 @@
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
 #include "robot/HumanoidController.h"
+#include "myUtils/SimFrame.h"
 
 #include "myUtils/ConfigManager.h"
 #include <fstream>
@@ -139,14 +140,7 @@ void MyWindow::saveRecordedFrames()
 {
 	string fileName;
 	DecoConfig::GetSingleton()->GetString("Sim", "RecordingFileName", fileName);
-	ofstream oFile(fileName.c_str());
-	int nFrames = static_cast<int>(mRecordedFrames.size());
-	if (!nFrames) return;
-	oFile << nFrames << endl;
-	for (int i = 0; i < nFrames; ++i)
-	{
-		oFile << mRecordedFrames[i] << endl;
-	}
+	SaveSimFrames(fileName, mRecordedFrames);
 
 }
 
