@@ -75,7 +75,37 @@ using namespace dart::dynamics;
 using namespace dart::simulation;
 using namespace dart::utils;
 
+void AddMarkers(dart::dynamics::Skeleton* robotSkel)
+{
+	dart::dynamics::BodyNode* root = robotSkel->getBodyNode("torso");
+	dart::dynamics::Marker* leftFrontMarker = new dart::dynamics::Marker("torso_lf", Eigen::Vector3d(0.037, -0.019, 0.02), root);
+	dart::dynamics::Marker* rightFrontMarker = new dart::dynamics::Marker("torso_rf", Eigen::Vector3d(-0.037, -0.019, 0.02), root);
+	dart::dynamics::Marker* rightBackMarker = new dart::dynamics::Marker("torso_rb", Eigen::Vector3d(-0.042, 0.025, 0.02), root);
+	dart::dynamics::Marker* leftBackMarker = new dart::dynamics::Marker("torso_lb", Eigen::Vector3d(0.052, 0.03, 0.02), root);
+	root->addMarker(leftFrontMarker);
+	root->addMarker(rightFrontMarker);
+	root->addMarker(rightBackMarker);
+	root->addMarker(leftBackMarker);
 
+
+	dart::dynamics::BodyNode* lFoot = robotSkel->getBodyNode("l_foot");
+	dart::dynamics::Marker* innerFrontMarkerLeft = new dart::dynamics::Marker("l_foot_if", Eigen::Vector3d(-0.041, 0.025, 0.012), lFoot);
+	dart::dynamics::Marker* outerFrontMarkerLeft = new dart::dynamics::Marker("l_foot_of", Eigen::Vector3d(-0.041, 0.025, -0.028), lFoot);
+	dart::dynamics::Marker* outerBackMarkerLeft = new dart::dynamics::Marker("l_foot_ob", Eigen::Vector3d(0.041, 0.025, -0.028), lFoot);
+	lFoot->addMarker(innerFrontMarkerLeft);
+	lFoot->addMarker(outerFrontMarkerLeft);
+	lFoot->addMarker(outerBackMarkerLeft);
+
+	dart::dynamics::BodyNode* rFoot = robotSkel->getBodyNode("r_foot");
+	dart::dynamics::Marker* innerFrontMarkerRight = new dart::dynamics::Marker("r_foot_if", Eigen::Vector3d(-0.041, 0.025, -0.012), rFoot);
+	dart::dynamics::Marker* outerFrontMarkerRight = new dart::dynamics::Marker("r_foot_of", Eigen::Vector3d(-0.041, 0.025, 0.028), rFoot);
+	dart::dynamics::Marker* outerBackMarkerRight = new dart::dynamics::Marker("r_foot_ob", Eigen::Vector3d(0.041, 0.025, 0.028), rFoot);
+	rFoot->addMarker(innerFrontMarkerRight);
+	rFoot->addMarker(outerFrontMarkerRight);
+	rFoot->addMarker(outerBackMarkerRight);
+	
+
+}
 
 int main(int argc, char* argv[])
 {
@@ -122,7 +152,7 @@ int main(int argc, char* argv[])
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
 
-
+	AddMarkers(con->robot());
     MyWindow window(con);
     window.setWorld(myWorld);
     // Print manual
@@ -132,12 +162,12 @@ int main(int argc, char* argv[])
     LOG(INFO) << "'v': visualization on/off";
     LOG(INFO) << endl;
 	window.readMeasurementFile();
-	window.saveProcessedMeasurement();
+	//window.saveProcessedMeasurement();
     // Run glut loop
-    //glutInit(&argc, argv);
-    //window.initWindow(1280, 720, "BioloidGP Robot - with Dart4.0");
+    glutInit(&argc, argv);
+    window.initWindow(1280, 720, "BioloidGP Robot - with Dart4.0");
 
-    //glutMainLoop();
+    glutMainLoop();
 
     return 0;
 }

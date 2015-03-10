@@ -66,8 +66,9 @@ public:
     virtual void timeStepping();
 	virtual void draw();
     // Documentation inherited
-    virtual void drawSkels();
-
+	virtual void drawSkels(); 
+	void drawMocapMarkers();
+	void reorderMarkers();
     // Documentation inherited
     virtual void keyboard(unsigned char _key, int _x, int _y);
 
@@ -76,6 +77,13 @@ public:
 	void saveProcessedMeasurement();
 
 private:
+	bool fromMarkersTo6Dofs(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded, Eigen::VectorXd& first6Dofs);
+	int numUnocculudedMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded) const;
+	Eigen::Vector3d computeYFromMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded) const;
+	Eigen::Vector3d computeXFromMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded, const Eigen::Vector3d& y) const;
+	Eigen::Vector3d computeZFromMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded, const Eigen::Vector3d& x, const Eigen::Vector3d& y) const;
+	void buildMarker3To2AngleToXAxis(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded);
+
 	double mTime;
 
 	int mFrameCount;
@@ -84,6 +92,9 @@ private:
 	string mTmpBuffer;
 	int mDisplayMode;
 	vector<MocapFrame> mMeasuredFrames;
+	double mMarker3To2AngleToXAxis;
+	bool mIsInitialMarkersCaptured;
+	vector<int> mMarkersMapping;
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_

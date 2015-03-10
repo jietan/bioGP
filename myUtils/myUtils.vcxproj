@@ -136,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="JetColorMap.h" />
     <ClInclude Include="mathlib.h" />
     <ClInclude Include="Misc.h" />
     <ClInclude Include="MocapFrame.h" />

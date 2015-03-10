@@ -53,6 +53,8 @@
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
 #include "myUtils/ConfigManager.h"
+#include "myUtils/JetColorMap.h"
+#include "myUtils/mathlib.h"
 #include "robot/HumanoidController.h"
 #include "robot/Motion.h"
 #include "IK/IKProblem.h"
@@ -95,6 +97,14 @@ void MyWindow::readMeasurementFile()
 	string measurementFileName = "";
 	DecoConfig::GetSingleton()->GetString("Measurement", "MeasurementFileName", measurementFileName);
 	mMeasuredFrames = ReadMocapFrames(measurementFileName);
+	reorderMarkers();
+}
+
+void MyWindow::reorderMarkers()
+{
+
+		
+
 }
 
 void MyWindow::saveProcessedMeasurement()
@@ -119,24 +129,16 @@ void MyWindow::displayTimer(int _val)
 	glutPostRedisplay();
 	glutTimerFunc(mDisplayTimeout, refreshTimer, _val);
 }
+
+
+
 //==============================================================================
 void MyWindow::timeStepping()
 {
 	if (!mSimulating) return;
 	static dart::common::Timer t;
 
-	//Eigen::VectorXd motor_qhat = mMocapReader->GetFrame(mFrameCount).GetRobotPose();
-	//mController->setMotorMapPoseRad(motor_qhat);
-
-	////mFrameCount = 0;
-	//dart::dynamics::Skeleton* character = mWorld->getSkeleton(2);
-	//Eigen::VectorXd q = character->getPositions();
-	//Eigen::VectorXd qhat = mMocapReader->GetFrame(mFrameCount).GetCharacterPose();
-
-	////Eigen::VectorXd::Zero(37);//
-	//character->setPositions(qhat);
-	//character->computeForwardKinematics(true, true, false);
-
+	
 	int isUseIK = 0;
 	DecoConfig::GetSingleton()->GetInt("Mocap", "IsUseIK", isUseIK);
 
@@ -159,6 +161,38 @@ void MyWindow::timeStepping()
 		Eigen::VectorXd motorPoseAfterIK = mController->motormap()->toMotorMapVectorRad(poseAfterIK);
 		
 	}
+	else
+	{
+		int nFrames = static_cast<int>(mMeasuredFrames.size());
+		if (mFrameCount < 0)
+			mFrameCount += nFrames;
+		int ithFrame = mFrameCount % nFrames;
+		Eigen::VectorXd pose = mMeasuredFrames[ithFrame].mMotorAngle;
+		Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
+		const int nMarkers = static_cast<int>(mMeasuredFrames[ithFrame].mMarkerPos.size());
+		mMarkersMapping.resize(nMarkers);
+		CHECK(nMarkers == 10) << "Weird number of markers";
+		mMarkersMapping[0] = 5;
+		mMarkersMapping[1] = 0;
+		mMarkersMapping[2] = 7;
+		mMarkersMapping[3] = 3;
+		const int nTopMarkers = 4;
+		vector<Eigen::Vector3d> topMarkersPos(nTopMarkers);
+		vector<int> topMarkesOcculuded(nTopMarkers);
+		for (int i = 0; i < nTopMarkers; ++i)
+		{
+			topMarkersPos[i] = mMeasuredFrames[ithFrame].mMarkerPos[mMarkersMapping[i]];
+			topMarkesOcculuded[i] = mMeasuredFrames[ithFrame].mMarkerOccluded[mMarkersMapping[i]];
+		}
+
+
+		bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
+		if (result)
+		{
+			pose.head(6) = first6Dofs;
+		}
+		mController->robot()->setPositions(pose);
+	}
 	//mController->keepFeetLevel();
 	double elaspedTime = t.getElapsedTime();
 	//LOG(INFO) << elaspedTime;
@@ -169,13 +203,149 @@ void MyWindow::timeStepping()
 	t.start();
 }
 
+int MyWindow::numUnocculudedMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded) const
+{
+	int numMarkers = static_cast<int>(topMarkerPos.size());
+	int ret = 0;
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		if (!topMarkerOcculuded[i])
+			ret++;
+	}
+	return ret;
+}
+
+Eigen::Vector3d MyWindow::computeYFromMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded) const
+{
+	int numUnOcculudedMarkers = numUnocculudedMarkers(topMarkerPos, topMarkerOcculuded);
+	int numMarkers = static_cast<int>(topMarkerPos.size());
+	std::vector<Eigen::Vector3d> unocculudedMarkers;
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		if (!topMarkerOcculuded[i])
+			unocculudedMarkers.push_back(topMarkerPos[i]);
+	}
+	std::vector<Eigen::Vector3d> axis;
+	Eigen::Vector3d mean;
+	PCAOnPoints(unocculudedMarkers, mean, axis);
+	Eigen::Vector3d y = axis[0];
+	if (y[1] < 0)
+	{
+		y = -y;
+	}
+	return y.normalized();
+}
+Eigen::Vector3d MyWindow::computeXFromMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded, const Eigen::Vector3d& y) const
+{
+	Eigen::Vector3d x;
+	if (!topMarkerOcculuded[0] && !topMarkerOcculuded[1])
+	{
+		x = (topMarkerPos[1] - topMarkerPos[0]).normalized();
+	}
+	else if (!topMarkerOcculuded[2] && !topMarkerOcculuded[3])
+	{
+		x = (topMarkerPos[2] - topMarkerPos[3]).normalized();
+		Eigen::Matrix3d rot;
+		rot = Eigen::AngleAxisd(mMarker3To2AngleToXAxis, y);
+		x = rot * x;
+	}
+	else
+	{
+		LOG(FATAL) << "Should not reach here.";
+	}
+	return x.normalized();
+}
+
+Eigen::Vector3d MyWindow::computeZFromMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded, const Eigen::Vector3d& x, const Eigen::Vector3d& y) const
+{
+	Eigen::Vector3d z = x.cross(y);
+	return z.normalized();
+}
+
+void MyWindow::buildMarker3To2AngleToXAxis(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded)
+{
+	int numMarkers = static_cast<int>(topMarkerPos.size());
+	if (numMarkers != numUnocculudedMarkers(topMarkerPos, topMarkerOcculuded)) return;
+	LOG(INFO) << "Num of Markers: " << numMarkers;
+	Eigen::Vector3d marker0To1Dir = (topMarkerPos[1] - topMarkerPos[0]).normalized();
+	Eigen::Vector3d marker3To2Dir = (topMarkerPos[2] - topMarkerPos[3]).normalized();
+	Eigen::Vector3d y = computeYFromMarkers(topMarkerPos, topMarkerOcculuded);
+	mMarker3To2AngleToXAxis = asin(marker3To2Dir.cross(marker0To1Dir).dot(y));
+	mIsInitialMarkersCaptured = true;
+}
+
+bool MyWindow::fromMarkersTo6Dofs(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded, Eigen::VectorXd& first6Dofs)
+{
+	if (!mIsInitialMarkersCaptured)
+	{
+		buildMarker3To2AngleToXAxis(topMarkerPos, topMarkerOcculuded);
+	}
+	Eigen::Vector3d y = computeYFromMarkers(topMarkerPos, topMarkerOcculuded);
+	Eigen::Vector3d x = computeXFromMarkers(topMarkerPos, topMarkerOcculuded, y);
+	Eigen::Vector3d z = computeZFromMarkers(topMarkerPos, topMarkerOcculuded, x, y);
+	Eigen::Matrix3d rot;
+	//rot.col(0) = x;
+	//rot.col(1) = y;
+	//rot.col(2) = z;
+	rot = Eigen::AngleAxisd(-M_PI / 2, Eigen::Vector3d::UnitX()) * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ());
+	Eigen::Matrix3d rot1;
+	rot1.col(0) = x;
+	rot1.col(1) = y;
+	rot1.col(2) = z;
+	rot = rot1 * rot;
+	first6Dofs = Eigen::VectorXd::Zero(6);
+	first6Dofs.head(3) = dart::math::logMap(rot);
+
+	mController->setFreeDofs(first6Dofs);
+	Eigen::Vector3d centerOfMocapMarkers = Eigen::Vector3d::Zero();
+	Eigen::Vector3d centerOfRobotMarkers = Eigen::Vector3d::Zero();
+	Eigen::Vector3d translation;
+	dart::dynamics::BodyNode* root = mController->robot()->getRootBodyNode();
+	int nMarkers = root->getNumMarkers();
+	for (int i = 0; i < nMarkers; ++i)
+	{
+		if (topMarkerOcculuded[i]) continue;
+		centerOfMocapMarkers += topMarkerPos[i];
+		centerOfRobotMarkers += root->getMarker(i)->getWorldPosition();
+	}
+	int numUnOcculudedMarkers = numUnocculudedMarkers(topMarkerPos, topMarkerOcculuded);
+	centerOfMocapMarkers /= numUnOcculudedMarkers;
+	centerOfRobotMarkers /= numUnOcculudedMarkers;
+	translation = centerOfMocapMarkers - centerOfRobotMarkers;
+	first6Dofs.tail(3) = translation;
+	return true;
+}
+
+
+void MyWindow::drawMocapMarkers()
+{
+	int nFrames = static_cast<int>(mMeasuredFrames.size());
+	MocapFrame& frame = mMeasuredFrames[0];
+	if (mFrameCount)
+		frame = mMeasuredFrames[(mFrameCount - 1) % nFrames];
+	int nMarkers = static_cast<int>(frame.mMarkerPos.size());
+	
+	for (int i = 0; i < nMarkers; ++i)
+	{
+		if (i == 5) continue;
+		if (frame.mMarkerOccluded[i]) continue;
+		Eigen::Vector3f col = GetColour(i, 0, nMarkers);
+		glPushMatrix();
+		glTranslated(frame.mMarkerPos[i][0], frame.mMarkerPos[i][1], frame.mMarkerPos[i][2]);
+		glColor3f(col[0], col[1], col[2]);
+		glutSolidSphere(0.007, 16, 16);
+		glPopMatrix();
+	}
+	
+}
+
 void MyWindow::draw()
 {
 	glDisable(GL_LIGHTING);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	drawSkels();
-
+	drawMocapMarkers();
 	// display the frame count in 2D text
 	char buff[64];
 	if (!mSimulating)
@@ -207,7 +377,7 @@ void MyWindow::drawSkels()
 			continue;
 		if (ithSkel == 1) {
             glPushMatrix();
-            glTranslated(0, -0.00, 0);
+            glTranslated(0, -0.035, 0);
             bioloidgp::utils::renderChessBoard(100, 100, 50.0, 50.0);
             glPopMatrix();
 
@@ -287,9 +457,7 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
 	case 's':
 		
 		break;
-	case 'r':
-		mController->reset();
-		
+	case 'r':		
 		mFrameCount = 0;
 		mTime = 0;
 		break;
