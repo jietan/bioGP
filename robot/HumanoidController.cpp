@@ -181,6 +181,16 @@ void HumanoidController::setInitialPose(const Eigen::VectorXd& init)
 	robot()->computeForwardKinematics(true, true, false);
 }
 
+void HumanoidController::setMarkers(const vector<dart::dynamics::Marker*> markers)
+{
+	mMarkers = markers;
+}
+
+const vector<dart::dynamics::Marker*> HumanoidController::getMarkers() const
+{
+	return mMarkers;
+}
+
 void HumanoidController::setMotorMapPose(const Eigen::VectorXd& mtv) {
 	int n = robot()->getNumDofs();
     Eigen::VectorXd q = robot()->getPositions();

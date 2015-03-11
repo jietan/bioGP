@@ -20,6 +20,7 @@ namespace dart {
 namespace dynamics {
 class BodyNode;
 class Skeleton;
+class Marker;
 }  // namespace dynamics
 namespace constraint {
 class ConstraintSolver;
@@ -61,7 +62,8 @@ public:
 	Eigen::Vector3d getUpDir() const;
 	Eigen::Vector3d getLeftDir() const;
 	Eigen::Vector3d getForwardDir() const;
-
+	void setMarkers(const vector<dart::dynamics::Marker*> markers);
+	const vector<dart::dynamics::Marker*> getMarkers() const;
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
 	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
@@ -91,6 +93,7 @@ protected:
 	Eigen::VectorXd mInitFirst6Dofs;
 	int mIsHybridDynamics;
 	vector<SimFrame> mRecordedFrames;
+	vector<dart::dynamics::Marker*> mMarkers;
 }; // class Humanoidcontroller
 
 } // namespace robot

@@ -69,14 +69,16 @@
 #include "IK/CMUSkeletonReader.h"
 #include "IK/SupportInfo.h"
 
+vector<dart::dynamics::Marker*> gMarkers;
 
 using namespace std;
 using namespace dart::dynamics;
 using namespace dart::simulation;
 using namespace dart::utils;
 
-void AddMarkers(dart::dynamics::Skeleton* robotSkel)
+void AddMarkers(bioloidgp::robot::HumanoidController* humanoid)
 {
+	dart::dynamics::Skeleton* robotSkel = humanoid->robot();
 	dart::dynamics::BodyNode* root = robotSkel->getBodyNode("torso");
 	dart::dynamics::Marker* leftFrontMarker = new dart::dynamics::Marker("torso_lf", Eigen::Vector3d(0.037, -0.019, 0.02), root);
 	dart::dynamics::Marker* rightFrontMarker = new dart::dynamics::Marker("torso_rf", Eigen::Vector3d(-0.037, -0.019, 0.02), root);
@@ -103,10 +105,20 @@ void AddMarkers(dart::dynamics::Skeleton* robotSkel)
 	rFoot->addMarker(innerFrontMarkerRight);
 	rFoot->addMarker(outerFrontMarkerRight);
 	rFoot->addMarker(outerBackMarkerRight);
-	
+
+	gMarkers.push_back(leftFrontMarker);
+	gMarkers.push_back(rightFrontMarker);
+	gMarkers.push_back(rightBackMarker);
+	gMarkers.push_back(leftBackMarker);
+	gMarkers.push_back(innerFrontMarkerLeft);
+	gMarkers.push_back(outerFrontMarkerLeft);
+	gMarkers.push_back(outerBackMarkerLeft);
+	gMarkers.push_back(innerFrontMarkerRight);
+	gMarkers.push_back(outerFrontMarkerRight);
+	gMarkers.push_back(outerBackMarkerRight);
+	humanoid->setMarkers(gMarkers);
 
 }
-
 int main(int argc, char* argv[])
 {
    // google::ParseCommandLineFlags(&argc, &argv, true);
@@ -152,7 +164,8 @@ int main(int argc, char* argv[])
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
 
-	AddMarkers(con->robot());
+	AddMarkers(con);
+	
     MyWindow window(con);
     window.setWorld(myWorld);
     // Print manual

@@ -39,6 +39,7 @@
 #include "dart/common/Timer.h"
 #include "dart/math/Helpers.h"
 #include "dart/simulation/World.h"
+#include "dart/dynamics/Marker.h"
 #include "dart/dynamics/BodyNode.h"
 #include "dart/dynamics/Skeleton.h"
 #include "dart/dynamics/FreeJoint.h"
@@ -57,9 +58,8 @@
 #include "myUtils/mathlib.h"
 #include "robot/HumanoidController.h"
 #include "robot/Motion.h"
-#include "IK/IKProblem.h"
-#include "IK/MocapReader.h"
-#include "IK/SupportInfo.h"
+#include "IK/IKProblemRobotState.h"
+
 
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
@@ -78,7 +78,7 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	
 	mTrans = Eigen::Vector3d(0, -212.85, 0); 
 	mFrameCount = 0;
-	
+	readMeasurementFile();
 	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
 
 }
@@ -97,28 +97,16 @@ void MyWindow::readMeasurementFile()
 	string measurementFileName = "";
 	DecoConfig::GetSingleton()->GetString("Measurement", "MeasurementFileName", measurementFileName);
 	mMeasuredFrames = ReadMocapFrames(measurementFileName);
-	reorderMarkers();
+	mConvertedFrames.resize(mMeasuredFrames.size());
+	
 }
 
-void MyWindow::reorderMarkers()
-{
-
-		
-
-}
 
 void MyWindow::saveProcessedMeasurement()
 {
-	int nFrames = static_cast<int>(mMeasuredFrames.size());
-	vector<SimFrame> processedFrames(nFrames);
-	for (int i = 0; i < nFrames; ++i)
-	{
-		processedFrames[i].mTime = mMeasuredFrames[i].mTime;
-		processedFrames[i].mPose = mMeasuredFrames[i].mMotorAngle;
-	}
 	string fileName = "";
 	DecoConfig::GetSingleton()->GetString("Measurement", "ProcessedDofFileName", fileName);
-	SaveSimFrames(fileName, processedFrames);
+	SaveSimFrames(fileName, mConvertedFrames);
 
 }
 
@@ -138,62 +126,72 @@ void MyWindow::timeStepping()
 	if (!mSimulating) return;
 	static dart::common::Timer t;
 
-	
-	int isUseIK = 0;
-	DecoConfig::GetSingleton()->GetInt("Mocap", "IsUseIK", isUseIK);
 
+	int nFrames = static_cast<int>(mMeasuredFrames.size());
+	if (mFrameCount < 0)
+		mFrameCount += nFrames;
+	
+	int ithFrame = mFrameCount % nFrames;
+	if (ithFrame == nFrames - 1)
+	{
+		saveProcessedMeasurement();
+	}
+	const MocapFrame& frame = mMeasuredFrames[ithFrame];
+	Eigen::VectorXd pose = frame.mMotorAngle;
+	Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
+	const int nMarkers = static_cast<int>(mMeasuredFrames[ithFrame].mMarkerPos.size());
+	mMarkersMapping.resize(nMarkers);
+	CHECK(nMarkers == 10) << "Weird number of markers";
+	mMarkersMapping[0] = 5;
+	mMarkersMapping[1] = 0;
+	mMarkersMapping[2] = 7;
+	mMarkersMapping[3] = 3;
+	const int nTopMarkers = 4;
+	vector<Eigen::Vector3d> topMarkersPos(nTopMarkers);
+	vector<int> topMarkesOcculuded(nTopMarkers);
+	for (int i = 0; i < nTopMarkers; ++i)
+	{
+		topMarkersPos[i] = mMeasuredFrames[ithFrame].mMarkerPos[mMarkersMapping[i]];
+		topMarkesOcculuded[i] = mMeasuredFrames[ithFrame].mMarkerOccluded[mMarkersMapping[i]];
+	}
+	bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
+	if (result)
+	{
+		pose.head(6) = first6Dofs;
+	}
+	mController->robot()->setPositions(pose);
+	
+	for (int i = 0; i < nMarkers; ++i)
+	{
+		mMarkersMapping[i] = -1;
+	}
+	for (int i = 0; i < nMarkers; ++i)
+	{
+		if (frame.mMarkerOccluded[i])
+			continue;
+		
+		int nearestBodyMarkId = findNearestBodyMarker(frame.mMarkerPos[i]);
+		mMarkersMapping[nearestBodyMarkId] = i;
+	}
+	int isUseIK = 0;
+	DecoConfig::GetSingleton()->GetInt("Measurement", "IsUseIK", isUseIK);
 	if (isUseIK)
 	{
-		Eigen::VectorXd prevPose = mController->robot()->getPositions();
-		int isUseCOM = 0, isAvoidCollision = 0;
-		IKProblem ik(mController, isUseCOM, isAvoidCollision);
-		
+		IKProblemRobotState ik(mController, frame.mMarkerPos, frame.mMarkerOccluded, mMarkersMapping);
+
 		dart::optimizer::snopt::SnoptSolver solver(&ik);
 		bool ret = solver.solve();
 		if (!ret)
 		{
 			LOG(WARNING) << "IK solve failed.";
-			//ik.getSkel()->setPositions(prevPose);
-			//CHECK(0);
-		}
-		ik.verifyConstraint();
-		Eigen::VectorXd poseAfterIK = ik.getSkel()->getPositions();
-		Eigen::VectorXd motorPoseAfterIK = mController->motormap()->toMotorMapVectorRad(poseAfterIK);
-		
-	}
-	else
-	{
-		int nFrames = static_cast<int>(mMeasuredFrames.size());
-		if (mFrameCount < 0)
-			mFrameCount += nFrames;
-		int ithFrame = mFrameCount % nFrames;
-		Eigen::VectorXd pose = mMeasuredFrames[ithFrame].mMotorAngle;
-		Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
-		const int nMarkers = static_cast<int>(mMeasuredFrames[ithFrame].mMarkerPos.size());
-		mMarkersMapping.resize(nMarkers);
-		CHECK(nMarkers == 10) << "Weird number of markers";
-		mMarkersMapping[0] = 5;
-		mMarkersMapping[1] = 0;
-		mMarkersMapping[2] = 7;
-		mMarkersMapping[3] = 3;
-		const int nTopMarkers = 4;
-		vector<Eigen::Vector3d> topMarkersPos(nTopMarkers);
-		vector<int> topMarkesOcculuded(nTopMarkers);
-		for (int i = 0; i < nTopMarkers; ++i)
-		{
-			topMarkersPos[i] = mMeasuredFrames[ithFrame].mMarkerPos[mMarkersMapping[i]];
-			topMarkesOcculuded[i] = mMeasuredFrames[ithFrame].mMarkerOccluded[mMarkersMapping[i]];
 		}
 
+		pose = ik.getSkel()->getPositions();
 
-		bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
-		if (result)
-		{
-			pose.head(6) = first6Dofs;
-		}
-		mController->robot()->setPositions(pose);
 	}
-	//mController->keepFeetLevel();
+	mConvertedFrames[ithFrame].mTime = frame.mTime;
+	mConvertedFrames[ithFrame].mPose = pose;
+
 	double elaspedTime = t.getElapsedTime();
 	//LOG(INFO) << elaspedTime;
 	mTime += mController->robot()->getTimeStep();
@@ -203,6 +201,23 @@ void MyWindow::timeStepping()
 	t.start();
 }
 
+int MyWindow::findNearestBodyMarker(const Eigen::Vector3d& markerPos)
+{
+	const vector<dart::dynamics::Marker*> robotMarkers = mController->getMarkers();
+	int nMarkers = static_cast<int>(robotMarkers.size());
+	double minDist = DBL_MAX;
+	int nearestId = -1;
+	for (int i = 0; i < nMarkers; ++i)
+	{
+		double dist = (robotMarkers[i]->getWorldPosition() - markerPos).norm();
+		if (dist < minDist)
+		{
+			minDist = dist;
+			nearestId = i;
+		}
+	}
+	return nearestId;
+}
 int MyWindow::numUnocculudedMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded) const
 {
 	int numMarkers = static_cast<int>(topMarkerPos.size());
@@ -320,7 +335,7 @@ bool MyWindow::fromMarkersTo6Dofs(const vector<Eigen::Vector3d>& topMarkerPos, c
 void MyWindow::drawMocapMarkers()
 {
 	int nFrames = static_cast<int>(mMeasuredFrames.size());
-	MocapFrame& frame = mMeasuredFrames[0];
+	MocapFrame frame = mMeasuredFrames[0];
 	if (mFrameCount)
 		frame = mMeasuredFrames[(mFrameCount - 1) % nFrames];
 	int nMarkers = static_cast<int>(frame.mMarkerPos.size());
@@ -329,7 +344,12 @@ void MyWindow::drawMocapMarkers()
 	{
 		if (i == 5) continue;
 		if (frame.mMarkerOccluded[i]) continue;
-		Eigen::Vector3f col = GetColour(i, 0, nMarkers);
+		Eigen::Vector3f col  = Eigen::Vector3f::Zero();
+		for (int j = 0; j < nMarkers; ++j)
+		{
+			if (j < mMarkersMapping.size() && mMarkersMapping[j] == i)
+				col = GetColour(j, 0, nMarkers);
+		}
 		glPushMatrix();
 		glTranslated(frame.mMarkerPos[i][0], frame.mMarkerPos[i][1], frame.mMarkerPos[i][2]);
 		glColor3f(col[0], col[1], col[2]);

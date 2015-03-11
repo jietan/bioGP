@@ -130,6 +130,7 @@
     <ClCompile Include="COMConstraint.cpp" />
     <ClCompile Include="DirectionConstraint.cpp" />
     <ClCompile Include="IKProblem.cpp" />
+    <ClCompile Include="IKProblemRobotState.cpp" />
     <ClCompile Include="MocapReader.cpp" />
     <ClCompile Include="PoseConstraint.cpp" />
     <ClCompile Include="PositionConstraint.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="COMConstraint.h" />
     <ClInclude Include="DirectionConstraint.h" />
     <ClInclude Include="IKProblem.h" />
+    <ClInclude Include="IKProblemRobotState.h" />
     <ClInclude Include="MocapReader.h" />
     <ClInclude Include="poseConstraint.h" />
     <ClInclude Include="PositionConstraint.h" />
