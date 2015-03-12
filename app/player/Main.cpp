@@ -134,10 +134,22 @@ int main(int argc, char* argv[])
     bioloidgp::robot::HumanoidController* con =
         new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
 	
-	AddMarkers(con->robot());
+	//AddMarkers(con->robot());
 
     MyWindow window(con);
     window.setWorld(myWorld);
+
+	int isRobot2 = 0;
+	DecoConfig::GetSingleton()->GetInt("Player", "IsRobot2", isRobot2);
+	if (isRobot2)
+	{
+		Skeleton* robot2 = urdfLoader.parseSkeleton(DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
+		robot->enableSelfCollision();
+		myWorld->addSkeleton(robot2);
+		bioloidgp::robot::HumanoidController* con2 =
+			new bioloidgp::robot::HumanoidController(robot2, myWorld->getConstraintSolver());
+		window.setController2(con2);
+	}
 
     // Print manual
     LOG(INFO) << "space bar: simulation on/off";

@@ -72,14 +72,20 @@ public:
     virtual void keyboard(unsigned char _key, int _x, int _y);
 	virtual void displayTimer(int _val);
     void calculateInertia();
-	
+	void setController2(bioloidgp::robot::HumanoidController* _controller);
+	Eigen::VectorXd samplePose(const vector<SimFrame>& frames, double time);
 private:
 
 	void readMovieFile(const string& fileName);
+	void readMovieFile2(const string& fileName);
+	Eigen::VectorXd align(const Eigen::VectorXd& pos, const vector<SimFrame>& movie);
 	double mTime;   
 	int mFrameCount;
 	vector<SimFrame> mMovie;
+	vector<SimFrame> mMovie2;
     bioloidgp::robot::HumanoidController* mController;	
+	bioloidgp::robot::HumanoidController* mController2;
+	Eigen::Isometry3d mOffsetTransform;
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_

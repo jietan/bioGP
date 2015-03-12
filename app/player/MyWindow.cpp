@@ -53,16 +53,19 @@
 #include "utils/GLObjects.h"
 #include "utils/CppCommon.h"
 #include "myUtils/ConfigManager.h"
+#include "myUtils/mathlib.h"
 #include "robot/HumanoidController.h"
 #include "robot/Motion.h"
 #include "IK/IKProblem.h"
 #include "IK/MocapReader.h"
 #include "IK/SupportInfo.h"
+#include <algorithm>
 
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
     : SimWindow(),
       mController(_controller),
+	  mController2(NULL),
 	  mTime(0)
 	  
 {
@@ -76,17 +79,43 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	
 	mTrans = Eigen::Vector3d(0, -212.85, 0); 
 	mFrameCount = 0;
-
-	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
-	string fileName;
 	
+	string fileName;
+	mOffsetTransform = Eigen::Isometry3d::Identity();
 	DecoConfig::GetSingleton()->GetString("Player", "FileName", fileName);
 	readMovieFile(fileName);
+	mController->robot()->setPositions(mMovie[0].mPose);
+
+	int isRobot2 = 0;
+	DecoConfig::GetSingleton()->GetInt("Player", "IsRobot2", isRobot2);
+	if (isRobot2)
+	{
+		DecoConfig::GetSingleton()->GetString("Player", "FileName2", fileName);
+		readMovieFile2(fileName);
+		Eigen::VectorXd rootPos = mMovie[0].mPose.head(6);
+		Eigen::VectorXd rootPos2 = mMovie2[0].mPose.head(6);
+		Eigen::Matrix3d rootR = dart::math::expMapRot(rootPos.head(3));
+		Eigen::Matrix3d rootR2 = dart::math::expMapRot(rootPos2.head(3));
+		mOffsetTransform.linear() = rootR * rootR2.inverse();
+	}
+	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
+
+}
+
+void MyWindow::setController2(bioloidgp::robot::HumanoidController* _controller)
+{
+	mController2 = _controller;
+	mController2->robot()->setPositions(mMovie2[0].mPose);
 }
 
 void MyWindow::readMovieFile(const string& fileName)
 {
 	mMovie = ReadSimFrames(fileName);
+}
+
+void MyWindow::readMovieFile2(const string& fileName)
+{
+	mMovie2 = ReadSimFrames(fileName);
 }
 
 //==============================================================================
@@ -105,16 +134,59 @@ void MyWindow::displayTimer(int _val)
 	glutTimerFunc(mDisplayTimeout, refreshTimer, _val);
 }
 //==============================================================================
+
+Eigen::VectorXd MyWindow::samplePose(const vector<SimFrame>& frames, double time)
+{
+	int nFrames = static_cast<int>(frames.size());
+	int i = 0;
+	if (time <= frames[i].mTime)
+	{
+		return frames[0].mPose;
+	}
+	else
+	{
+		for (i = 0; i < nFrames - 1; ++i)
+		{
+			if (time > frames[i].mTime && time <= frames[i + 1].mTime)
+			{
+				break;
+			}
+		}
+	}
+
+	if (i + 1 >= nFrames)
+	{
+		return frames[nFrames - 1].mPose;
+	}
+	else
+	{
+		double alpha = (time - frames[i].mTime) / (frames[i + 1].mTime - frames[i].mTime);
+		Eigen::VectorXd result = LinearInterpolate(frames[i].mPose, frames[i + 1].mPose, alpha);
+		return result;
+	}
+}
+
+
 void MyWindow::timeStepping()
 {
 	if (!mSimulating) return;
 	int numFrames = static_cast<int>(mMovie.size());
-	Eigen::VectorXd qhat = mMovie[mFrameCount % numFrames].mPose;
+
+	if (mController2)
+	{
+		numFrames = std::min(numFrames, static_cast<int>(mMovie2.size()));
+		Eigen::VectorXd qhat2 = samplePose(mMovie2, mTime);// mMovie2[mFrameCount % numFrames].mPose;
+		mController2->robot()->setPositions(qhat2);
+		mController2->robot()->computeForwardKinematics(true, true, false);
+	}
+	Eigen::VectorXd qhat = samplePose(mMovie, mTime); //  mMovie[mFrameCount % numFrames].mPose;
 
 	mController->robot()->setPositions(qhat);
 	mController->robot()->computeForwardKinematics(true, true, false);
 
-	mTime += mController->robot()->getTimeStep();
+
+
+	mTime = mFrameCount * mController->robot()->getTimeStep();
 	LOG(INFO) << mFrameCount << ": " << qhat[7];
 	mFrameCount++;
 	LOG(INFO) << mFrameCount;
@@ -167,10 +239,30 @@ void MyWindow::drawSkels()
             //mWorld->getSkeleton(i)->draw(mRI);
             //glPopMatrix();
         }
-		else
+		else if (ithSkel == 0)
 		{
 			mWorld->getSkeleton(ithSkel)->draw(mRI);
-			mWorld->getSkeleton(ithSkel)->drawMarkers(mRI);
+			//mWorld->getSkeleton(ithSkel)->drawMarkers(mRI);
+		}
+		else
+		{
+			glPushMatrix();
+			Eigen::Vector3d offsetTranslation = mOffsetTransform.translation();
+			Eigen::AngleAxisd rot;
+			rot = mOffsetTransform.linear();
+			//glTranslated(offsetTranslation[0], offsetTranslation[1], offsetTranslation[2]);
+			glTranslated(mMovie[0].mPose[3], mMovie[0].mPose[4], mMovie[0].mPose[5]);
+
+
+			glRotated(rot.angle() * 180.0 / M_PI, rot.axis()[0], rot.axis()[1], rot.axis()[2]);
+			glTranslated(-mMovie2[0].mPose[3], -mMovie2[0].mPose[4], -mMovie2[0].mPose[5]);
+			//glTranslated(offsetTranslation[0], offsetTranslation[1], offsetTranslation[2]);
+			
+
+			Eigen::Vector4d col;
+			col << 1, 1, 0, 1;
+			mWorld->getSkeleton(ithSkel)->draw(mRI, col, false);
+			glPopMatrix();
 		}
 		
     }
@@ -239,9 +331,7 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
         mShowMarkers = !mShowMarkers;
         break;
 
-	case 'r':
-		mController->reset();
-		
+	case 'r':	
 		mFrameCount = 0;
 		mTime = 0;
 		break;
