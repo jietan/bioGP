@@ -60,6 +60,8 @@
 #include "robot/Motion.h"
 #include "IK/IKProblemRobotState.h"
 
+#define NUM_MARKERS 10
+#define NUM_TOP_MARKERS 4
 
 //==============================================================================
 MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
@@ -79,6 +81,34 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	mTrans = Eigen::Vector3d(0, -212.85, 0); 
 	mFrameCount = 0;
 	readMeasurementFile();
+	buildMarkerDistanceField();
+
+
+	const MocapFrame& frame = mMeasuredFrames[0];
+	Eigen::VectorXd pose = frame.mMotorAngle;
+	Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
+	const int nMarkers = static_cast<int>(frame.mMarkerPos.size());
+	mMarkersMapping.resize(nMarkers);
+
+	const int nTopMarkers = NUM_TOP_MARKERS;
+	vector<Eigen::Vector3d> topMarkersPos(nTopMarkers);
+	vector<int> topMarkesOcculuded(nTopMarkers);
+
+	reorderTopMarkers(frame, topMarkersPos, topMarkesOcculuded, mMarkersMapping);
+	bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
+	Eigen::VectorXd default6Dofs = mController->robot()->getPositions().head(6);
+	Eigen::Vector3d offsetTranslation = first6Dofs.tail(3) - default6Dofs.tail(3);
+	Eigen::Matrix3d default = dart::math::expMapRot(default6Dofs.head(3));
+	Eigen::Matrix3d mocaped = dart::math::expMapRot(first6Dofs.head(3));
+	Eigen::Matrix3d offsetRotation = default * mocaped.inverse();
+
+	int nFrames = static_cast<int>(mMeasuredFrames.size());
+	for (int i = 0; i < nFrames; ++i)
+	{
+		for (int j = 0; j < nMarkers; ++j)
+			mMeasuredFrames[i].mMarkerPos[j] = offsetRotation * (mMeasuredFrames[i].mMarkerPos[j] - offsetTranslation);
+	}
+
 	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
 
 }
@@ -118,7 +148,91 @@ void MyWindow::displayTimer(int _val)
 	glutTimerFunc(mDisplayTimeout, refreshTimer, _val);
 }
 
+double MyWindow::computeDistanceOfMarkerDistances(const vector<int>& labelCandidate, const vector<vector<double> >& currentMarkerDistance, const vector<int>& isMarkerOccluded)
+{
 
+	int numMarkers = static_cast<int>(labelCandidate.size());
+	double distAccum = 0;
+	int unOcculudedCount = 0;
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		int realI = labelCandidate[i];
+		if (isMarkerOccluded[i]) continue;
+
+		for (int j = 0; j < numMarkers; ++j)
+		{
+			int realJ = labelCandidate[j];
+			if (isMarkerOccluded[j]) continue;
+
+			distAccum += abs(currentMarkerDistance[i][j] - mMarkerDistances[realI][realJ]);
+			unOcculudedCount += 1;
+		}
+	}
+	return distAccum / unOcculudedCount;
+}
+
+void MyWindow::reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d>& topMarkerPos, vector<int>& topMarkerOcculuded, vector<int>& markersMapping)
+{
+	int nTotalMarkers = static_cast<int>(frame.mMarkerPos.size());
+	
+	
+	topMarkerPos.clear();
+	topMarkerOcculuded.clear();
+	vector<Eigen::Vector3d> unsortedTopMarkerPos;
+	vector<int> unsortedTopMarkerIdx;
+	vector<int> unsortedTopMarkerOccluded;
+	for (int i = 0; i < NUM_TOP_MARKERS; ++i)
+	{
+		
+		topMarkerPos.push_back(Eigen::Vector3d::Zero());
+		topMarkerOcculuded.push_back(true);
+
+		unsortedTopMarkerIdx.push_back(-1);
+		unsortedTopMarkerPos.push_back(Eigen::Vector3d::Zero());
+		unsortedTopMarkerOccluded.push_back(true);
+	}
+	
+	int nVisibleMarkers = 0;
+	for (int i = 0; i < NUM_MARKERS; ++i)
+	{
+		if (frame.mMarkerPos[i][1] > 0.2)
+		{
+			unsortedTopMarkerIdx[nVisibleMarkers] = i;
+			unsortedTopMarkerPos[nVisibleMarkers] = frame.mMarkerPos[i];
+			unsortedTopMarkerOccluded[nVisibleMarkers] = false;
+			nVisibleMarkers++;
+		}
+	}
+	
+	CHECK(nVisibleMarkers >= NUM_TOP_MARKERS - 1) << "Too many top markers are occluded.";
+	//based on the assumption that only one marker can be occuluded.
+	int numMarkers = NUM_TOP_MARKERS;
+	vector<vector<int> > candidateLabels = GetPermutation(0, numMarkers);
+	int numCandidates = static_cast<int>(candidateLabels.size());
+	vector<double> candidateDistances;
+	candidateDistances.resize(numCandidates);
+	vector<vector<double> > currentMarkerDistance = computeMarkerDistances(unsortedTopMarkerPos, unsortedTopMarkerOccluded);
+	for (int i = 0; i < numCandidates; ++i)
+	{
+		candidateDistances[i] = computeDistanceOfMarkerDistances(candidateLabels[i], currentMarkerDistance, unsortedTopMarkerOccluded);
+	}
+	vector<double>::const_iterator labelIt = std::min_element(candidateDistances.begin(), candidateDistances.end());
+	vector<int> newLabel = candidateLabels[labelIt - candidateDistances.begin()];
+
+	vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > orderedMarkerPos;
+	orderedMarkerPos.resize(numMarkers);
+	vector<int> orderedMarkerOcculuded;
+	orderedMarkerOcculuded.resize(numMarkers);
+
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		if (i != newLabel[i])
+			LOG(WARNING) << "The markers are relabeled.";
+		topMarkerPos[newLabel[i]] = unsortedTopMarkerPos[i];
+		topMarkerOcculuded[newLabel[i]] = unsortedTopMarkerOccluded[i];
+		markersMapping[newLabel[i]] = unsortedTopMarkerIdx[i];
+	}
+}
 
 //==============================================================================
 void MyWindow::timeStepping()
@@ -141,19 +255,13 @@ void MyWindow::timeStepping()
 	Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
 	const int nMarkers = static_cast<int>(mMeasuredFrames[ithFrame].mMarkerPos.size());
 	mMarkersMapping.resize(nMarkers);
-	CHECK(nMarkers == 10) << "Weird number of markers";
-	mMarkersMapping[0] = 5;
-	mMarkersMapping[1] = 0;
-	mMarkersMapping[2] = 7;
-	mMarkersMapping[3] = 3;
+
 	const int nTopMarkers = 4;
 	vector<Eigen::Vector3d> topMarkersPos(nTopMarkers);
 	vector<int> topMarkesOcculuded(nTopMarkers);
-	for (int i = 0; i < nTopMarkers; ++i)
-	{
-		topMarkersPos[i] = mMeasuredFrames[ithFrame].mMarkerPos[mMarkersMapping[i]];
-		topMarkesOcculuded[i] = mMeasuredFrames[ithFrame].mMarkerOccluded[mMarkersMapping[i]];
-	}
+	CHECK(nMarkers == 10) << "Weird number of markers";
+
+	reorderTopMarkers(frame, topMarkersPos, topMarkesOcculuded, mMarkersMapping);
 	bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
 	if (result)
 	{
@@ -200,6 +308,43 @@ void MyWindow::timeStepping()
 	//mTime += elaspedTime;
 	t.start();
 }
+
+vector<vector<double> > MyWindow::computeMarkerDistances(const vector<Eigen::Vector3d>& unsortedTopMarkerPos, const vector<int>& unsortedTopMarkerOccluded) const
+{
+	int numMarkers = NUM_TOP_MARKERS;
+	vector<vector<double> > ret;
+	ret.resize(numMarkers);
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		ret[i].resize(numMarkers, 0);
+		if (unsortedTopMarkerOccluded[i]) continue;
+		for (int j = 0; j < numMarkers; ++j)
+		{
+			if (unsortedTopMarkerOccluded[j]) continue;
+			ret[i][j] = (unsortedTopMarkerPos[i] - unsortedTopMarkerPos[j]).norm();
+		}
+	}
+	return ret;
+}
+
+void MyWindow::buildMarkerDistanceField()
+{
+	int numMarkers = NUM_TOP_MARKERS; // four top markers
+	
+	mMarkerDistances.resize(numMarkers);
+	const vector<dart::dynamics::Marker*>& allMarkers = mController->getMarkers();
+	for (int i = 0; i < numMarkers; ++i)
+	{
+		mMarkerDistances[i].resize(numMarkers, 0);
+		Eigen::Vector3d markerIPos = allMarkers[i]->getLocalPosition();
+		for (int j = 0; j < numMarkers; ++j)
+		{
+			Eigen::Vector3d markerJPos = allMarkers[j]->getLocalPosition();
+			mMarkerDistances[i][j] = (markerIPos - markerJPos).norm();
+		}
+	}
+}
+
 
 int MyWindow::findNearestBodyMarker(const Eigen::Vector3d& markerPos)
 {
@@ -310,7 +455,7 @@ bool MyWindow::fromMarkersTo6Dofs(const vector<Eigen::Vector3d>& topMarkerPos, c
 	rot = rot1 * rot;
 	first6Dofs = Eigen::VectorXd::Zero(6);
 	first6Dofs.head(3) = dart::math::logMap(rot);
-
+	Eigen::VectorXd backupFreeDofs = mController->robot()->getPositions().head(6);
 	mController->setFreeDofs(first6Dofs);
 	Eigen::Vector3d centerOfMocapMarkers = Eigen::Vector3d::Zero();
 	Eigen::Vector3d centerOfRobotMarkers = Eigen::Vector3d::Zero();
@@ -328,6 +473,7 @@ bool MyWindow::fromMarkersTo6Dofs(const vector<Eigen::Vector3d>& topMarkerPos, c
 	centerOfRobotMarkers /= numUnOcculudedMarkers;
 	translation = centerOfMocapMarkers - centerOfRobotMarkers;
 	first6Dofs.tail(3) = translation;
+	mController->setFreeDofs(backupFreeDofs);
 	return true;
 }
 

@@ -63,7 +63,7 @@ public:
 	Eigen::Vector3d getLeftDir() const;
 	Eigen::Vector3d getForwardDir() const;
 	void setMarkers(const vector<dart::dynamics::Marker*> markers);
-	const vector<dart::dynamics::Marker*> getMarkers() const;
+	const vector<dart::dynamics::Marker*>& getMarkers() const;
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
 	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);

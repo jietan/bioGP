@@ -63,6 +63,7 @@
 #include "robot/HumanoidController.h"
 #include "robot/MotorMap.h"
 #include "robot/Motion.h"
+#include "robot/WorldConstructor.h"
 #include "myUtils/ConfigManager.h"
 #include <windows.h>
 
@@ -136,7 +137,9 @@ int main(int argc, char* argv[])
 	
 	//AddMarkers(con->robot());
 
-    MyWindow window(con);
+	//WorldConstructor::Construct(myWorld);
+	
+	MyWindow window(con);
     window.setWorld(myWorld);
 
 	int isRobot2 = 0;

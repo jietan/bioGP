@@ -85,6 +85,10 @@ private:
 	Eigen::Vector3d computeZFromMarkers(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded, const Eigen::Vector3d& x, const Eigen::Vector3d& y) const;
 	void buildMarker3To2AngleToXAxis(const vector<Eigen::Vector3d>& topMarkerPos, const vector<int>& topMarkerOcculuded);
 	int findNearestBodyMarker(const Eigen::Vector3d& markerPos);
+	void buildMarkerDistanceField();
+	vector<vector<double> > computeMarkerDistances(const vector<Eigen::Vector3d>& unsortedTopMarkerPos, const vector<int>& unsortedTopMarkerOccluded) const;
+	void reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d>& topMarkerPos, vector<int>& topMarkerOcculuded, vector<int>& markersMapping);
+	double computeDistanceOfMarkerDistances(const vector<int>& labelCandidate, const vector<vector<double> >& currentMarkerDistance, const vector<int>& isMarkerOccluded);
 
 	double mTime;
 	int mFrameCount;
@@ -93,10 +97,12 @@ private:
 	string mTmpBuffer;
 	int mDisplayMode;
 	vector<MocapFrame> mMeasuredFrames;
+	vector<vector<double> > mMarkerDistances;
 	double mMarker3To2AngleToXAxis;
 	bool mIsInitialMarkersCaptured;
 	vector<int> mMarkersMapping;
 	vector<SimFrame> mConvertedFrames;
+	
 };
 
 #endif  // APPS_ATLASROBOT_MYWINDOW_H_
