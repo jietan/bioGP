@@ -131,13 +131,13 @@ void SetupMocapClient(Client* MyClient)
 
 		// Enable some different data types
 		//MyClient.EnableSegmentData();
-		MyClient->EnableMarkerData();
-		//MyClient.EnableUnlabeledMarkerData();
+		//MyClient->EnableMarkerData();
+		MyClient->EnableUnlabeledMarkerData();
 		//MyClient.EnableDeviceData();
 
 		//std::cout << "Segment Data Enabled: "          << Adapt( MyClient.IsSegmentDataEnabled().Enabled )         << std::endl;
-		std::cout << "Marker Data Enabled: " << (MyClient->IsMarkerDataEnabled().Enabled) << std::endl;
-		//std::cout << "Unlabeled Marker Data Enabled: " << Adapt( MyClient.IsUnlabeledMarkerDataEnabled().Enabled ) << std::endl;
+		//std::cout << "Marker Data Enabled: " << (MyClient->IsMarkerDataEnabled().Enabled) << std::endl;
+		std::cout << "Unlabeled Marker Data Enabled: " << (MyClient->IsUnlabeledMarkerDataEnabled().Enabled) << std::endl;
 		//std::cout << "Device Data Enabled: "           << Adapt( MyClient.IsDeviceDataEnabled().Enabled )          << std::endl;
 
 		// Set the streaming mode

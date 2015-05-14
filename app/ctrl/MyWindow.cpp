@@ -458,6 +458,7 @@ void MyWindow::processMocapData()
 		double      SampleValue = mMocapClient->GetLatencySampleValue(SampleName).Value;
 	}
 
+	const int numMarkers = 10;
 	// Count the number of subjects
 	unsigned int SubjectCount = mMocapClient->GetSubjectCount().SubjectCount;
 	for (unsigned int SubjectIndex = 0; SubjectIndex < SubjectCount; ++SubjectIndex)
@@ -466,29 +467,42 @@ void MyWindow::processMocapData()
 		std::string SubjectName = mMocapClient->GetSubjectName(SubjectIndex).SubjectName;
 
 		// Count the number of markers
-		unsigned int MarkerCount = mMocapClient->GetMarkerCount(SubjectName).MarkerCount;
-		mMarkerPos.resize(MarkerCount);
-		mMarkerOccluded.resize(MarkerCount);
+		//unsigned int MarkerCount = mMocapClient->GetMarkerCount(SubjectName).MarkerCount;
+
+		// Get the unlabeled markers
+		unsigned int MarkerCount = mMocapClient->GetUnlabeledMarkerCount().MarkerCount;
+
+		// Count the number of devices
+		mMarkerPos.resize(numMarkers);
+		mMarkerOccluded.resize(numMarkers);
+		for (int i = 0; i < numMarkers; ++i)
+		{
+			mMarkerPos[i] = Eigen::Vector3d::Zero();
+			mMarkerOccluded[i] = true;
+		}
 		for (unsigned int MarkerIndex = 0; MarkerIndex < MarkerCount; ++MarkerIndex)
 		{
 			// Get the marker name
-			std::string MarkerName = mMocapClient->GetMarkerName(SubjectName, MarkerIndex).MarkerName;
+			//std::string MarkerName = mMocapClient->GetMarkerName(SubjectName, MarkerIndex).MarkerName;
 
 			// Get the marker parent
-			std::string MarkerParentName = mMocapClient->GetMarkerParentName(SubjectName, MarkerName).SegmentName;
+			//std::string MarkerParentName = mMocapClient->GetMarkerParentName(SubjectName, MarkerName).SegmentName;
 
 			// Get the global marker translation
-			Output_GetMarkerGlobalTranslation _Output_GetMarkerGlobalTranslation =
-				mMocapClient->GetMarkerGlobalTranslation(SubjectName, MarkerName);
+			//Output_GetMarkerGlobalTranslation _Output_GetMarkerGlobalTranslation = mMocapClient->GetMarkerGlobalTranslation(SubjectName, MarkerName);
+			Output_GetUnlabeledMarkerGlobalTranslation _Output_GetMarkerGlobalTranslation =
+				mMocapClient->GetUnlabeledMarkerGlobalTranslation(MarkerIndex);
+			
 			mMarkerPos[MarkerIndex] = Eigen::Vector3d(_Output_GetMarkerGlobalTranslation.Translation[0], _Output_GetMarkerGlobalTranslation.Translation[1], _Output_GetMarkerGlobalTranslation.Translation[2]);
 			mMarkerPos[MarkerIndex] /= 1000.0; //convert unit from mm to m
-			mMarkerOccluded[MarkerIndex] = _Output_GetMarkerGlobalTranslation.Occluded;
+			mMarkerOccluded[MarkerIndex] = false;// _Output_GetMarkerGlobalTranslation.Occluded;
 			//std::cout << "      Marker #" << MarkerIndex << ": "
-			//	<< MarkerName << " ("
+			//	//<< MarkerName 
+			//	<< " ("
 			//	<< _Output_GetMarkerGlobalTranslation.Translation[0] << ", "
 			//	<< _Output_GetMarkerGlobalTranslation.Translation[1] << ", "
 			//	<< _Output_GetMarkerGlobalTranslation.Translation[2] << ") "
-			//	<< (_Output_GetMarkerGlobalTranslation.Occluded) << std::endl;
+			//	<< mMarkerOccluded[MarkerIndex] << std::endl;
 		}
 	}
 

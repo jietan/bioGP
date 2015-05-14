@@ -93,7 +93,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\local\boost_1_55_0;C:\Qt\4.8.0\include;C:\Qt\4.8.0\include\QtOpenGL;C:\Qt\4.8.0\include\QtGui;C:\Qt\4.8.0\include\QtXml;C:\Qt\4.8.0\include\QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>

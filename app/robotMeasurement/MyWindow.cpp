@@ -342,14 +342,13 @@ void MyWindow::drawMocapMarkers()
 	
 	for (int i = 0; i < nMarkers; ++i)
 	{
-		if (i == 5) continue;
 		if (frame.mMarkerOccluded[i]) continue;
-		Eigen::Vector3f col  = Eigen::Vector3f::Zero();
-		for (int j = 0; j < nMarkers; ++j)
-		{
-			if (j < mMarkersMapping.size() && mMarkersMapping[j] == i)
-				col = GetColour(j, 0, nMarkers);
-		}
+		Eigen::Vector3f col = GetColour(i, 0, nMarkers);// Eigen::Vector3f::Zero();
+		//for (int j = 0; j < nMarkers; ++j)
+		//{
+		//	if (j < mMarkersMapping.size() && mMarkersMapping[j] == i)
+		//		col = GetColour(j, 0, nMarkers);
+		//}
 		glPushMatrix();
 		glTranslated(frame.mMarkerPos[i][0], frame.mMarkerPos[i][1], frame.mMarkerPos[i][2]);
 		glColor3f(col[0], col[1], col[2]);
