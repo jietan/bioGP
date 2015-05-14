@@ -97,7 +97,7 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	reorderTopMarkers(frame, topMarkersPos, topMarkesOcculuded, mMarkersMapping);
 	bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
 	Eigen::VectorXd default6Dofs = mController->robot()->getPositions().head(6);
-	Eigen::Vector3d offsetTranslation = first6Dofs.tail(3) - default6Dofs.tail(3);
+	
 	Eigen::Matrix3d default = dart::math::expMapRot(default6Dofs.head(3));
 	Eigen::Matrix3d mocaped = dart::math::expMapRot(first6Dofs.head(3));
 	Eigen::Matrix3d offsetRotation = default * mocaped.inverse();
@@ -106,7 +106,7 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	for (int i = 0; i < nFrames; ++i)
 	{
 		for (int j = 0; j < nMarkers; ++j)
-			mMeasuredFrames[i].mMarkerPos[j] = offsetRotation * (mMeasuredFrames[i].mMarkerPos[j] - offsetTranslation);
+			mMeasuredFrames[i].mMarkerPos[j] = offsetRotation * (mMeasuredFrames[i].mMarkerPos[j] - first6Dofs.tail(3)) + default6Dofs.tail(3);
 	}
 
 	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
@@ -246,10 +246,7 @@ void MyWindow::timeStepping()
 		mFrameCount += nFrames;
 	
 	int ithFrame = mFrameCount % nFrames;
-	if (ithFrame == nFrames - 1)
-	{
-		saveProcessedMeasurement();
-	}
+
 	const MocapFrame& frame = mMeasuredFrames[ithFrame];
 	Eigen::VectorXd pose = frame.mMotorAngle;
 	Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
@@ -303,6 +300,11 @@ void MyWindow::timeStepping()
 	double elaspedTime = t.getElapsedTime();
 	//LOG(INFO) << elaspedTime;
 	mTime += mController->robot()->getTimeStep();
+
+	if (ithFrame == nFrames - 1)
+	{
+		saveProcessedMeasurement();
+	}
 	mFrameCount++;
 	LOG(INFO) << mFrameCount;
 	//mTime += elaspedTime;
