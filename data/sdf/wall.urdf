@@ -8,13 +8,13 @@
             <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
         <visual>
-            <origin xyz="0 0.3 -0.1" rpy="0 -0 0" />
+            <origin xyz="0 0.3 -0.112" rpy="0 -0 0" />
             <geometry>
                 <box size="0.5 0.5 0.05" />
             </geometry>
         </visual>
         <collision group="default">
-            <origin xyz="0 0.3 -0.1" rpy="0 -0 0" />
+            <origin xyz="0 0.3 -0.112" rpy="0 -0 0" />
             <geometry>
                 <box size="0.5 0.5 0.05" />
             </geometry>

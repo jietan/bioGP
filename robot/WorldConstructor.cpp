@@ -86,7 +86,8 @@ void WorldConstructor::constructWallWorld(World* world)
 	msHumanoid->setInitialPose(mtvInitPose);
 
 	Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
-	first6Dofs << -1.57, 0, 0, 0, 0.295, -0.02;
+	first6Dofs << -1.519654932611422, -0.008418066425607201, -0.01074207853555425, -0.0001170176971864193, 0.2952010380872389, -0.02139907427364235;
+	//first6Dofs << -1.57, 0, 0, 0, 0.295, -0.02;
 	msHumanoid->setInitialFirst6Dofs(first6Dofs);
 
 	msHumanoid->motion()->loadMTN("../../data/mtn/sitPose.mtn", "lean-to-stand-quickStart");

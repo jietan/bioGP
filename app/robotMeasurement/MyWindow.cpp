@@ -195,6 +195,7 @@ void MyWindow::reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d
 	int nVisibleMarkers = 0;
 	for (int i = 0; i < NUM_MARKERS; ++i)
 	{
+		if (nVisibleMarkers == NUM_TOP_MARKERS) break;
 		if (frame.mMarkerPos[i][1] > 0.2)
 		{
 			unsortedTopMarkerIdx[nVisibleMarkers] = i;
@@ -257,7 +258,8 @@ void MyWindow::timeStepping()
 	vector<Eigen::Vector3d> topMarkersPos(nTopMarkers);
 	vector<int> topMarkesOcculuded(nTopMarkers);
 	CHECK(nMarkers == 10) << "Weird number of markers";
-
+	if (mFrameCount == 45)
+		printf("hello");
 	reorderTopMarkers(frame, topMarkersPos, topMarkesOcculuded, mMarkersMapping);
 	bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
 	if (result)
