@@ -63,6 +63,7 @@
 #include "robot/HumanoidController.h"
 #include "robot/MotorMap.h"
 #include "robot/Motion.h"
+#include "robot/WorldConstructor.h"
 #include "myUtils/ConfigManager.h"
 #include <windows.h>
 #include "IK/MocapReader.h"
@@ -141,32 +142,29 @@ int main(int argc, char* argv[])
 
 
     // // Load ground and Atlas robot and add them to the world
-    DartLoader urdfLoader;
-    Skeleton* ground = urdfLoader.parseSkeleton(
-        DATA_DIR"/sdf/ground.urdf");
-    Skeleton* robot
-        = urdfLoader.parseSkeleton(
-            DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
-    robot->enableSelfCollision();
+    //DartLoader urdfLoader;
+    //Skeleton* ground = urdfLoader.parseSkeleton(
+    //    DATA_DIR"/sdf/ground.urdf");
+    //Skeleton* robot
+    //    = urdfLoader.parseSkeleton(
+    //        DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
+    //robot->enableSelfCollision();
 	
-    myWorld->addSkeleton(robot);
-    myWorld->addSkeleton(ground);
+    //myWorld->addSkeleton(robot);
+    //myWorld->addSkeleton(ground);
 	
 
     // Print some info
-    LOG(INFO) << "robot.mass = " << robot->getMass();
+    //LOG(INFO) << "robot.mass = " << robot->getMass();
 
     // Set gravity of the world
-    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+   // myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
 
-
-    // Create a humanoid controller
-    bioloidgp::robot::HumanoidController* con =
-        new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
-
-	AddMarkers(con);
 	
-    MyWindow window(con);
+	WorldConstructor::Construct(myWorld);
+	AddMarkers(WorldConstructor::msHumanoid);
+	MyWindow window(WorldConstructor::msHumanoid);
+    
     window.setWorld(myWorld);
     // Print manual
     LOG(INFO) << "space bar: simulation on/off";
@@ -174,7 +172,7 @@ int main(int argc, char* argv[])
     LOG(INFO) << "'[' and ']': play one frame backward and forward";
     LOG(INFO) << "'v': visualization on/off";
     LOG(INFO) << endl;
-	window.readMeasurementFile();
+	//window.readMeasurementFile();
 	//window.saveProcessedMeasurement();
     // Run glut loop
     glutInit(&argc, argv);

@@ -186,7 +186,7 @@ void HumanoidController::setMarkers(const vector<dart::dynamics::Marker*> marker
 	mMarkers = markers;
 }
 
-const vector<dart::dynamics::Marker*> HumanoidController::getMarkers() const
+const vector<dart::dynamics::Marker*>& HumanoidController::getMarkers() const
 {
 	return mMarkers;
 }
