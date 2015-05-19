@@ -12,7 +12,7 @@ directory = 'C:\Users\JieTan\Documents\MyProjects\bioloid\bioloidgp-master\data\
 %     plot(t, angle, 'b');
 % end
 % 
-files = dir(strcat(directory, '0.13-01*.measure'));
+files = dir(strcat(directory, '0.13-*.measure'));
 for file = files'
     data = dlmread(strcat(directory, file.name),' ',1,0);
     hold all;
