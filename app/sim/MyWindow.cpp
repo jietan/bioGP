@@ -98,10 +98,6 @@ void MyWindow::displayTimer(int _val) {
 //==============================================================================
 void MyWindow::timeStepping()
 {
-    // External force
-    mWorld->getSkeleton(0)->getBodyNode("torso")->addExtForce(
-          mForce);
-
     // Internal force
     mController->update(mWorld->getTime());
 

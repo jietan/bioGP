@@ -1,29 +1,73 @@
 #include "WorldConstructor.h"
 #include "dart/dynamics/Joint.h"
+#include "MotorMap.h"
 
+World* WorldConstructor::msWorld = NULL;
 bioloidgp::robot::HumanoidController* WorldConstructor::msHumanoid = NULL;
 double WorldConstructor::msTimeStep = 0.0002;
 ControllerData WorldConstructor::msCData;
+SystemIdentificationData WorldConstructor::msIdData;
 
-void WorldConstructor::Construct(World* world)
+void WorldConstructor::Debug()
 {
+	return;
+	// Create a humanoid controller
+	//msHumanoid = new bioloidgp::robot::HumanoidController(robot, msWorld->getConstraintSolver());
+	DartLoader urdfLoader;
+	Skeleton* robot
+		= urdfLoader.parseSkeleton(
+		DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
+	robot->enableSelfCollision();
+	msWorld->withdrawSkeleton(msHumanoid->robot());
+	msWorld->addSkeleton(robot);
+
+	msHumanoid->reset();
+
+	Skeleton* tmp = msHumanoid->robot();
+	msHumanoid->robot() = robot;
+	msHumanoid->setJointDamping(0.0);
+	msHumanoid->reset();
+
+	Eigen::VectorXd qOrig = tmp->getPositions();
+	Eigen::VectorXd q = msHumanoid->robot()->getPositions();
+	Eigen::VectorXd err = qOrig - q;
+
+	Eigen::VectorXd qDotOrig = tmp->getVelocities();
+	Eigen::VectorXd qDot = msHumanoid->robot()->getVelocities();
+	Eigen::VectorXd errDot = qDotOrig - qDot;
+
+
+}
+
+void WorldConstructor::Construct()
+{
+	msWorld = new World();
 	int worldId = 0;
 	DecoConfig::GetSingleton()->GetInt("Sim", "World", worldId);
 	switch (worldId)
 	{
 	case 0:
-		constructWallWorld(world);
+		constructWallWorld(msWorld);
 		break;
 	case 1:
-		constructChairWorld(world);
+		constructChairWorld(msWorld);
 		break;
 	case 2:
-		constructKneelWorld(world);
+		constructKneelWorld(msWorld);
 		break;
 	default:
 		LOG(FATAL) << "Unsupported world.";
 		break;
 	}
+	
+}
+
+void WorldConstructor::Destroy()
+{
+	if (msWorld)
+		delete msWorld;
+	if (msHumanoid)
+		delete msHumanoid;
 }
 
 void WorldConstructor::commonConstruction(World* world)
@@ -65,6 +109,7 @@ void WorldConstructor::commonConstruction(World* world)
 
 	// Create a humanoid controller
 	msHumanoid = new bioloidgp::robot::HumanoidController(robot, world->getConstraintSolver());
+
 	double mass = robot->getMass();
 	LOG(INFO) << "The total mass: " << mass;
 	
@@ -73,6 +118,7 @@ void WorldConstructor::commonConstruction(World* world)
 void WorldConstructor::constructWallWorld(World* world)
 {
 	commonConstruction(world);
+
 	DartLoader urdfLoader;
 	Skeleton* wall = urdfLoader.parseSkeleton(
 		DATA_DIR"/sdf/wall.urdf");
@@ -86,15 +132,26 @@ void WorldConstructor::constructWallWorld(World* world)
 	msHumanoid->setInitialPose(mtvInitPose);
 
 	Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
-	first6Dofs << -1.519654932611422, -0.008418066425607201, -0.01074207853555425, -0.0001170176971864193, 0.2952010380872389, -0.02139907427364235;
+	first6Dofs << -1.535210908621381, -0.03100735580890254, -0.008932248690586354, -0.0001811591801725731, 0.2953401869229447, -0.02281130177915284;
 	//first6Dofs << -1.57, 0, 0, 0, 0.295, -0.02;
 	msHumanoid->setInitialFirst6Dofs(first6Dofs);
 
 	msHumanoid->motion()->loadMTN("../../data/mtn/sitPose.mtn", "lean-to-stand-quickStart");
+
+
 	msHumanoid->reset();
 	
 	msCData.ReadFromFile("../../data/controller/lean-to-stand.txt");
 	msHumanoid->motion()->setControllerData(msCData);
+
+	int isUseSystemId = 0;
+	DecoConfig::GetSingleton()->GetInt("Sim", "IsUseSystemId", isUseSystemId);
+	if (isUseSystemId)
+	{
+		msIdData.ReadFromFile("../../data/systemIdentification/lean-to-stand/0.13.txt");
+		msHumanoid->setSystemIdData(msIdData);
+	}
+
 }
 void WorldConstructor::constructChairWorld(World* world)
 {

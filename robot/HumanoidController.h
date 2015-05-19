@@ -15,6 +15,8 @@
 #include "MotorMap.h"
 #include "CollisionSphere.h"
 #include "myUtils/SimFrame.h"
+#include "SystemIdentificationData.h"
+#include "myUtils/TimeSeries.h"
 
 namespace dart {
 namespace dynamics {
@@ -62,18 +64,29 @@ public:
 	Eigen::Vector3d getUpDir() const;
 	Eigen::Vector3d getLeftDir() const;
 	Eigen::Vector3d getForwardDir() const;
+
+	void setSystemIdData(const SystemIdentificationData& sIdData);
+	Eigen::VectorXd getBodyMasses() const;
+	void setBodyMasses(const Eigen::VectorXd& masses);
+	void setBodyMassesByRatio(const Eigen::VectorXd& ratios);
+
+	vector<Eigen::VectorXd> getBodyInertia() const;
+	void setBodyInertia(const vector<Eigen::VectorXd>& inertia);
+	void setBodyInertiaByRatio(const Eigen::VectorXd& ratios);
+
 	void setMarkers(const vector<dart::dynamics::Marker*> markers);
 	const vector<dart::dynamics::Marker*>& getMarkers() const;
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
 	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
-
-protected:
+	double compareGlobalRotationWithReferenceTrajectories(double t, double angle);
+	void ReadReferenceTrajectories();
+public:
 	Eigen::VectorXd computeTorque(const Eigen::VectorXd& qhat);
     void setJointDamping(double _damping = 80.0);
 	void readMovieFile(const string& fileName);
 	Eigen::VectorXd computeDesiredVelocity(double time);
-protected:
+
     MEMBER_PTR(dart::dynamics::Skeleton*, robot);
     MEMBER_PTR(dart::constraint::ConstraintSolver*, collisionSolver);
     MEMBER_PTR(MotorMap*, motormap);
@@ -82,6 +95,8 @@ protected:
     Eigen::VectorXd mKp;
     Eigen::VectorXd mKd;
 	Eigen::Vector3d mInitialCOM;
+	Eigen::VectorXd mBodyMassesByURDF;
+	vector<Eigen::VectorXd> mBodyInertiaByURDF;
 	bool mIsCOMInitialized;
 	Eigen::VectorXd mPrevPos;
 	double mAnkelOffset;
@@ -94,6 +109,8 @@ protected:
 	int mIsHybridDynamics;
 	vector<SimFrame> mRecordedFrames;
 	vector<dart::dynamics::Marker*> mMarkers;
+	vector<TimeSeries> mReferenceTrajectories;
+
 }; // class Humanoidcontroller
 
 } // namespace robot

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include "Eigen/Dense"
+#include "RenderType.h"
 using namespace std;
 
 #define LinearInterpolate(value1,value2,alpha) ( ( 1.0 - alpha ) * value1 + alpha * value2 )

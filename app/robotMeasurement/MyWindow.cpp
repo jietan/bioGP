@@ -99,8 +99,12 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	Eigen::VectorXd default6Dofs = mController->robot()->getPositions().head(6);
 	
 	Eigen::Matrix3d default = dart::math::expMapRot(default6Dofs.head(3));
+	Eigen::Vector3d defaultEulerAngle = default.eulerAngles(0, 2, 1);
 	Eigen::Matrix3d mocaped = dart::math::expMapRot(first6Dofs.head(3));
-	Eigen::Matrix3d offsetRotation = default * mocaped.inverse();
+	Eigen::Vector3d mocapedEulerAngle = mocaped.eulerAngles(0, 2, 1);
+	Eigen::Matrix3d offsetRotation;
+	offsetRotation = Eigen::AngleAxisd(defaultEulerAngle[1] - mocapedEulerAngle[1], Eigen::Vector3d::UnitY());
+	//Eigen::Matrix3d offsetRotation = default * mocaped.inverse();
 
 	int nFrames = static_cast<int>(mMeasuredFrames.size());
 	for (int i = 0; i < nFrames; ++i)

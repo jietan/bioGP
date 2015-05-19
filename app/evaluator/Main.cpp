@@ -57,7 +57,7 @@
 #include "robot/Motion.h"
 #include "robot/ControllerData.h"
 #include "robot/WorldConstructor.h"
-
+#include "robot/Evaluation.h"
 #include "myUtils/ConfigManager.h"
 // #include "robot/Controller.h"
 #include "myUtils/mathlib.h"
@@ -73,44 +73,36 @@ using namespace dart::utils;
 
 World* gWorld = NULL;
 bioloidgp::robot::HumanoidController* gController = NULL;
+int gIsSystemId = 0;
 
 double gTimeStep = 0.0002;
 
-double eval(const ControllerData& cData, int pop_id, double* timerPerStep)
+double eval(CMAData* cData, int pop_id, double* timerPerStep)
 {
-	double reward = 0;
-
 	gController->reset();
-	gController->motion()->setControllerData(cData);
+	//SystemIdentificationData* sData = static_cast<SystemIdentificationData*>(cData);
+	//sData->mMassRatio[0] = 1.0221644765835582;
+	//sData->mMassRatio[1] = 1.0625016548173554;
+	//sData->mMassRatio[2] = 1.0559031762912450;
+	//sData->mMassRatio[3] = 1.0836126286505545;
+	//sData->mMassRatio[4] = 1.0893469339813033;
+	//sData->mMassRatio[5] = 1.1480225306013023;
+	//sData->mMassRatio[6] = 1.1459299660452369;
+	//sData->mMassRatio[7] = 1.1092851276684312;
+	//sData->mMassRatio[8] = 1.0601630886808593;
+	                
+	cData->ApplyToController(gController);
+
 	gWorld->setTime(0);
-	double motionTime = gController->motion()->getMotionLength();
-	const double testTime = motionTime + 1.0;
-	while (gWorld->getTime() < testTime)
+
+	if (gIsSystemId)
 	{
-		gController->update(gWorld->getTime());
-		gWorld->step();
-
-		Eigen::Vector3d up = gController->getUpDir();
-		Eigen::Vector3d left = gController->getLeftDir();
-
-		double asinNegativeIfForward = up.cross(Eigen::Vector3d::UnitY()).dot(left);
-		double angleFromUp = asin(asinNegativeIfForward);
-		double threshold = 60.0 * M_PI / 180.0;
-		
-		if (abs(angleFromUp) > threshold)
-			break;
-		//LOG(INFO) << gWorld->getTime() << " " << angleFromUp;;
-
-		if (gWorld->getTime() > motionTime)
-		{
-			reward += -1.0 / (abs(angleFromUp) + 0.1);
-		}
-		else
-		{
-			reward += -1;
-		}
+		return evalSystemId(gWorld, gController, cData, pop_id, timerPerStep);
 	}
-	return reward;
+	else
+	{
+		return evalController(gWorld, gController, cData, pop_id, timerPerStep);
+	}
 }
 
 
@@ -129,9 +121,24 @@ int main(int argc, char* argv[])
     
     //srand( (unsigned int) time (NULL) );
 
-    gWorld = new World;
-	WorldConstructor::Construct(gWorld);
+    
+	WorldConstructor::Construct();
+	gWorld = WorldConstructor::msWorld;
 	gController = WorldConstructor::msHumanoid;
+
+	DecoConfig::GetSingleton()->GetInt("CMA", "isSystemId", gIsSystemId);
+	if (gIsSystemId)
+		gController->ReadReferenceTrajectories();
+
+	CMAData* cmaData = NULL;
+
+	if (gIsSystemId)
+	{
+		cmaData = &WorldConstructor::msIdData;
+	}
+	else
+		cmaData = &WorldConstructor::msCData;
+
 	int gProcessId = 0;
 	if (argc == 2)
 	{
@@ -139,15 +146,12 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		double reward = eval(WorldConstructor::msCData, 0, NULL);
+		double reward = eval(cmaData, 0, NULL);
 		LOG(INFO) << "reward is " << reward;
 		return 0;
 	}
-
-
-
-
-	int policyDim = WorldConstructor::msCData.GetNumParameters();
+	
+	int policyDim = cmaData->GetNumParameters();
 
 	vector<vector<double> > parameters;
 	while (true)
@@ -191,7 +195,7 @@ int main(int argc, char* argv[])
 			for (int i = 0; i < numEvaluations; ++i)
 			{
 				double timePerStep = 0;
-				WorldConstructor::msCData.FromParameterSetting(&(parameters[i][0]));
+				cmaData->FromParameterSetting(&(parameters[i][0]));
 
 				ostringstream out;
 				for (int ithDim = 0; ithDim < policyDim; ++ithDim)
@@ -200,7 +204,7 @@ int main(int argc, char* argv[])
 				}
 				LOG(INFO) << "[" << out.str() << "]:";
 
-				values[numRetPerEvaluation * i + 0] = eval(WorldConstructor::msCData, gProcessId, &timePerStep);
+				values[numRetPerEvaluation * i + 0] = eval(cmaData, gProcessId, &timePerStep);
 
 				double elapsedTime = 0;
 				values[numRetPerEvaluation * i + 1] = gProcessId;

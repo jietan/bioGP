@@ -94,9 +94,9 @@ int main(int argc, char* argv[])
     
     srand( (unsigned int) time (NULL) );
 
-    World* myWorld = new World;
-	WorldConstructor::Construct(myWorld);
     
+	WorldConstructor::Construct();
+	World* myWorld = WorldConstructor::msWorld;
     // Create a window and link it to the world
     // MyWindow window(new Controller(robot, myWorld->getConstraintSolver()));
 	MyWindow window(WorldConstructor::msHumanoid);

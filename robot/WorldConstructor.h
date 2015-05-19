@@ -19,7 +19,7 @@
 #include "MotorMap.h"
 #include "Motion.h"
 #include "ControllerData.h"
-
+#include "SystemIdentificationData.h"
 #include "myUtils/ConfigManager.h"
 
 using namespace std;
@@ -30,9 +30,13 @@ using namespace dart::utils;
 class WorldConstructor
 {
 public:
-	static void Construct(World* world);
+	static void Construct();
+	static void Destroy();
+	static void Debug();
 	static bioloidgp::robot::HumanoidController* msHumanoid;
+	static World* msWorld;
 	static ControllerData msCData;
+	static SystemIdentificationData msIdData;
 	static double msTimeStep;
 private:
 	static void commonConstruction(World* world);

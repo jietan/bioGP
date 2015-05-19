@@ -1,5 +1,6 @@
 #ifndef _CONTROLLER_DATA_H
 #define _CONTROLLER_DATA_H
+#include "CMAData.h"
 #include <vector>
 using namespace std;
 
@@ -17,18 +18,20 @@ struct ControllerDuration
 	double mMin;
 	double mMax;
 };
-class ControllerData
+class ControllerData : public CMAData
 {
 public:
 	vector<int> mKeyFrameId;
 	vector<vector<ControllerDof> >  mDofValues;
 	vector<ControllerDuration> mKeyFrameDuration;
 
-	void ReadFromFile(const string& filename);
-	int GetNumParameters() const;
-	void GetParameterLowerBounds(double* lb);
-	void GetParameterUpperBounds(double* ub);
-	void FromParameterSetting(double* param);
+	virtual ~ControllerData();
+	virtual void ReadFromFile(const string& filename);
+	virtual int GetNumParameters() const;
+	virtual void GetParameterLowerBounds(double* lb);
+	virtual void GetParameterUpperBounds(double* ub);
+	virtual void FromParameterSetting(double* param);
+	virtual void ApplyToController(bioloidgp::robot::HumanoidController* controller);
 };
 
 #endif

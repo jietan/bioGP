@@ -29,42 +29,11 @@ HumanoidController::HumanoidController(
     const int NDOFS = robot()->getNumDofs();
     const int NMOTORS = 18;
 
-    //setJointDamping(0.15);
-
 	setJointDamping(0.0);
     set_motormap( new MotorMap(NMOTORS, NDOFS) );
     motormap()->load(DATA_DIR"/urdf/BioloidGP/BioloidGPMotorMap.xml");
 	set_mocap(new MocapMotion());
 	mInitFirst6Dofs = Eigen::VectorXd::Zero(6);
-	//string mocapFileName;
-	//DecoConfig::GetSingleton()->GetString("Mocap", "FileName", mocapFileName);
-	//mocap()->Read(mocapFileName.c_str());
-
-	//Eigen::VectorXd mtvInitPose = Eigen::VectorXd::Ones(NMOTORS) * 512;
-	////mtvInitPose << 512, 512, 512, 512, 200, 824, 512, 512, 512, 512, 200, 512, 512, 512, 512, 200, 512, 512; //for motorTest
-	////mtvInitPose <<
-	////    342, 681, 572, 451, 762, 261,
-	////    358, 666,
-	////    515, 508, 741, 282, 857, 166, 684, 339, 515, 508;
-	//vector<int> initialPose;
-	//if (DecoConfig::GetSingleton()->GetIntVector("Sim", "InitialPose", initialPose))
-	//{
-	//	for (int i = 0; i < NMOTORS; ++i)
-	//	{
-	//		mtvInitPose[i] = static_cast<double>(initialPose[i]);
-	//	}
-	//}
-	//
-
- //   set_motion( new Motion(NMOTORS, mtvInitPose) );
-	//setInitialPose(mtvInitPose);
-
-	//string motionFileName;
-	//string motionPageName;
-	//DecoConfig::GetSingleton()->GetString("Ctrl", "MotionFileName", motionFileName);
-	//DecoConfig::GetSingleton()->GetString("Ctrl", "MotionPageName", motionPageName);
-	//motion()->loadMTN(motionFileName.c_str(), motionPageName.c_str());
- //   motion()->printSteps();
 
 
     mKp = Eigen::VectorXd::Zero(NDOFS);
@@ -77,26 +46,7 @@ HumanoidController::HumanoidController(
     for (int i = 0; i < numBodies; i++) {
         LOG(INFO) << "Joint " << i + 5 << " : name = " << robot()->getJoint(i)->getName();
     }
-	//mCollisionSpheres.resize(numBodies);
-	//for (int i = 0; i < numBodies; ++i)
-	//{
-	//	dart::dynamics::BodyNode* body = robot()->getBodyNode(i);
-	//	if (body->getName() == "r_foot")
-	//	{
-	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.00, 0.0276, -0.02042), 0.025));
-	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.035, 0.0276, -0.02042), 0.025));
-	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(0.035, 0.0276, -0.02042), 0.025));
-	//	}
-	//	else if (body->getName() == "l_thigh")
-	//	{
-	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.001, -0.0637, -0.0115), 0.03));
-	//	}
-	//	else if (body->getName() == "l_shin")
-	//	{
-	//		mCollisionSpheres[i].push_back(CollisionSphere(Eigen::Vector3d(-0.0127, 0.0341, 0.0156), 0.03));
-	//	}
 
-	//}
 	mIsCOMInitialized = false;
 	mAnkelOffset = 0;
 	mLastControlTime = 0;
@@ -109,6 +59,8 @@ HumanoidController::HumanoidController(
 		DecoConfig::GetSingleton()->GetString("Sim", "HybridDynamicsMotionFile", hybridDynamicsMotionFileName);
 		readMovieFile(hybridDynamicsMotionFileName);
 	}
+	mBodyMassesByURDF = getBodyMasses();
+	mBodyInertiaByURDF = getBodyInertia();
 	//DecoConfig::GetSingleton()->GetDouble("Sim", "Latency", mLatency);
 	//robot()->getBodyNode("l_foot")->setRestitutionCoeff(1.0);
 	//robot()->getBodyNode("r_foot")->setRestitutionCoeff(1.0);
@@ -135,6 +87,13 @@ HumanoidController::~HumanoidController() {
 
 void HumanoidController::reset()
 {
+	int nDofs = robot()->getNumDofs();
+	robot()->resetPositions();
+	robot()->resetVelocities();
+	robot()->resetAccelerations();
+	robot()->clearExternalForces();
+	robot()->clearConstraintImpulses();
+
 	setInitialPose(motion()->getInitialPose());
 	setFreeDofs(mInitFirst6Dofs);
 	mIsCOMInitialized = false;
@@ -500,6 +459,147 @@ void HumanoidController::keyboard(unsigned char _key, int _x, int _y, double _cu
 const std::vector<std::vector<CollisionSphere> >& HumanoidController::getCollisionSpheres() const
 {
 	return mCollisionSpheres;
+}
+
+Eigen::VectorXd HumanoidController::getBodyMasses() const
+{
+	Eigen::VectorXd ret = Eigen::VectorXd::Zero(9);
+	ret[0] = robot()->getBodyNode(0)->getMass(); //torso
+	ret[1] = robot()->getBodyNode(1)->getMass(); //hip
+	ret[2] = robot()->getBodyNode(2)->getMass(); //shoulder
+	ret[3] = robot()->getBodyNode(5)->getMass(); //thigh
+	ret[4] = robot()->getBodyNode(6)->getMass(); //arm
+	ret[5] = robot()->getBodyNode(9)->getMass(); //shin
+	ret[6] = robot()->getBodyNode(10)->getMass();//hand
+	ret[7] = robot()->getBodyNode(13)->getMass(); //heel
+	ret[8] = robot()->getBodyNode(15)->getMass(); //foot
+	
+	return ret;
+}
+void HumanoidController::setBodyMasses(const Eigen::VectorXd& masses)
+{
+	robot()->getBodyNode(0)->setMass(masses[0]);
+
+	robot()->getBodyNode(1)->setMass(masses[1]);
+	robot()->getBodyNode(3)->setMass(masses[1]);
+
+	robot()->getBodyNode(2)->setMass(masses[2]);
+	robot()->getBodyNode(4)->setMass(masses[2]);
+
+	robot()->getBodyNode(5)->setMass(masses[3]);
+	robot()->getBodyNode(7)->setMass(masses[3]);
+
+	robot()->getBodyNode(6)->setMass(masses[4]);
+	robot()->getBodyNode(8)->setMass(masses[4]);
+
+	robot()->getBodyNode(9)->setMass(masses[5]);
+	robot()->getBodyNode(11)->setMass(masses[5]);
+
+	robot()->getBodyNode(10)->setMass(masses[6]);
+	robot()->getBodyNode(12)->setMass(masses[6]);
+
+	robot()->getBodyNode(13)->setMass(masses[7]);
+	robot()->getBodyNode(14)->setMass(masses[7]);
+
+	robot()->getBodyNode(15)->setMass(masses[8]);
+	robot()->getBodyNode(16)->setMass(masses[8]);
+
+}
+
+vector<Eigen::VectorXd> HumanoidController::getBodyInertia() const
+{
+	vector<Eigen::VectorXd> inertia;
+	inertia.resize(9, Eigen::VectorXd::Zero(6));
+	robot()->getBodyNode(0)->getMomentOfInertia(inertia[0][0], inertia[0][1], inertia[0][2], inertia[0][3], inertia[0][4], inertia[0][5]); //torso
+	robot()->getBodyNode(1)->getMomentOfInertia(inertia[1][0], inertia[1][1], inertia[1][2], inertia[1][3], inertia[1][4], inertia[1][5]); //hip
+	robot()->getBodyNode(2)->getMomentOfInertia(inertia[2][0], inertia[2][1], inertia[2][2], inertia[2][3], inertia[2][4], inertia[2][5]); //shoulder
+	robot()->getBodyNode(5)->getMomentOfInertia(inertia[3][0], inertia[3][1], inertia[3][2], inertia[3][3], inertia[3][4], inertia[3][5]); //thigh
+	robot()->getBodyNode(6)->getMomentOfInertia(inertia[4][0], inertia[4][1], inertia[4][2], inertia[4][3], inertia[4][4], inertia[4][5]); //arm
+	robot()->getBodyNode(9)->getMomentOfInertia(inertia[5][0], inertia[5][1], inertia[5][2], inertia[5][3], inertia[5][4], inertia[5][5]); //shin
+	robot()->getBodyNode(10)->getMomentOfInertia(inertia[6][0], inertia[6][1], inertia[6][2], inertia[6][3], inertia[6][4], inertia[6][5]);//hand
+	robot()->getBodyNode(13)->getMomentOfInertia(inertia[7][0], inertia[7][1], inertia[7][2], inertia[7][3], inertia[7][4], inertia[7][5]); //heel
+	robot()->getBodyNode(15)->getMomentOfInertia(inertia[8][0], inertia[8][1], inertia[8][2], inertia[8][3], inertia[8][4], inertia[8][5]); //foot
+	return inertia;
+}
+void HumanoidController::setBodyInertia(const vector<Eigen::VectorXd>& inertia)
+{
+	robot()->getBodyNode(0)->setMomentOfInertia(inertia[0][0], inertia[0][1], inertia[0][2], inertia[0][3], inertia[0][4], inertia[0][5]);
+
+	robot()->getBodyNode(1)->setMomentOfInertia(inertia[1][0], inertia[1][1], inertia[1][2], inertia[1][3], inertia[1][4], inertia[1][5]);
+	robot()->getBodyNode(3)->setMomentOfInertia(inertia[1][0], inertia[1][1], inertia[1][2], inertia[1][3], inertia[1][4], inertia[1][5]);
+
+	robot()->getBodyNode(2)->setMomentOfInertia(inertia[2][0], inertia[2][1], inertia[2][2], inertia[2][3], inertia[2][4], inertia[2][5]);
+	robot()->getBodyNode(4)->setMomentOfInertia(inertia[2][0], inertia[2][1], inertia[2][2], inertia[2][3], inertia[2][4], inertia[2][5]);
+
+	robot()->getBodyNode(5)->setMomentOfInertia(inertia[3][0], inertia[3][1], inertia[3][2], inertia[3][3], inertia[3][4], inertia[3][5]);
+	robot()->getBodyNode(7)->setMomentOfInertia(inertia[3][0], inertia[3][1], inertia[3][2], inertia[3][3], inertia[3][4], inertia[3][5]);
+
+	robot()->getBodyNode(6)->setMomentOfInertia(inertia[4][0], inertia[4][1], inertia[4][2], inertia[4][3], inertia[4][4], inertia[4][5]);
+	robot()->getBodyNode(8)->setMomentOfInertia(inertia[4][0], inertia[4][1], inertia[4][2], inertia[4][3], inertia[4][4], inertia[4][5]);
+
+	robot()->getBodyNode(9)->setMomentOfInertia(inertia[5][0], inertia[5][1], inertia[5][2], inertia[5][3], inertia[5][4], inertia[5][5]);
+	robot()->getBodyNode(11)->setMomentOfInertia(inertia[5][0], inertia[5][1], inertia[5][2], inertia[5][3], inertia[5][4], inertia[5][5]);
+
+	robot()->getBodyNode(10)->setMomentOfInertia(inertia[6][0], inertia[6][1], inertia[6][2], inertia[6][3], inertia[6][4], inertia[6][5]);
+	robot()->getBodyNode(12)->setMomentOfInertia(inertia[6][0], inertia[6][1], inertia[6][2], inertia[6][3], inertia[6][4], inertia[6][5]);
+
+	robot()->getBodyNode(13)->setMomentOfInertia(inertia[7][0], inertia[7][1], inertia[7][2], inertia[7][3], inertia[7][4], inertia[7][5]);
+	robot()->getBodyNode(14)->setMomentOfInertia(inertia[7][0], inertia[7][1], inertia[7][2], inertia[7][3], inertia[7][4], inertia[7][5]);
+
+	robot()->getBodyNode(15)->setMomentOfInertia(inertia[8][0], inertia[8][1], inertia[8][2], inertia[8][3], inertia[8][4], inertia[8][5]);
+	robot()->getBodyNode(16)->setMomentOfInertia(inertia[8][0], inertia[8][1], inertia[8][2], inertia[8][3], inertia[8][4], inertia[8][5]);
+
+}
+void HumanoidController::setBodyInertiaByRatio(const Eigen::VectorXd& ratios)
+{
+	int nInertia = static_cast<int>(ratios.size());
+	vector<Eigen::VectorXd> inertia = mBodyInertiaByURDF;
+	for (int i = 0; i < nInertia; ++i)
+	{
+		inertia[i] *= ratios[i];
+	}
+	setBodyInertia(inertia);
+}
+
+void HumanoidController::setSystemIdData(const SystemIdentificationData& sIdData)
+{
+	setBodyMassesByRatio(sIdData.mMassRatio);
+	setBodyInertiaByRatio(sIdData.mMassRatio);
+}
+void HumanoidController::setBodyMassesByRatio(const Eigen::VectorXd& ratios)
+{
+	Eigen::VectorXd realMasses = (mBodyMassesByURDF.cwiseProduct(ratios));
+	setBodyMasses(realMasses);
+}
+
+void HumanoidController::ReadReferenceTrajectories()
+{
+	int nReferences = 0;
+	DecoConfig::GetSingleton()->GetInt("CMA", "NumReferences", nReferences);
+	if (nReferences)
+		mReferenceTrajectories.resize(nReferences);
+	string refPath;
+	DecoConfig::GetSingleton()->GetString("CMA", "ReferenceTrajectoryPath", refPath);
+	for (int i = 1; i <= nReferences; ++i)
+	{
+		char filePath[256];
+		sprintf(filePath, "%s%02d.measure", refPath.c_str(), i);
+		mReferenceTrajectories[i - 1].ReadFromFile(filePath, robot()->getNumDofs());
+	}
+}
+
+double HumanoidController::compareGlobalRotationWithReferenceTrajectories(double t, double angle)
+{
+	int nReferences = static_cast<int>(mReferenceTrajectories.size());
+	double ret = 0;
+	for (int i = 0; i < nReferences; ++i)
+	{
+		Eigen::VectorXd pose = mReferenceTrajectories[i].GetValue(t);
+		double refAngle = pose.head(3).norm();
+		ret += (refAngle - angle) * (refAngle - angle);
+	}
+	ret /= nReferences;
+	return ret;
 }
 
 // class HumanoidController ends

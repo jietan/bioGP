@@ -58,6 +58,7 @@
 #include "robot/ControllerData.h"
 #include "robot/CMASearcher.h"
 #include "robot/WorldConstructor.h"
+#include "robot/Evaluation.h"
 
 #include "myUtils/ConfigManager.h"
 #include "myUtils/mathlib.h"
@@ -73,57 +74,59 @@ using namespace dart::utils;
 World* gWorld = NULL;
 bioloidgp::robot::HumanoidController* gController = NULL;
 CMASearcher* gPolicySearch = NULL;
-
+int gIsSystemId = 0;
 double gTimeStep = 0.0002;
 
 
-double eval(const ControllerData& cData, int pop_id, double* timerPerStep)
+double eval(CMAData* cData, int pop_id, double* timerPerStep)
 {
-	double reward = 0;
+	//WorldConstructor::Destroy();
+	//WorldConstructor::Construct();
 
 	gController->reset();
-	gController->motion()->setControllerData(cData);
+	//SystemIdentificationData* sData = static_cast<SystemIdentificationData*>(cData);
+	//sData->mMassRatio[0] = 1.0221644765835582;
+	//sData->mMassRatio[1] = 1.0625016548173554;
+	//sData->mMassRatio[2] = 1.0559031762912450;
+	//sData->mMassRatio[3] = 1.0836126286505545;
+	//sData->mMassRatio[4] = 1.0893469339813033;
+	//sData->mMassRatio[5] = 1.1480225306013023;
+	//sData->mMassRatio[6] = 1.1459299660452369;
+	//sData->mMassRatio[7] = 1.1092851276684312;
+	//sData->mMassRatio[8] = 1.0601630886808593;
+
+	cData->ApplyToController(gController);
 	gWorld->setTime(0);
-	double motionTime = gController->motion()->getMotionLength();
-	const double testTime = motionTime + 1.0;
-	while (gWorld->getTime() < testTime)
+
+	if (gIsSystemId)
 	{
-		gController->update(gWorld->getTime());
-		gWorld->step();
-
-		Eigen::Vector3d up = gController->getUpDir();
-		Eigen::Vector3d left = gController->getLeftDir();
-
-		double asinNegativeIfForward = up.cross(Eigen::Vector3d::UnitY()).dot(left);
-		double angleFromUp = asin(asinNegativeIfForward);
-		double threshold = 60.0 * M_PI / 180.0;
-		if (abs(angleFromUp) > threshold)
-			break;
-		//LOG(INFO) << gWorld->getTime() << " " << angleFromUp;;
-
-		if (gWorld->getTime() > motionTime)
-		{
-			reward += -1.0 / (abs(angleFromUp) + 0.1);
-		}
-		else
-		{
-			reward += -1;
-		}
+		return evalSystemId(gWorld, gController, cData, pop_id, timerPerStep);
 	}
-	return reward;
+	else
+	{
+		return evalController(gWorld, gController, cData, pop_id, timerPerStep);
+	}
 }
 
 static void buildPolicy()
 {
-	int numParams = WorldConstructor::msCData.GetNumParameters();
+	CMAData* cmaData = NULL;
 
+	if (gIsSystemId)
+	{
+		cmaData = &WorldConstructor::msIdData;
+	}
+	else
+		cmaData = &WorldConstructor::msCData;
+
+	int numParams = cmaData->GetNumParameters();
 	double* params = new double[numParams];
 
 
 	gPolicySearch = new CMASearcher;
 	gPolicySearch->SetDimension(numParams);
 	gPolicySearch->SetEvaluatorFunc(eval);
-	gPolicySearch->Search(WorldConstructor::msCData, params, 50);
+	gPolicySearch->Search(cmaData, params, 50);
 	LOG(INFO) << setprecision(16) << "params " << params[0] << endl;
 
 	delete[] params;
@@ -140,14 +143,17 @@ int main(int argc, char* argv[])
     FLAGS_log_dir = "./glog/";
 #endif
     LOG(INFO) << "BioloidGP program begins...";
-
+	
+	DecoConfig::GetSingleton()->GetInt("CMA", "isSystemId", gIsSystemId);
     
     srand( (unsigned int) time (NULL) );
 
-    gWorld = new World;
-	WorldConstructor::Construct(gWorld);
+    
+	WorldConstructor::Construct();
+	gWorld = WorldConstructor::msWorld;
 	gController = WorldConstructor::msHumanoid;
-
+	if (gIsSystemId)
+		gController->ReadReferenceTrajectories();
 	buildPolicy();
 
     return 0;

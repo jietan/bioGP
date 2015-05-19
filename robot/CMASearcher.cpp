@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "myUtils/ConfigManager.h"
 #include <boost/interprocess/ipc/message_queue.hpp>
+#include "CMAData.h"
 using namespace boost::interprocess;
 
 
@@ -22,7 +23,7 @@ CMASearcher::~CMASearcher()
 	clear();
 }
 
-void CMASearcher::SetEvaluatorFunc(double (*Evaluate)(const ControllerData&, int, double*))
+void CMASearcher::SetEvaluatorFunc(double(*Evaluate)(CMAData*, int, double*))
 {
 	mEvaluator = Evaluate;
 }
@@ -107,21 +108,21 @@ void CMASearcher::recoverFromScaling(int n, double* lower_bound, double* upper_b
 	}
 }
 
-int CMASearcher::Search(ControllerData cData, double* argMin, int maxIterations)
+int CMASearcher::Search(CMAData* cData, double* argMin, int maxIterations)
 {
-	int nParams = cData.GetNumParameters();
+	int nParams = cData->GetNumParameters();
 	double* lb = new double[nParams];
 	double* ub = new double[nParams];
 
-	cData.GetParameterLowerBounds(lb);
-	cData.GetParameterUpperBounds(ub);
+	cData->GetParameterLowerBounds(lb);
+	cData->GetParameterUpperBounds(ub);
 	int ret = Search(cData, lb, ub, argMin, maxIterations);
 	delete[] lb;
 	delete[] ub;
 	return ret;
 }
 
-int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper_bound, double* argMin, int maxIterations)
+int CMASearcher::Search(CMAData* cData, double* lower_bound, double* upper_bound, double* argMin, int maxIterations)
 {
 	DecoConfig::GetSingleton()->GetInt("CMA", "SearchProcessNum", NUM_IPC_PROCESS);
 	CreateMessageQueue();
@@ -263,7 +264,7 @@ int CMASearcher::Search(ControllerData cData, double* lower_bound, double* upper
 
 			char logStr[512];
 			double timePerStep = 0;
-			cData.FromParameterSetting(pop[i]);
+			cData->FromParameterSetting(pop[i]);
 			
 			arFunvals[i] = (mEvaluator(cData, i, &timePerStep));
 			recoverFromScaling(mDim, lower_bound, upper_bound, pop[i], realPop);
@@ -386,7 +387,7 @@ void CMASearcher::calculateSearchStandardDeviation(double* lower_bound, double* 
 		{
 			double minBoundary = abs(mPrevSol[i] - lower_bound[i]);
 			double maxBoundary = abs(mPrevSol[i] - upper_bound[i]);
-			mStandardDeviation[i] = 10 * max(minBoundary, maxBoundary) / 2.0;
+			mStandardDeviation[i] = 1 * max(minBoundary, maxBoundary) / 2.0;
 		}
     }
 }

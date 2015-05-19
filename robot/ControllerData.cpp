@@ -1,6 +1,13 @@
 #include "ControllerData.h"
 #include <fstream>
+#include "HumanoidController.h"
+#include "Motion.h"
 using namespace std;
+
+ControllerData::~ControllerData()
+{
+
+}
 
 void ControllerData::ReadFromFile(const string& filename)
 {
@@ -81,4 +88,9 @@ void ControllerData::FromParameterSetting(double* param)
 		}
 		mKeyFrameDuration[i].mKeyFrameDuration = param[count++] * (mKeyFrameDuration[i].mMax - mKeyFrameDuration[i].mMin) + mKeyFrameDuration[i].mMin;
 	}
+}
+
+void ControllerData::ApplyToController(bioloidgp::robot::HumanoidController* controller)
+{
+	controller->motion()->setControllerData(*this);
 }
