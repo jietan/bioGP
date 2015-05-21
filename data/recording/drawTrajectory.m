@@ -19,11 +19,11 @@ for file = files'
     t = data(:,1);
     rotData = data(:,2:4);
     angle = sqrt(sum(abs(rotData).^2,2));
+%     plot(t, angle, 'r');
+    angle = data(:, 12);
     plot(t, angle, 'r');
-%     angle = data(:, 12);
-%     plot(t, angle, 'r');
-%     angle = data(:, 14);
-%     plot(t, angle, 'r');
+    angle = data(:, 14);
+    plot(t, angle, 'r');
 end
 
 % sim data
@@ -32,9 +32,9 @@ hold all;
 t = data(:,1);
 rotData = data(:,2:4);
 angle = sqrt(sum(abs(rotData).^2,2));
-plot(t, angle, 'b');
-%     angle = data(:, 12);
-%     plot(t, angle, 'b');
-%     angle = data(:, 14);
-%     plot(t, angle, 'b');
+% plot(t, angle, 'b');
+    angle = data(:, 12);
+    plot(t, angle, 'b');
+    angle = data(:, 14);
+    plot(t, angle, 'b');
     

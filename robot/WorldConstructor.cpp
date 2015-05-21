@@ -1,5 +1,6 @@
 #include "WorldConstructor.h"
 #include "dart/dynamics/Joint.h"
+#include "dart/dynamics/BodyNode.h"
 #include "MotorMap.h"
 
 World* WorldConstructor::msWorld = NULL;
@@ -150,8 +151,14 @@ void WorldConstructor::constructWallWorld(World* world)
 	{
 		msIdData.ReadFromFile("../../data/systemIdentification/lean-to-stand/0.13.txt");
 		msHumanoid->setSystemIdData(msIdData);
+		msHumanoid->robot()->computeForwardKinematics(true, true, false);
 	}
 
+	double totalMass = 0.0;
+	for (size_t i = 0; i < msHumanoid->robot()->getNumBodyNodes(); i++)
+		totalMass += msHumanoid->robot()->getBodyNode(i)->getMass();
+	
+	LOG(INFO) << "The total mass: " << totalMass;
 }
 void WorldConstructor::constructChairWorld(World* world)
 {

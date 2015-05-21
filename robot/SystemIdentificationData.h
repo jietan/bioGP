@@ -4,13 +4,20 @@
 #include "CMAData.h"
 #include <Eigen/Dense>
 #include <string>
+#include <vector>
 using namespace std;
 
 class SystemIdentificationData : public CMAData
 {
 public:
 	Eigen::VectorXd mMassRatio;
+	Eigen::VectorXd mGainRatio;
+	vector<double> mLowerBound;
+	vector<double> mUpperBound;
+	int mbSearchMass;
+	int mbSearchGain;
 
+	SystemIdentificationData();
 	virtual ~SystemIdentificationData();
 	virtual void ReadFromFile(const string& filename);
 	virtual int GetNumParameters() const;

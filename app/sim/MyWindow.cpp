@@ -344,7 +344,6 @@ void MyWindow::keyboard(unsigned char _key, int _x, int _y)
 		break;
 	case 'r':
 		mController->reset();
-		mWorld->setTime(0);
 		break;
     default:
         Win3D::keyboard(_key, _x, _y);

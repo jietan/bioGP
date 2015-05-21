@@ -11,6 +11,7 @@
 #include "dart/dynamics/Joint.h"
 #include "utils/CppCommon.h"
 
+#include "WorldConstructor.h"
 #include "Motion.h"
 #include "myUtils/ConfigManager.h"
 
@@ -35,13 +36,19 @@ HumanoidController::HumanoidController(
 	set_mocap(new MocapMotion());
 	mInitFirst6Dofs = Eigen::VectorXd::Zero(6);
 
+	mGainsByMeasurement.resize(3);
+	mGainsByMeasurement[0] = 9.272;
+	mGainsByMeasurement[1] = 0.3069;
+	mGainsByMeasurement[2] = 0.03;
 
     mKp = Eigen::VectorXd::Zero(NDOFS);
     mKd = Eigen::VectorXd::Zero(NDOFS);
     for (int i = 6; i < NDOFS; ++i) {
-		mKp(i) = 9.272;
-		mKd(i) = 0.3069;
+		mKp(i) = mGainsByMeasurement[0];
+		mKd(i) = mGainsByMeasurement[1];
     }
+	mActuatorFriction = mGainsByMeasurement[2];
+
 	int numBodies = static_cast<int>(robot()->getNumBodyNodes());
     for (int i = 0; i < numBodies; i++) {
         LOG(INFO) << "Joint " << i + 5 << " : name = " << robot()->getJoint(i)->getName();
@@ -104,6 +111,25 @@ void HumanoidController::reset()
 	int numLatencySteps = static_cast<int>(mLatency / timeStep);
 	mAnkelOffsetQueue.clear();
 	mAnkelOffsetQueue.insert(mAnkelOffsetQueue.end(), numLatencySteps, 0);
+	WorldConstructor::msWorld->setTime(0);
+
+	int isInitialStateSet = 0;
+	DecoConfig::GetSingleton()->GetInt("Sim", "IsInitialStateSet", isInitialStateSet);
+	if (isInitialStateSet)
+	{
+		string initialStateFileName;
+		int initialStateFrameId = 0;
+		DecoConfig::GetSingleton()->GetString("Sim", "InitialStateFile", initialStateFileName);
+		DecoConfig::GetSingleton()->GetInt("Sim", "InitialStateFrameId", initialStateFrameId);
+		TimeSeries ts;
+		ts.ReadFromFile(initialStateFileName, robot()->getNumDofs());
+		TimeSeriesSample s0 = ts.GetIthSample(initialStateFrameId);
+		TimeSeriesSample s1 = ts.GetIthSample(initialStateFrameId + 1);
+		robot()->setPositions(s0.value);
+		Eigen::VectorXd vel = (s1.value - s0.value) / (s1.time - s0.time);
+		robot()->setVelocities(vel);
+		WorldConstructor::msWorld->setTime(s0.time);
+	}
 }
 void HumanoidController::setFreeDofs(const Eigen::VectorXd& q6)
 {
@@ -320,12 +346,10 @@ Eigen::VectorXd HumanoidController::computeTorque(const Eigen::VectorXd& qhat)
 	}
 	else
 	{
-		const double friction = 0.03;
-
 		for (int i = 6; i < NDOFS; ++i) {
 			tau(i) = -mKp(i) * (q(i) - qhat(i)) - mKd(i) * dq(i);
 			if (abs(dq(i) > 1e-6))
-				tau(i) += -friction * abs(dq(i)) / dq(i);
+				tau(i) += -mActuatorFriction * abs(dq(i)) / dq(i);
 
 		}
 	}
@@ -561,10 +585,21 @@ void HumanoidController::setBodyInertiaByRatio(const Eigen::VectorXd& ratios)
 	setBodyInertia(inertia);
 }
 
+void HumanoidController::setActuatorGains(const Eigen::VectorXd& gainRatio)
+{
+	double NDOFS = robot()->getNumDofs();
+	for (int i = 6; i < NDOFS; ++i) {
+		mKp(i) = gainRatio[0] * mGainsByMeasurement[0];
+		mKd(i) = gainRatio[1] * mGainsByMeasurement[1];
+	}
+	mActuatorFriction = gainRatio[2] * mGainsByMeasurement[2];
+}
+
 void HumanoidController::setSystemIdData(const SystemIdentificationData& sIdData)
 {
 	setBodyMassesByRatio(sIdData.mMassRatio);
 	setBodyInertiaByRatio(sIdData.mMassRatio);
+	setActuatorGains(sIdData.mGainRatio);
 }
 void HumanoidController::setBodyMassesByRatio(const Eigen::VectorXd& ratios)
 {

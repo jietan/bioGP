@@ -96,7 +96,6 @@ double eval(CMAData* cData, int pop_id, double* timerPerStep)
 	//sData->mMassRatio[8] = 1.0601630886808593;
 
 	cData->ApplyToController(gController);
-	gWorld->setTime(0);
 
 	if (gIsSystemId)
 	{

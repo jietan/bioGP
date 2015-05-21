@@ -187,10 +187,8 @@ void MyWindow::timeStepping()
 
 
 	mTime = mFrameCount * mController->robot()->getTimeStep();
-	LOG(INFO) << mFrameCount << ": " << qhat[7];
+	LOG(INFO) << mFrameCount << ": " << mTime;
 	mFrameCount++;
-	LOG(INFO) << mFrameCount;
-
 }
 
 void MyWindow::draw()
@@ -247,16 +245,14 @@ void MyWindow::drawSkels()
 		else
 		{
 			glPushMatrix();
-			Eigen::Vector3d offsetTranslation = mOffsetTransform.translation();
-			Eigen::AngleAxisd rot;
-			rot = mOffsetTransform.linear();
-			//glTranslated(offsetTranslation[0], offsetTranslation[1], offsetTranslation[2]);
-			glTranslated(mMovie[0].mPose[3], mMovie[0].mPose[4], mMovie[0].mPose[5]);
+			//Eigen::Vector3d offsetTranslation = mOffsetTransform.translation();
+			//Eigen::AngleAxisd rot;
+			//rot = mOffsetTransform.linear();
+			//glTranslated(mMovie[0].mPose[3], mMovie[0].mPose[4], mMovie[0].mPose[5]);
 
 
-			glRotated(rot.angle() * 180.0 / M_PI, rot.axis()[0], rot.axis()[1], rot.axis()[2]);
-			glTranslated(-mMovie2[0].mPose[3], -mMovie2[0].mPose[4], -mMovie2[0].mPose[5]);
-			//glTranslated(offsetTranslation[0], offsetTranslation[1], offsetTranslation[2]);
+			//glRotated(rot.angle() * 180.0 / M_PI, rot.axis()[0], rot.axis()[1], rot.axis()[2]);
+			//glTranslated(-mMovie2[0].mPose[3], -mMovie2[0].mPose[4], -mMovie2[0].mPose[5]);
 			
 
 			Eigen::Vector4d col;

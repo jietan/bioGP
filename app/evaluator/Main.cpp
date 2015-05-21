@@ -93,8 +93,6 @@ double eval(CMAData* cData, int pop_id, double* timerPerStep)
 	                
 	cData->ApplyToController(gController);
 
-	gWorld->setTime(0);
-
 	if (gIsSystemId)
 	{
 		return evalSystemId(gWorld, gController, cData, pop_id, timerPerStep);

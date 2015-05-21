@@ -73,6 +73,7 @@ public:
 	vector<Eigen::VectorXd> getBodyInertia() const;
 	void setBodyInertia(const vector<Eigen::VectorXd>& inertia);
 	void setBodyInertiaByRatio(const Eigen::VectorXd& ratios);
+	void setActuatorGains(const Eigen::VectorXd& gainRatio);
 
 	void setMarkers(const vector<dart::dynamics::Marker*> markers);
 	const vector<dart::dynamics::Marker*>& getMarkers() const;
@@ -92,11 +93,14 @@ public:
     MEMBER_PTR(MotorMap*, motormap);
     MEMBER_PTR(Motion*, motion);
 	MEMBER_PTR(MocapMotion*, mocap);
+	
     Eigen::VectorXd mKp;
     Eigen::VectorXd mKd;
 	Eigen::Vector3d mInitialCOM;
 	Eigen::VectorXd mBodyMassesByURDF;
 	vector<Eigen::VectorXd> mBodyInertiaByURDF;
+	Eigen::VectorXd mGainsByMeasurement;
+	double mActuatorFriction;
 	bool mIsCOMInitialized;
 	Eigen::VectorXd mPrevPos;
 	double mAnkelOffset;

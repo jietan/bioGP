@@ -105,49 +105,53 @@ int main(int argc, char* argv[])
     srand( (unsigned int) time (NULL) );
 	DecoConfig::GetSingleton()->Init("../config.ini");
 
-    World* myWorld = new World;
-    myWorld->setTimeStep(0.017);
+ //   World* myWorld = new World;
+ //   myWorld->setTimeStep(0.017);
 
 
 
-    // // Load ground and Atlas robot and add them to the world
-    DartLoader urdfLoader;
-    Skeleton* ground = urdfLoader.parseSkeleton(
-        DATA_DIR"/sdf/ground.urdf");
-    Skeleton* robot
-        = urdfLoader.parseSkeleton(
-            DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
-    robot->enableSelfCollision();
+ //   // // Load ground and Atlas robot and add them to the world
+ //   DartLoader urdfLoader;
+ //   Skeleton* ground = urdfLoader.parseSkeleton(
+ //       DATA_DIR"/sdf/ground.urdf");
+ //   Skeleton* robot
+ //       = urdfLoader.parseSkeleton(
+ //           DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
+ //   robot->enableSelfCollision();
 
-	
-    myWorld->addSkeleton(robot);
-    myWorld->addSkeleton(ground);
+	//
+ //   myWorld->addSkeleton(robot);
+ //   myWorld->addSkeleton(ground);
 
 
-    // Print some info
-    LOG(INFO) << "robot.mass = " << robot->getMass();
+ //   // Print some info
+ //   LOG(INFO) << "robot.mass = " << robot->getMass();
 
-    // Set gravity of the world
-    myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
-	//AddWeldConstraint(myWorld);
+ //   // Set gravity of the world
+ //   myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
+	////AddWeldConstraint(myWorld);
 
-    // Create a humanoid controller
-    bioloidgp::robot::HumanoidController* con =
-        new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
+ //   // Create a humanoid controller
+ //   bioloidgp::robot::HumanoidController* con =
+ //       new bioloidgp::robot::HumanoidController(robot, myWorld->getConstraintSolver());
 	
 	//AddMarkers(con->robot());
 
 	//WorldConstructor::Construct(myWorld);
 	
-	MyWindow window(con);
+	WorldConstructor::Construct();
+	World* myWorld = WorldConstructor::msWorld;
+	myWorld->setTimeStep(0.017);
+	MyWindow window(WorldConstructor::msHumanoid);
     window.setWorld(myWorld);
 
 	int isRobot2 = 0;
 	DecoConfig::GetSingleton()->GetInt("Player", "IsRobot2", isRobot2);
 	if (isRobot2)
 	{
+		DartLoader urdfLoader;
 		Skeleton* robot2 = urdfLoader.parseSkeleton(DATA_DIR"/urdf/BioloidGP/BioloidGP.URDF");
-		robot->enableSelfCollision();
+		robot2->enableSelfCollision();
 		myWorld->addSkeleton(robot2);
 		bioloidgp::robot::HumanoidController* con2 =
 			new bioloidgp::robot::HumanoidController(robot2, myWorld->getConstraintSolver());

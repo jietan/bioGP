@@ -19,7 +19,7 @@ public:
 	~TimeSeries();
 	void ReadFromFile(const string& filename, int valueDim);
 	Eigen::VectorXd GetValue(double time);
-
+	TimeSeriesSample GetIthSample(int ithSample);
 private:
 	vector<TimeSeriesSample> mData;
 };
