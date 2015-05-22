@@ -58,6 +58,7 @@
 #include "myUtils/mathlib.h"
 #include "robot/HumanoidController.h"
 #include "robot/Motion.h"
+#include "robot/WorldConstructor.h"
 #include "IK/IKProblemRobotState.h"
 
 #define NUM_MARKERS 10
@@ -175,7 +176,7 @@ double MyWindow::computeDistanceOfMarkerDistances(const vector<int>& labelCandid
 	return distAccum / unOcculudedCount;
 }
 
-void MyWindow::reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d>& topMarkerPos, vector<int>& topMarkerOcculuded, vector<int>& markersMapping)
+bool MyWindow::reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d>& topMarkerPos, vector<int>& topMarkerOcculuded, vector<int>& markersMapping)
 {
 	int nTotalMarkers = static_cast<int>(frame.mMarkerPos.size());
 	
@@ -195,12 +196,16 @@ void MyWindow::reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d
 		unsortedTopMarkerPos.push_back(Eigen::Vector3d::Zero());
 		unsortedTopMarkerOccluded.push_back(true);
 	}
-	
+	int worldId = WorldConstructor::GetWorldId();
+	double topMarkerHeightThreshold = 0.2;
+	if (worldId == 2)
+		topMarkerHeightThreshold = 0.08;
+		
 	int nVisibleMarkers = 0;
 	for (int i = 0; i < NUM_MARKERS; ++i)
 	{
 		if (nVisibleMarkers == NUM_TOP_MARKERS) break;
-		if (frame.mMarkerPos[i][1] > 0.2)
+		if (frame.mMarkerPos[i][1] > topMarkerHeightThreshold)
 		{
 			unsortedTopMarkerIdx[nVisibleMarkers] = i;
 			unsortedTopMarkerPos[nVisibleMarkers] = frame.mMarkerPos[i];
@@ -208,8 +213,11 @@ void MyWindow::reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d
 			nVisibleMarkers++;
 		}
 	}
-	
-	CHECK(nVisibleMarkers >= NUM_TOP_MARKERS - 1) << "Too many top markers are occluded.";
+	if (nVisibleMarkers < NUM_TOP_MARKERS - 1)
+	{
+		LOG(WARNING) << "Too many top markers are occluded.";
+		return false;
+	}
 	//based on the assumption that only one marker can be occuluded.
 	int numMarkers = NUM_TOP_MARKERS;
 	vector<vector<int> > candidateLabels = GetPermutation(0, numMarkers);
@@ -237,6 +245,7 @@ void MyWindow::reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d
 		topMarkerOcculuded[newLabel[i]] = unsortedTopMarkerOccluded[i];
 		markersMapping[newLabel[i]] = unsortedTopMarkerIdx[i];
 	}
+	return true;
 }
 
 //==============================================================================
@@ -262,9 +271,14 @@ void MyWindow::timeStepping()
 	vector<Eigen::Vector3d> topMarkersPos(nTopMarkers);
 	vector<int> topMarkesOcculuded(nTopMarkers);
 	CHECK(nMarkers == 10) << "Weird number of markers";
-	if (mFrameCount == 45)
-		printf("hello");
-	reorderTopMarkers(frame, topMarkersPos, topMarkesOcculuded, mMarkersMapping);
+
+	bool bSuccess = reorderTopMarkers(frame, topMarkersPos, topMarkesOcculuded, mMarkersMapping);
+	if (!bSuccess)
+	{
+		mConvertedFrames.resize(ithFrame - 1);
+		saveProcessedMeasurement();
+		exit(0);
+	}
 	bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
 	if (result)
 	{
@@ -310,6 +324,7 @@ void MyWindow::timeStepping()
 	if (ithFrame == nFrames - 1)
 	{
 		saveProcessedMeasurement();
+		exit(0);
 	}
 	mFrameCount++;
 	LOG(INFO) << mFrameCount;

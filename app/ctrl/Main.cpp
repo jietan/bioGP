@@ -253,12 +253,11 @@ int main(int argc, char* argv[])
 	Client myClient;
 	SetupMocapClient(&myClient);
 
-    World* myWorld = new World;
+	WorldConstructor::Construct();
+	World* myWorld = WorldConstructor::msWorld;
 	double playBackSpeed = 1.0;
 	DecoConfig::GetSingleton()->GetDouble("Mocap", "PlaybackSpeed", playBackSpeed);
 	WorldConstructor::msTimeStep = playBackSpeed * 0.017;
-    
-	WorldConstructor::Construct(myWorld);
 
 	AddMarkers(WorldConstructor::msHumanoid->robot());
 	//Eigen::VectorXd q6 = Eigen::VectorXd::Zero(6);

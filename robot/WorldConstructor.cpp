@@ -8,6 +8,7 @@ bioloidgp::robot::HumanoidController* WorldConstructor::msHumanoid = NULL;
 double WorldConstructor::msTimeStep = 0.0002;
 ControllerData WorldConstructor::msCData;
 SystemIdentificationData WorldConstructor::msIdData;
+int WorldConstructor::mWorldId = 0;
 
 void WorldConstructor::Debug()
 {
@@ -40,11 +41,18 @@ void WorldConstructor::Debug()
 
 }
 
+
+int WorldConstructor::GetWorldId()
+{
+	return mWorldId;
+}
+
 void WorldConstructor::Construct()
 {
 	msWorld = new World();
 	int worldId = 0;
 	DecoConfig::GetSingleton()->GetInt("Sim", "World", worldId);
+	mWorldId = worldId;
 	switch (worldId)
 	{
 	case 0:

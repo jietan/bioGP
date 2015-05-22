@@ -136,7 +136,9 @@ int main(int argc, char* argv[])
     srand( (unsigned int) time (NULL) );
 	DecoConfig::GetSingleton()->Init("../config.ini");
 
-    World* myWorld = new World;
+	WorldConstructor::Construct();
+	World* myWorld = WorldConstructor::msWorld;
+    
     myWorld->setTimeStep(0.017);
 
 
@@ -160,8 +162,6 @@ int main(int argc, char* argv[])
     // Set gravity of the world
    // myWorld->setGravity(Eigen::Vector3d(0.0, -9.81, 0.0));
 
-	
-	WorldConstructor::Construct(myWorld);
 	AddMarkers(WorldConstructor::msHumanoid);
 	MyWindow window(WorldConstructor::msHumanoid);
     

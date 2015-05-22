@@ -33,16 +33,19 @@ public:
 	static void Construct();
 	static void Destroy();
 	static void Debug();
+	static int GetWorldId();
 	static bioloidgp::robot::HumanoidController* msHumanoid;
 	static World* msWorld;
 	static ControllerData msCData;
 	static SystemIdentificationData msIdData;
 	static double msTimeStep;
+	static int mWorldId;
 private:
 	static void commonConstruction(World* world);
 	static void constructWallWorld(World* world);
 	static void constructChairWorld(World* world);
 	static void constructKneelWorld(World* world);
+	
 };
 
 

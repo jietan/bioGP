@@ -65,7 +65,7 @@
     <IncludePath>C:\Golems\include;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master-4.3;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master-4.3\build;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FastDebug|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -141,7 +141,6 @@
       <AdditionalLibraryDirectories>C:\Golems\lib;C:\Users\JieTan\Documents\MyProjects\bioloid\dart-master-4.3\build\lib\Release;..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration />
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
-      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

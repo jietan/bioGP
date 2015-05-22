@@ -87,7 +87,7 @@ private:
 	int findNearestBodyMarker(const Eigen::Vector3d& markerPos);
 	void buildMarkerDistanceField();
 	vector<vector<double> > computeMarkerDistances(const vector<Eigen::Vector3d>& unsortedTopMarkerPos, const vector<int>& unsortedTopMarkerOccluded) const;
-	void reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d>& topMarkerPos, vector<int>& topMarkerOcculuded, vector<int>& markersMapping);
+	bool reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d>& topMarkerPos, vector<int>& topMarkerOcculuded, vector<int>& markersMapping);
 	double computeDistanceOfMarkerDistances(const vector<int>& labelCandidate, const vector<vector<double> >& currentMarkerDistance, const vector<int>& isMarkerOccluded);
 
 	double mTime;
