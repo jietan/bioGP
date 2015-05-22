@@ -68,6 +68,8 @@ HumanoidController::HumanoidController(
 	}
 	mBodyMassesByURDF = getBodyMasses();
 	mBodyInertiaByURDF = getBodyInertia();
+	mBodyCOMByURDF.resize(1);
+	mBodyCOMByURDF[0] = robot()->getBodyNode(0)->getLocalCOM();
 	//DecoConfig::GetSingleton()->GetDouble("Sim", "Latency", mLatency);
 	//robot()->getBodyNode("l_foot")->setRestitutionCoeff(1.0);
 	//robot()->getBodyNode("r_foot")->setRestitutionCoeff(1.0);
@@ -595,11 +597,18 @@ void HumanoidController::setActuatorGains(const Eigen::VectorXd& gainRatio)
 	mActuatorFriction = gainRatio[2] * mGainsByMeasurement[2];
 }
 
+void HumanoidController::setCenterOfMassOffset(const Eigen::VectorXd& comShift)
+{
+	Eigen::Vector3d newCOM = mBodyCOMByURDF[0] + Eigen::Vector3d(0, comShift[0], comShift[1]);
+	robot()->getBodyNode(0)->setLocalCOM(newCOM);
+}
+
 void HumanoidController::setSystemIdData(const SystemIdentificationData& sIdData)
 {
 	setBodyMassesByRatio(sIdData.mMassRatio);
 	setBodyInertiaByRatio(sIdData.mMassRatio);
 	setActuatorGains(sIdData.mGainRatio);
+	setCenterOfMassOffset(sIdData.mCOMOffset);
 }
 void HumanoidController::setBodyMassesByRatio(const Eigen::VectorXd& ratios)
 {

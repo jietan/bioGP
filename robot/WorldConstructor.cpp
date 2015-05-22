@@ -208,12 +208,28 @@ void WorldConstructor::constructKneelWorld(World* world)
 	msHumanoid->setInitialPose(mtvInitPose);
 
 	Eigen::VectorXd first6Dofs = Eigen::VectorXd::Zero(6);
-	DecoConfig::GetSingleton()->GetVectorXd("Sim", "Initial6Dofs", first6Dofs);
-	//first6Dofs << -1.85, 0, 0, 0, 0.235, -0.02;
+	//DecoConfig::GetSingleton()->GetVectorXd("Sim", "Initial6Dofs", first6Dofs);
+	//first6Dofs << -1.4, 0, 0, 0, 0.206, 0;
+	first6Dofs << -1.328514851378874, -0.01304727359099908, 0.01469150902990003, 0.0009582401251999403, 0.2044851807667352, -0.002224987479213158;
 	msHumanoid->setInitialFirst6Dofs(first6Dofs);
 	msHumanoid->motion()->loadMTN("../../data/mtn/sitPose.mtn", "kneel-to-stand");
 	msHumanoid->reset();
 	
 	msCData.ReadFromFile("../../data/controller/kneel-to-stand.txt");
 	msHumanoid->motion()->setControllerData(msCData);
+
+	int isUseSystemId = 0;
+	DecoConfig::GetSingleton()->GetInt("Sim", "IsUseSystemId", isUseSystemId);
+	if (isUseSystemId)
+	{
+		msIdData.ReadFromFile("../../data/systemIdentification/kneel-to-stand/sim1.txt");
+		msHumanoid->setSystemIdData(msIdData);
+		msHumanoid->robot()->computeForwardKinematics(true, true, false);
+	}
+
+	double totalMass = 0.0;
+	for (size_t i = 0; i < msHumanoid->robot()->getNumBodyNodes(); i++)
+		totalMass += msHumanoid->robot()->getBodyNode(i)->getMass();
+
+	LOG(INFO) << "The total mass: " << totalMass;
 }

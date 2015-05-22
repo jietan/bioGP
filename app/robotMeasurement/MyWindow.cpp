@@ -99,21 +99,46 @@ MyWindow::MyWindow(bioloidgp::robot::HumanoidController* _controller)
 	bool result = fromMarkersTo6Dofs(topMarkersPos, topMarkesOcculuded, first6Dofs);
 	Eigen::VectorXd default6Dofs = mController->robot()->getPositions().head(6);
 	
-	Eigen::Matrix3d default = dart::math::expMapRot(default6Dofs.head(3));
-	Eigen::Vector3d defaultEulerAngle = default.eulerAngles(0, 2, 1);
-	Eigen::Matrix3d mocaped = dart::math::expMapRot(first6Dofs.head(3));
-	Eigen::Vector3d mocapedEulerAngle = mocaped.eulerAngles(0, 2, 1);
-	Eigen::Matrix3d offsetRotation;
-	offsetRotation = Eigen::AngleAxisd(defaultEulerAngle[1] - mocapedEulerAngle[1], Eigen::Vector3d::UnitY());
-	//Eigen::Matrix3d offsetRotation = default * mocaped.inverse();
+	//Eigen::Matrix3d default = dart::math::expMapRot(default6Dofs.head(3));
+	//Eigen::Vector3d defaultEulerAngle = default.eulerAngles(0, 2, 1);
+	//Eigen::Matrix3d mocaped = dart::math::expMapRot(first6Dofs.head(3));
+	//Eigen::Vector3d mocapedEulerAngle = mocaped.eulerAngles(0, 2, 1);
 
+	// find out the best y-axis rotation that aligns the captured markers with the default markers.
 	int nFrames = static_cast<int>(mMeasuredFrames.size());
-	for (int i = 0; i < nFrames; ++i)
+	const vector<dart::dynamics::Marker*>& markers = mController->getMarkers();
+	if (nFrames)
 	{
-		for (int j = 0; j < nMarkers; ++j)
-			mMeasuredFrames[i].mMarkerPos[j] = offsetRotation * (mMeasuredFrames[i].mMarkerPos[j] - first6Dofs.tail(3)) + default6Dofs.tail(3);
-	}
+		Eigen::Matrix3d offsetRotation;
+		double step = 1.0;
+		double currentAngle = 0;
+		double minMisalginment = MAX_DOUBLE;
+		double minAngle = 0;
+		while (currentAngle < 360.0)
+		{
+			offsetRotation = Eigen::AngleAxisd(currentAngle, Eigen::Vector3d::UnitY());
+			double misalginment = 0;
+			for (int j = 0; j < NUM_TOP_MARKERS; ++j)
+			{
+				Eigen::Vector3d alignedMarkerPos = offsetRotation * (topMarkersPos[j] - first6Dofs.tail(3)) + default6Dofs.tail(3);
+				misalginment += (alignedMarkerPos - markers[j]->getWorldPosition()).norm();
+			}
+			if (misalginment < minMisalginment)
+			{
+				minMisalginment = misalginment;
+				minAngle = currentAngle;
+			}
+			currentAngle += step;
+		}
 
+		//Eigen::Matrix3d offsetRotation = default * mocaped.inverse();
+		offsetRotation = Eigen::AngleAxisd(minAngle, Eigen::Vector3d::UnitY());
+		for (int i = 0; i < nFrames; ++i)
+		{
+			for (int j = 0; j < nMarkers; ++j)
+				mMeasuredFrames[i].mMarkerPos[j] = offsetRotation * (mMeasuredFrames[i].mMarkerPos[j] - first6Dofs.tail(3)) + default6Dofs.tail(3);
+		}
+	}
 	glutTimerFunc(mDisplayTimeout, refreshTimer, 0);
 
 }
@@ -199,7 +224,7 @@ bool MyWindow::reorderTopMarkers(const MocapFrame& frame, vector<Eigen::Vector3d
 	int worldId = WorldConstructor::GetWorldId();
 	double topMarkerHeightThreshold = 0.2;
 	if (worldId == 2)
-		topMarkerHeightThreshold = 0.08;
+		topMarkerHeightThreshold = 0.1;
 		
 	int nVisibleMarkers = 0;
 	for (int i = 0; i < NUM_MARKERS; ++i)

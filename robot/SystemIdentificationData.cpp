@@ -7,9 +7,11 @@
 #define MAX_MASSRATIO 1.5
 #define MIN_GAINRATIO 0.1
 #define MAX_GAINRATIO 2
+#define MIN_COM -0.02
+#define MAX_COM 0.02
 
 
-SystemIdentificationData::SystemIdentificationData() : mbSearchMass(1), mbSearchGain(1)
+SystemIdentificationData::SystemIdentificationData() : mbSearchMass(1), mbSearchGain(1), mbSearchCOM(1)
 {
 
 }
@@ -29,9 +31,16 @@ void SystemIdentificationData::ReadFromFile(const string& filename)
 	mGainRatio = Eigen::VectorXd::Zero(dim);
 	for (int i = 0; i < dim; ++i)
 		inFile >> mGainRatio[i];
+	inFile >> dim;
+	mCOMOffset = Eigen::VectorXd::Zero(dim);
+	for (int i = 0; i < dim; ++i)
+	{
+		inFile >> mCOMOffset[i];
+	}
 
 	DecoConfig::GetSingleton()->GetInt("CMA", "isSearchMass", mbSearchMass);
 	DecoConfig::GetSingleton()->GetInt("CMA", "isSearchGain", mbSearchGain);
+	DecoConfig::GetSingleton()->GetInt("CMA", "isSearchCOM", mbSearchCOM);
 	mLowerBound.clear();
 	mUpperBound.clear();
 	if (mbSearchMass)
@@ -53,6 +62,16 @@ void SystemIdentificationData::ReadFromFile(const string& filename)
 			mUpperBound.push_back(MAX_GAINRATIO);
 		}
 	}
+
+	if (mbSearchCOM)
+	{
+		int nCOMParameters = static_cast<int>(mCOMOffset.size());
+		for (int i = 0; i < nCOMParameters; ++i)
+		{
+			mLowerBound.push_back(MIN_COM);
+			mUpperBound.push_back(MAX_COM);
+		}
+	}
 }
 
 
@@ -63,6 +82,8 @@ int SystemIdentificationData::GetNumParameters() const
 		n += static_cast<int>(mMassRatio.size());
 	if (mbSearchGain)
 		n += static_cast<int>(mGainRatio.size());
+	if (mbSearchCOM)
+		n += static_cast<int>(mCOMOffset.size());
 	return n;
 }
 void SystemIdentificationData::GetParameterLowerBounds(double* lb)
@@ -85,6 +106,8 @@ void SystemIdentificationData::GetParameterUpperBounds(double* ub)
 void SystemIdentificationData::FromParameterSetting(double* param)
 {
 	int nMassRatios = 0;
+	int nGainRatios = 0;
+	int nCOM = 0;
 	if (mbSearchMass)
 	{
 		nMassRatios = static_cast<int>(mMassRatio.size());
@@ -96,10 +119,18 @@ void SystemIdentificationData::FromParameterSetting(double* param)
 	}
 	if (mbSearchGain)
 	{
-		int nGainRatios = static_cast<int>(mGainRatio.size());
+		nGainRatios = static_cast<int>(mGainRatio.size());
 		for (int i = 0; i < nGainRatios; ++i)
 		{
 			mGainRatio[i] = param[i + nMassRatios] * (mUpperBound[i + nMassRatios] - mLowerBound[i + nMassRatios]) + mLowerBound[i + nMassRatios];
+		}
+	}
+	if (mbSearchCOM)
+	{
+		nCOM = static_cast<int>(mCOMOffset.size());
+		for (int i = 0; i < nCOM; ++i)
+		{
+			mCOMOffset[i] = param[i + nMassRatios + nGainRatios] * (mUpperBound[i + nMassRatios + nGainRatios] - mLowerBound[i + nMassRatios + nGainRatios]) + mLowerBound[i + nMassRatios + nGainRatios];
 		}
 	}
 
@@ -116,4 +147,6 @@ void SystemIdentificationData::ApplyToController(bioloidgp::robot::HumanoidContr
 	}
 	if (mbSearchGain)
 		controller->setActuatorGains(mGainRatio);
+	if (mbSearchCOM)
+		controller->setCenterOfMassOffset(mCOMOffset);
 }

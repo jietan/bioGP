@@ -5,6 +5,7 @@
 #include "Motion.h"
 #include "dart/simulation/World.h"
 #include "dart/dynamics/Skeleton.h"
+#include "WorldConstructor.h"
 
 
 double evalController(dart::simulation::World* world, bioloidgp::robot::HumanoidController* controller, CMAData* cData, int pop_id, double* timerPerStep)
@@ -42,7 +43,9 @@ double evalController(dart::simulation::World* world, bioloidgp::robot::Humanoid
 double evalSystemId(dart::simulation::World* world, bioloidgp::robot::HumanoidController* controller, CMAData* cData, int pop_id, double* timerPerStep)
 {
 	double reward = 0;
-	const double testTime = 1.4;
+	double testTime = 1.4;
+	if (WorldConstructor::GetWorldId() == 2)
+		testTime = 1.1;
 	while (world->getTime() < testTime)
 	{
 		double t = world->getTime();

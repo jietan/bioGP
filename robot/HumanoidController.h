@@ -74,7 +74,7 @@ public:
 	void setBodyInertia(const vector<Eigen::VectorXd>& inertia);
 	void setBodyInertiaByRatio(const Eigen::VectorXd& ratios);
 	void setActuatorGains(const Eigen::VectorXd& gainRatio);
-
+	void setCenterOfMassOffset(const Eigen::VectorXd& comShift);
 	void setMarkers(const vector<dart::dynamics::Marker*> markers);
 	const vector<dart::dynamics::Marker*>& getMarkers() const;
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
@@ -99,6 +99,7 @@ public:
 	Eigen::Vector3d mInitialCOM;
 	Eigen::VectorXd mBodyMassesByURDF;
 	vector<Eigen::VectorXd> mBodyInertiaByURDF;
+	vector<Eigen::Vector3d> mBodyCOMByURDF;
 	Eigen::VectorXd mGainsByMeasurement;
 	double mActuatorFriction;
 	bool mIsCOMInitialized;
