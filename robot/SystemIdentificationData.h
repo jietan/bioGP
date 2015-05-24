@@ -12,7 +12,7 @@ class SystemIdentificationData : public CMAData
 public:
 	Eigen::VectorXd mMassRatio;
 	Eigen::VectorXd mGainRatio;
-	Eigen::VectorXd mCOMOffset;
+	Eigen::VectorXd mCOMOffsetRatio;
 	vector<double> mLowerBound;
 	vector<double> mUpperBound;
 	int mbSearchMass;

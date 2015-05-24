@@ -240,7 +240,7 @@ void MyWindow::drawSkels()
             continue;
         }
         mWorld->getSkeleton(i)->draw(mRI);
-        // {
+        // {draw
         //     Eigen::Vector3d C = mWorld->getSkeleton(i)->getWorldCOM();
         //     glPushMatrix();
         //     glTranslated(C(0), C(1), C(2));
@@ -249,11 +249,26 @@ void MyWindow::drawSkels()
         // }
         
     }
-	Eigen::Vector3d C = mWorld->getSkeleton(0)->getWorldCOM();
-	glPushMatrix();
-	glTranslated(C(0), C(1), C(2));
-	bioloidgp::utils::renderAxis(1.0);
-	glPopMatrix();
+	//Eigen::Vector3d C = mWorld->getSkeleton(0)->getWorldCOM();
+	//glPushMatrix();
+	//glTranslated(C(0), C(1), C(2));
+	//bioloidgp::utils::renderAxis(1.0);
+	//glPopMatrix();
+
+	dart::dynamics::Skeleton* skel = mController->robot();
+	int nBodies = static_cast<int>(skel->getNumBodyNodes());
+	for (int i = 0; i < nBodies; ++i)
+	{
+		//if (i == 13 || i == 14)
+		{
+			Eigen::Vector3d c = skel->getBodyNode(i)->getWorldCOM();
+			glPushMatrix();
+			glTranslated(c(0), c(1), c(2));
+			bioloidgp::utils::renderAxis(0.1);
+			glPopMatrix();
+
+		}
+	}
 
 }
 

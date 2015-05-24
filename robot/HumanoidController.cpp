@@ -66,10 +66,12 @@ HumanoidController::HumanoidController(
 		DecoConfig::GetSingleton()->GetString("Sim", "HybridDynamicsMotionFile", hybridDynamicsMotionFileName);
 		readMovieFile(hybridDynamicsMotionFileName);
 	}
+	buildCorrespondingBodyIdAndSysIdentificationId();
+	buildCOMShiftMapping();
 	mBodyMassesByURDF = getBodyMasses();
 	mBodyInertiaByURDF = getBodyInertia();
-	mBodyCOMByURDF.resize(1);
-	mBodyCOMByURDF[0] = robot()->getBodyNode(0)->getLocalCOM();
+	mBodyCOMByURDF = getBodyCOMs();
+	mBodyDimByURDF = getBodyDims();
 	//DecoConfig::GetSingleton()->GetDouble("Sim", "Latency", mLatency);
 	//robot()->getBodyNode("l_foot")->setRestitutionCoeff(1.0);
 	//robot()->getBodyNode("r_foot")->setRestitutionCoeff(1.0);
@@ -487,93 +489,138 @@ const std::vector<std::vector<CollisionSphere> >& HumanoidController::getCollisi
 	return mCollisionSpheres;
 }
 
+void HumanoidController::buildCOMShiftMapping()
+{
+	mCOMShiftMapping.resize(17);
+	mCOMShiftMapping[0].first = Eigen::Vector2i(1, 2);
+	mCOMShiftMapping[0].second = Eigen::Vector2i(-1, 1);
+	mCOMShiftMapping[1].first = Eigen::Vector2i(2, 0);
+	mCOMShiftMapping[1].second = Eigen::Vector2i(1, 1);
+	mCOMShiftMapping[3].first = Eigen::Vector2i(2, 0);
+	mCOMShiftMapping[3].second = Eigen::Vector2i(1, -1);
+	mCOMShiftMapping[2].first = Eigen::Vector2i(0, 2);
+	mCOMShiftMapping[2].second = Eigen::Vector2i(1, -1);
+	mCOMShiftMapping[4].first = Eigen::Vector2i(0, 2);
+	mCOMShiftMapping[4].second = Eigen::Vector2i(-1, -1);
+	mCOMShiftMapping[5].first = Eigen::Vector2i(0, 1);
+	mCOMShiftMapping[5].second = Eigen::Vector2i(1, 1);
+	mCOMShiftMapping[7].first = Eigen::Vector2i(0, 1);
+	mCOMShiftMapping[7].second = Eigen::Vector2i(-1, 1);
+	mCOMShiftMapping[6].first = Eigen::Vector2i(2, 1);
+	mCOMShiftMapping[6].second = Eigen::Vector2i(1, 1);
+	mCOMShiftMapping[8].first = Eigen::Vector2i(2, 1);
+	mCOMShiftMapping[8].second = Eigen::Vector2i(1, 1);
+	mCOMShiftMapping[9].first = Eigen::Vector2i(2, 1);
+	mCOMShiftMapping[9].second = Eigen::Vector2i(1, -1);
+	mCOMShiftMapping[11].first = Eigen::Vector2i(2, 1);
+	mCOMShiftMapping[11].second = Eigen::Vector2i(1, -1);
+	mCOMShiftMapping[10].first = Eigen::Vector2i(2, 1);
+	mCOMShiftMapping[10].second = Eigen::Vector2i(-1, 1);
+	mCOMShiftMapping[12].first = Eigen::Vector2i(2, 1);
+	mCOMShiftMapping[12].second = Eigen::Vector2i(1, -1);
+	mCOMShiftMapping[13].first = Eigen::Vector2i(1, 0);
+	mCOMShiftMapping[13].second = Eigen::Vector2i(-1, -1);
+	mCOMShiftMapping[14].first = Eigen::Vector2i(1, 0);
+	mCOMShiftMapping[14].second = Eigen::Vector2i(-1, -1);
+
+	mCOMShiftMapping[15].first = Eigen::Vector2i(0, 1);
+	mCOMShiftMapping[15].second = Eigen::Vector2i(-1, -1);
+	mCOMShiftMapping[16].first = Eigen::Vector2i(0, 1);
+	mCOMShiftMapping[16].second = Eigen::Vector2i(-1, -1);
+}
+void HumanoidController::buildCorrespondingBodyIdAndSysIdentificationId()
+{
+	mBodyIdToSystemIdentificationId.resize(17);
+	mBodyIdToSystemIdentificationId[0] = 0;
+	mBodyIdToSystemIdentificationId[1] = 1;
+	mBodyIdToSystemIdentificationId[3] = 1;
+	mBodyIdToSystemIdentificationId[2] = 2;
+	mBodyIdToSystemIdentificationId[4] = 2;
+	mBodyIdToSystemIdentificationId[5] = 3;
+	mBodyIdToSystemIdentificationId[7] = 3;
+	mBodyIdToSystemIdentificationId[6] = 4;
+	mBodyIdToSystemIdentificationId[8] = 4;
+	mBodyIdToSystemIdentificationId[9] = 5;
+	mBodyIdToSystemIdentificationId[11] = 5;
+	mBodyIdToSystemIdentificationId[10] = 6;
+	mBodyIdToSystemIdentificationId[12] = 6;
+	mBodyIdToSystemIdentificationId[13] = 7;
+	mBodyIdToSystemIdentificationId[14] = 7;
+	mBodyIdToSystemIdentificationId[15] = 8;
+	mBodyIdToSystemIdentificationId[16] = 8;
+
+	mSystemIdentificationIdToBodyId.resize(9);
+	mSystemIdentificationIdToBodyId[0] = 0; //torso
+	mSystemIdentificationIdToBodyId[1] = 1; //hip
+	mSystemIdentificationIdToBodyId[2] = 2; //shoulder
+	mSystemIdentificationIdToBodyId[3] = 5; //thigh
+	mSystemIdentificationIdToBodyId[4] = 6; //arm
+	mSystemIdentificationIdToBodyId[5] = 9; //shin
+	mSystemIdentificationIdToBodyId[6] = 10;//hand
+	mSystemIdentificationIdToBodyId[7] = 13; //heel
+	mSystemIdentificationIdToBodyId[8] = 15; //foot
+}
+
 Eigen::VectorXd HumanoidController::getBodyMasses() const
 {
-	Eigen::VectorXd ret = Eigen::VectorXd::Zero(9);
-	ret[0] = robot()->getBodyNode(0)->getMass(); //torso
-	ret[1] = robot()->getBodyNode(1)->getMass(); //hip
-	ret[2] = robot()->getBodyNode(2)->getMass(); //shoulder
-	ret[3] = robot()->getBodyNode(5)->getMass(); //thigh
-	ret[4] = robot()->getBodyNode(6)->getMass(); //arm
-	ret[5] = robot()->getBodyNode(9)->getMass(); //shin
-	ret[6] = robot()->getBodyNode(10)->getMass();//hand
-	ret[7] = robot()->getBodyNode(13)->getMass(); //heel
-	ret[8] = robot()->getBodyNode(15)->getMass(); //foot
-	
+	int nSysIdBodies = static_cast<int>(mSystemIdentificationIdToBodyId.size());
+	Eigen::VectorXd ret = Eigen::VectorXd::Zero(nSysIdBodies);
+	for (int i = 0; i < nSysIdBodies; ++i)
+	{
+		ret[i] = robot()->getBodyNode(mSystemIdentificationIdToBodyId[i])->getMass(); 
+	}
 	return ret;
 }
-void HumanoidController::setBodyMasses(const Eigen::VectorXd& masses)
-{
-	robot()->getBodyNode(0)->setMass(masses[0]);
-
-	robot()->getBodyNode(1)->setMass(masses[1]);
-	robot()->getBodyNode(3)->setMass(masses[1]);
-
-	robot()->getBodyNode(2)->setMass(masses[2]);
-	robot()->getBodyNode(4)->setMass(masses[2]);
-
-	robot()->getBodyNode(5)->setMass(masses[3]);
-	robot()->getBodyNode(7)->setMass(masses[3]);
-
-	robot()->getBodyNode(6)->setMass(masses[4]);
-	robot()->getBodyNode(8)->setMass(masses[4]);
-
-	robot()->getBodyNode(9)->setMass(masses[5]);
-	robot()->getBodyNode(11)->setMass(masses[5]);
-
-	robot()->getBodyNode(10)->setMass(masses[6]);
-	robot()->getBodyNode(12)->setMass(masses[6]);
-
-	robot()->getBodyNode(13)->setMass(masses[7]);
-	robot()->getBodyNode(14)->setMass(masses[7]);
-
-	robot()->getBodyNode(15)->setMass(masses[8]);
-	robot()->getBodyNode(16)->setMass(masses[8]);
-
-}
-
 vector<Eigen::VectorXd> HumanoidController::getBodyInertia() const
 {
 	vector<Eigen::VectorXd> inertia;
-	inertia.resize(9, Eigen::VectorXd::Zero(6));
-	robot()->getBodyNode(0)->getMomentOfInertia(inertia[0][0], inertia[0][1], inertia[0][2], inertia[0][3], inertia[0][4], inertia[0][5]); //torso
-	robot()->getBodyNode(1)->getMomentOfInertia(inertia[1][0], inertia[1][1], inertia[1][2], inertia[1][3], inertia[1][4], inertia[1][5]); //hip
-	robot()->getBodyNode(2)->getMomentOfInertia(inertia[2][0], inertia[2][1], inertia[2][2], inertia[2][3], inertia[2][4], inertia[2][5]); //shoulder
-	robot()->getBodyNode(5)->getMomentOfInertia(inertia[3][0], inertia[3][1], inertia[3][2], inertia[3][3], inertia[3][4], inertia[3][5]); //thigh
-	robot()->getBodyNode(6)->getMomentOfInertia(inertia[4][0], inertia[4][1], inertia[4][2], inertia[4][3], inertia[4][4], inertia[4][5]); //arm
-	robot()->getBodyNode(9)->getMomentOfInertia(inertia[5][0], inertia[5][1], inertia[5][2], inertia[5][3], inertia[5][4], inertia[5][5]); //shin
-	robot()->getBodyNode(10)->getMomentOfInertia(inertia[6][0], inertia[6][1], inertia[6][2], inertia[6][3], inertia[6][4], inertia[6][5]);//hand
-	robot()->getBodyNode(13)->getMomentOfInertia(inertia[7][0], inertia[7][1], inertia[7][2], inertia[7][3], inertia[7][4], inertia[7][5]); //heel
-	robot()->getBodyNode(15)->getMomentOfInertia(inertia[8][0], inertia[8][1], inertia[8][2], inertia[8][3], inertia[8][4], inertia[8][5]); //foot
+	int nSysIdBodies = static_cast<int>(mSystemIdentificationIdToBodyId.size());
+	inertia.resize(nSysIdBodies, Eigen::VectorXd::Zero(6));
+	for (int i = 0; i < nSysIdBodies; ++i)
+	{
+		robot()->getBodyNode(mSystemIdentificationIdToBodyId[i])->getMomentOfInertia(inertia[i][0], inertia[i][1], inertia[i][2], inertia[i][3], inertia[i][4], inertia[i][5]); //torso
+	}
 	return inertia;
 }
+vector<Eigen::Vector3d> HumanoidController::getBodyCOMs() const
+{
+	int nBodies = static_cast<int>(mBodyIdToSystemIdentificationId.size());
+	vector<Eigen::Vector3d> ret(nBodies, Eigen::Vector3d::Zero());
+	for (int i = 0; i < nBodies; ++i)
+	{
+		ret[i] = robot()->getBodyNode(i)->getLocalCOM();
+	}
+	return ret;
+}
+vector<Eigen::Vector3d> HumanoidController::getBodyDims() const
+{
+	int nSysIdBodies = static_cast<int>(mSystemIdentificationIdToBodyId.size());
+	vector<Eigen::Vector3d> ret(nSysIdBodies, Eigen::Vector3d::Zero());
+	for (int i = 0; i < nSysIdBodies; ++i)
+	{
+		ret[i] = robot()->getBodyNode(mSystemIdentificationIdToBodyId[i])->getVisualizationShape(0)->getBoundingBoxDim();
+	}
+	return ret;
+}
+
+void HumanoidController::setBodyMasses(const Eigen::VectorXd& masses)
+{
+	int nBodies = static_cast<int>(mBodyIdToSystemIdentificationId.size());
+	for (int i = 0; i < nBodies; ++i)
+	{
+		robot()->getBodyNode(i)->setMass(masses[mBodyIdToSystemIdentificationId[i]]);
+	}
+}
+
+
 void HumanoidController::setBodyInertia(const vector<Eigen::VectorXd>& inertia)
 {
-	robot()->getBodyNode(0)->setMomentOfInertia(inertia[0][0], inertia[0][1], inertia[0][2], inertia[0][3], inertia[0][4], inertia[0][5]);
-
-	robot()->getBodyNode(1)->setMomentOfInertia(inertia[1][0], inertia[1][1], inertia[1][2], inertia[1][3], inertia[1][4], inertia[1][5]);
-	robot()->getBodyNode(3)->setMomentOfInertia(inertia[1][0], inertia[1][1], inertia[1][2], inertia[1][3], inertia[1][4], inertia[1][5]);
-
-	robot()->getBodyNode(2)->setMomentOfInertia(inertia[2][0], inertia[2][1], inertia[2][2], inertia[2][3], inertia[2][4], inertia[2][5]);
-	robot()->getBodyNode(4)->setMomentOfInertia(inertia[2][0], inertia[2][1], inertia[2][2], inertia[2][3], inertia[2][4], inertia[2][5]);
-
-	robot()->getBodyNode(5)->setMomentOfInertia(inertia[3][0], inertia[3][1], inertia[3][2], inertia[3][3], inertia[3][4], inertia[3][5]);
-	robot()->getBodyNode(7)->setMomentOfInertia(inertia[3][0], inertia[3][1], inertia[3][2], inertia[3][3], inertia[3][4], inertia[3][5]);
-
-	robot()->getBodyNode(6)->setMomentOfInertia(inertia[4][0], inertia[4][1], inertia[4][2], inertia[4][3], inertia[4][4], inertia[4][5]);
-	robot()->getBodyNode(8)->setMomentOfInertia(inertia[4][0], inertia[4][1], inertia[4][2], inertia[4][3], inertia[4][4], inertia[4][5]);
-
-	robot()->getBodyNode(9)->setMomentOfInertia(inertia[5][0], inertia[5][1], inertia[5][2], inertia[5][3], inertia[5][4], inertia[5][5]);
-	robot()->getBodyNode(11)->setMomentOfInertia(inertia[5][0], inertia[5][1], inertia[5][2], inertia[5][3], inertia[5][4], inertia[5][5]);
-
-	robot()->getBodyNode(10)->setMomentOfInertia(inertia[6][0], inertia[6][1], inertia[6][2], inertia[6][3], inertia[6][4], inertia[6][5]);
-	robot()->getBodyNode(12)->setMomentOfInertia(inertia[6][0], inertia[6][1], inertia[6][2], inertia[6][3], inertia[6][4], inertia[6][5]);
-
-	robot()->getBodyNode(13)->setMomentOfInertia(inertia[7][0], inertia[7][1], inertia[7][2], inertia[7][3], inertia[7][4], inertia[7][5]);
-	robot()->getBodyNode(14)->setMomentOfInertia(inertia[7][0], inertia[7][1], inertia[7][2], inertia[7][3], inertia[7][4], inertia[7][5]);
-
-	robot()->getBodyNode(15)->setMomentOfInertia(inertia[8][0], inertia[8][1], inertia[8][2], inertia[8][3], inertia[8][4], inertia[8][5]);
-	robot()->getBodyNode(16)->setMomentOfInertia(inertia[8][0], inertia[8][1], inertia[8][2], inertia[8][3], inertia[8][4], inertia[8][5]);
+	int nBodies = static_cast<int>(mBodyIdToSystemIdentificationId.size());
+	for (int i = 0; i < nBodies; ++i)
+	{
+		int idx = mBodyIdToSystemIdentificationId[i];
+		robot()->getBodyNode(i)->setMomentOfInertia(inertia[idx][0], inertia[idx][1], inertia[idx][2], inertia[idx][3], inertia[idx][4], inertia[idx][5]);
+	}
 
 }
 void HumanoidController::setBodyInertiaByRatio(const Eigen::VectorXd& ratios)
@@ -597,10 +644,40 @@ void HumanoidController::setActuatorGains(const Eigen::VectorXd& gainRatio)
 	mActuatorFriction = gainRatio[2] * mGainsByMeasurement[2];
 }
 
-void HumanoidController::setCenterOfMassOffset(const Eigen::VectorXd& comShift)
+void HumanoidController::setCenterOfMassOffsetByRatio(const Eigen::VectorXd& comShiftRatio)
 {
-	Eigen::Vector3d newCOM = mBodyCOMByURDF[0] + Eigen::Vector3d(0, comShift[0], comShift[1]);
-	robot()->getBodyNode(0)->setLocalCOM(newCOM);
+	
+	const int nParamsPerBody = 2;
+	int nSysIdBodies = comShiftRatio.size() / nParamsPerBody;
+	int nBodies = static_cast<int>(mBodyIdToSystemIdentificationId.size());
+	vector<Eigen::Vector3d> comShift(nBodies, Eigen::Vector3d::Zero());
+	for (int i = 0; i < nBodies; ++i)
+	{
+		int idx = mBodyIdToSystemIdentificationId[i];
+		comShift[i] = Eigen::Vector3d::Zero();
+
+		int dim1 = mCOMShiftMapping[i].first[0];
+		int sign1 = mCOMShiftMapping[i].second[0];
+		int dim2 = mCOMShiftMapping[i].first[1];
+		int sign2 = mCOMShiftMapping[i].second[1];
+
+		double realCOMShift1 = comShiftRatio[idx * nParamsPerBody + 0] * mBodyDimByURDF[idx][dim1];
+		double realCOMShift2 = comShiftRatio[idx * nParamsPerBody + 1] * mBodyDimByURDF[idx][dim2];
+		comShift[i][dim1] = sign1 * realCOMShift1;
+		comShift[i][dim2] = sign2 * realCOMShift2;
+	}
+	setCenterOfMassOffset(comShift);
+	
+}
+
+void HumanoidController::setCenterOfMassOffset(const vector<Eigen::Vector3d>& comShift)
+{
+	int nBodies = static_cast<int>(mBodyIdToSystemIdentificationId.size());
+	for (int i = 0; i < nBodies; ++i)
+	{
+		Eigen::Vector3d newCOM = mBodyCOMByURDF[i] + comShift[i];
+		robot()->getBodyNode(i)->setLocalCOM(newCOM);
+	}
 }
 
 void HumanoidController::setSystemIdData(const SystemIdentificationData& sIdData)
@@ -608,7 +685,7 @@ void HumanoidController::setSystemIdData(const SystemIdentificationData& sIdData
 	setBodyMassesByRatio(sIdData.mMassRatio);
 	setBodyInertiaByRatio(sIdData.mMassRatio);
 	setActuatorGains(sIdData.mGainRatio);
-	setCenterOfMassOffset(sIdData.mCOMOffset);
+	setCenterOfMassOffsetByRatio(sIdData.mCOMOffsetRatio);
 }
 void HumanoidController::setBodyMassesByRatio(const Eigen::VectorXd& ratios)
 {

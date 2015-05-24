@@ -3,12 +3,12 @@
 #include "HumanoidController.h"
 #include "myUtils/ConfigManager.h"
 
-#define MIN_MASSRAITO 0.5
+#define MIN_MASSRAITO 0.9
 #define MAX_MASSRATIO 1.5
 #define MIN_GAINRATIO 0.1
 #define MAX_GAINRATIO 2
-#define MIN_COM -0.02
-#define MAX_COM 0.02
+#define MIN_COMRATIO -0.2
+#define MAX_COMRATIO 0.2
 
 
 SystemIdentificationData::SystemIdentificationData() : mbSearchMass(1), mbSearchGain(1), mbSearchCOM(1)
@@ -32,10 +32,10 @@ void SystemIdentificationData::ReadFromFile(const string& filename)
 	for (int i = 0; i < dim; ++i)
 		inFile >> mGainRatio[i];
 	inFile >> dim;
-	mCOMOffset = Eigen::VectorXd::Zero(dim);
+	mCOMOffsetRatio = Eigen::VectorXd::Zero(dim);
 	for (int i = 0; i < dim; ++i)
 	{
-		inFile >> mCOMOffset[i];
+		inFile >> mCOMOffsetRatio[i];
 	}
 
 	DecoConfig::GetSingleton()->GetInt("CMA", "isSearchMass", mbSearchMass);
@@ -65,11 +65,11 @@ void SystemIdentificationData::ReadFromFile(const string& filename)
 
 	if (mbSearchCOM)
 	{
-		int nCOMParameters = static_cast<int>(mCOMOffset.size());
+		int nCOMParameters = static_cast<int>(mCOMOffsetRatio.size());
 		for (int i = 0; i < nCOMParameters; ++i)
 		{
-			mLowerBound.push_back(MIN_COM);
-			mUpperBound.push_back(MAX_COM);
+			mLowerBound.push_back(MIN_COMRATIO);
+			mUpperBound.push_back(MAX_COMRATIO);
 		}
 	}
 }
@@ -83,7 +83,7 @@ int SystemIdentificationData::GetNumParameters() const
 	if (mbSearchGain)
 		n += static_cast<int>(mGainRatio.size());
 	if (mbSearchCOM)
-		n += static_cast<int>(mCOMOffset.size());
+		n += static_cast<int>(mCOMOffsetRatio.size());
 	return n;
 }
 void SystemIdentificationData::GetParameterLowerBounds(double* lb)
@@ -127,10 +127,10 @@ void SystemIdentificationData::FromParameterSetting(double* param)
 	}
 	if (mbSearchCOM)
 	{
-		nCOM = static_cast<int>(mCOMOffset.size());
+		nCOM = static_cast<int>(mCOMOffsetRatio.size());
 		for (int i = 0; i < nCOM; ++i)
 		{
-			mCOMOffset[i] = param[i + nMassRatios + nGainRatios] * (mUpperBound[i + nMassRatios + nGainRatios] - mLowerBound[i + nMassRatios + nGainRatios]) + mLowerBound[i + nMassRatios + nGainRatios];
+			mCOMOffsetRatio[i] = param[i + nMassRatios + nGainRatios] * (mUpperBound[i + nMassRatios + nGainRatios] - mLowerBound[i + nMassRatios + nGainRatios]) + mLowerBound[i + nMassRatios + nGainRatios];
 		}
 	}
 
@@ -148,5 +148,5 @@ void SystemIdentificationData::ApplyToController(bioloidgp::robot::HumanoidContr
 	if (mbSearchGain)
 		controller->setActuatorGains(mGainRatio);
 	if (mbSearchCOM)
-		controller->setCenterOfMassOffset(mCOMOffset);
+		controller->setCenterOfMassOffsetByRatio(mCOMOffsetRatio);
 }

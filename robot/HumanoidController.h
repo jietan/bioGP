@@ -65,16 +65,21 @@ public:
 	Eigen::Vector3d getLeftDir() const;
 	Eigen::Vector3d getForwardDir() const;
 
+	
 	void setSystemIdData(const SystemIdentificationData& sIdData);
+	vector<Eigen::Vector3d> getBodyCOMs() const;
+	vector<Eigen::Vector3d> getBodyDims() const;
 	Eigen::VectorXd getBodyMasses() const;
 	void setBodyMasses(const Eigen::VectorXd& masses);
 	void setBodyMassesByRatio(const Eigen::VectorXd& ratios);
-
 	vector<Eigen::VectorXd> getBodyInertia() const;
 	void setBodyInertia(const vector<Eigen::VectorXd>& inertia);
 	void setBodyInertiaByRatio(const Eigen::VectorXd& ratios);
 	void setActuatorGains(const Eigen::VectorXd& gainRatio);
-	void setCenterOfMassOffset(const Eigen::VectorXd& comShift);
+	void setCenterOfMassOffset(const vector<Eigen::Vector3d>& comShift);
+	void setCenterOfMassOffsetByRatio(const Eigen::VectorXd& comShiftRatio);
+
+
 	void setMarkers(const vector<dart::dynamics::Marker*> markers);
 	const vector<dart::dynamics::Marker*>& getMarkers() const;
 	Eigen::VectorXd useAnkelStrategy(const Eigen::VectorXd& refPose, double currentTime, bool bSim = false);
@@ -82,12 +87,14 @@ public:
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
 	double compareGlobalRotationWithReferenceTrajectories(double t, double angle);
 	void ReadReferenceTrajectories();
+	
 public:
 	Eigen::VectorXd computeTorque(const Eigen::VectorXd& qhat);
     void setJointDamping(double _damping = 80.0);
 	void readMovieFile(const string& fileName);
 	Eigen::VectorXd computeDesiredVelocity(double time);
-
+	void buildCorrespondingBodyIdAndSysIdentificationId();
+	void buildCOMShiftMapping();
     MEMBER_PTR(dart::dynamics::Skeleton*, robot);
     MEMBER_PTR(dart::constraint::ConstraintSolver*, collisionSolver);
     MEMBER_PTR(MotorMap*, motormap);
@@ -100,6 +107,8 @@ public:
 	Eigen::VectorXd mBodyMassesByURDF;
 	vector<Eigen::VectorXd> mBodyInertiaByURDF;
 	vector<Eigen::Vector3d> mBodyCOMByURDF;
+	vector<Eigen::Vector3d> mBodyDimByURDF;
+	vector<pair<Eigen::Vector2i, Eigen::Vector2i> > mCOMShiftMapping;
 	Eigen::VectorXd mGainsByMeasurement;
 	double mActuatorFriction;
 	bool mIsCOMInitialized;
@@ -115,7 +124,8 @@ public:
 	vector<SimFrame> mRecordedFrames;
 	vector<dart::dynamics::Marker*> mMarkers;
 	vector<TimeSeries> mReferenceTrajectories;
-
+	vector<int> mBodyIdToSystemIdentificationId;
+	vector<int> mSystemIdentificationIdToBodyId;
 }; // class Humanoidcontroller
 
 } // namespace robot
