@@ -492,7 +492,8 @@ void MyWindow::processMocapData()
 			//Output_GetMarkerGlobalTranslation _Output_GetMarkerGlobalTranslation = mMocapClient->GetMarkerGlobalTranslation(SubjectName, MarkerName);
 			Output_GetUnlabeledMarkerGlobalTranslation _Output_GetMarkerGlobalTranslation =
 				mMocapClient->GetUnlabeledMarkerGlobalTranslation(MarkerIndex);
-			
+			if (MarkerIndex >= numMarkers)
+				continue;
 			mMarkerPos[MarkerIndex] = Eigen::Vector3d(_Output_GetMarkerGlobalTranslation.Translation[0], _Output_GetMarkerGlobalTranslation.Translation[1], _Output_GetMarkerGlobalTranslation.Translation[2]);
 			mMarkerPos[MarkerIndex] /= 1000.0; //convert unit from mm to m
 			mMarkerOccluded[MarkerIndex] = false;// _Output_GetMarkerGlobalTranslation.Occluded;
