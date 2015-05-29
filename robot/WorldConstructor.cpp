@@ -119,9 +119,7 @@ void WorldConstructor::commonConstruction(World* world)
 	// Create a humanoid controller
 	msHumanoid = new bioloidgp::robot::HumanoidController(robot, world->getConstraintSolver());
 
-	double mass = robot->getMass();
-	LOG(INFO) << "The total mass: " << mass;
-	
+
 }
 
 void WorldConstructor::constructWallWorld(World* world)
@@ -153,6 +151,11 @@ void WorldConstructor::constructWallWorld(World* world)
 	msCData.ReadFromFile("../../data/controller/lean-to-stand.txt");
 	msHumanoid->motion()->setControllerData(msCData);
 
+	double totalMass = msHumanoid->robot()->getMass();
+	LOG(INFO) << "The total mass: " << totalMass;
+	Eigen::Vector3d com = msHumanoid->robot()->getCOM();
+	LOG(INFO) << "The COM: " << com[0] << " " << com[1] << " " << com[2];
+
 	int isUseSystemId = 0;
 	DecoConfig::GetSingleton()->GetInt("Sim", "IsUseSystemId", isUseSystemId);
 	if (isUseSystemId)
@@ -162,11 +165,11 @@ void WorldConstructor::constructWallWorld(World* world)
 		msHumanoid->robot()->computeForwardKinematics(true, true, false);
 	}
 
-	double totalMass = 0.0;
-	for (size_t i = 0; i < msHumanoid->robot()->getNumBodyNodes(); i++)
-		totalMass += msHumanoid->robot()->getBodyNode(i)->getMass();
 	
 	LOG(INFO) << "The total mass: " << totalMass;
+	com = msHumanoid->robot()->getCOM();
+	LOG(INFO) << "The COM: " << com[0] << " " << com[1] << " " << com[2];
+
 }
 void WorldConstructor::constructChairWorld(World* world)
 {
@@ -218,6 +221,11 @@ void WorldConstructor::constructKneelWorld(World* world)
 	msCData.ReadFromFile("../../data/controller/kneel-to-stand.txt");
 	msHumanoid->motion()->setControllerData(msCData);
 
+	double totalMass = msHumanoid->robot()->getMass();
+	LOG(INFO) << "The total mass: " << totalMass;
+	Eigen::Vector3d com = msHumanoid->robot()->getCOM();
+	LOG(INFO) << "The COM: " << com[0] << " " << com[1] << " " << com[2];
+
 	int isUseSystemId = 0;
 	DecoConfig::GetSingleton()->GetInt("Sim", "IsUseSystemId", isUseSystemId);
 	if (isUseSystemId)
@@ -227,9 +235,8 @@ void WorldConstructor::constructKneelWorld(World* world)
 		msHumanoid->robot()->computeForwardKinematics(true, true, false);
 	}
 
-	double totalMass = 0.0;
-	for (size_t i = 0; i < msHumanoid->robot()->getNumBodyNodes(); i++)
-		totalMass += msHumanoid->robot()->getBodyNode(i)->getMass();
-
 	LOG(INFO) << "The total mass: " << totalMass;
+	com = msHumanoid->robot()->getCOM();
+	LOG(INFO) << "The COM: " << com[0] << " " << com[1] << " " << com[2];
+
 }
