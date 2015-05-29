@@ -8,12 +8,13 @@
 using namespace boost::interprocess;
 
 
-CMASearcher::CMASearcher() : mDim(-1), mPrevSol(NULL), mStandardDeviation(NULL), mInfeasibleTime(NULL)
+CMASearcher::CMASearcher() : mPrevSol(NULL), mStandardDeviation(NULL), mInfeasibleTime(NULL)
 {
+	mDim = 1;
 	mEvaluator = NULL;
 		
 }
-CMASearcher::CMASearcher(int dim) : mDim(-1), mPrevSol(NULL), mStandardDeviation(NULL), mInfeasibleTime(NULL)
+CMASearcher::CMASearcher(int dim) : mPrevSol(NULL), mStandardDeviation(NULL), mInfeasibleTime(NULL)
 {
 	SetDimension(dim);
 	mEvaluator = NULL;
@@ -21,11 +22,6 @@ CMASearcher::CMASearcher(int dim) : mDim(-1), mPrevSol(NULL), mStandardDeviation
 CMASearcher::~CMASearcher()
 {
 	clear();
-}
-
-void CMASearcher::SetEvaluatorFunc(double(*Evaluate)(CMAData*, int, double*))
-{
-	mEvaluator = Evaluate;
 }
 
 void CMASearcher::SetDimension(int dim)

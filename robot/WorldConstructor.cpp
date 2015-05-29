@@ -160,7 +160,7 @@ void WorldConstructor::constructWallWorld(World* world)
 	DecoConfig::GetSingleton()->GetInt("Sim", "IsUseSystemId", isUseSystemId);
 	if (isUseSystemId)
 	{
-		msIdData.ReadFromFile("../../data/systemIdentification/lean-to-stand/0.13.txt");
+		msIdData.ReadFromFile("../../data/systemIdentification/lean-to-stand/0.11.txt");
 		msHumanoid->setSystemIdData(msIdData);
 		msHumanoid->robot()->computeForwardKinematics(true, true, false);
 	}

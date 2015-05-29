@@ -135,7 +135,9 @@
     <ClCompile Include="MocapMotion.cpp" />
     <ClCompile Include="Motion.cpp" />
     <ClCompile Include="MotorMap.cpp" />
+    <ClCompile Include="Searcher.cpp" />
     <ClCompile Include="SystemIdentificationData.cpp" />
+    <ClCompile Include="UniformSearcher.cpp" />
     <ClCompile Include="WorldConstructor.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -150,7 +152,9 @@
     <ClInclude Include="mocapMotion.h" />
     <ClInclude Include="Motion.h" />
     <ClInclude Include="MotorMap.h" />
+    <ClInclude Include="Searcher.h" />
     <ClInclude Include="SystemIdentificationData.h" />
+    <ClInclude Include="UniformSearcher.h" />
     <ClInclude Include="WorldConstructor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

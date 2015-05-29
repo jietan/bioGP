@@ -1,29 +1,30 @@
 #ifndef _CMA_SEARCH
 #define _CMA_SEARCH
 
+#include "Searcher.h"
 #include "CMAData.h"
+
 //double Evaluator(double* params, DecoScene* scene);
 
-class CMASearcher
+class CMASearcher : public Searcher
 {
 public:
 	CMASearcher();
 	CMASearcher(int dim);
 	virtual ~CMASearcher();
 	virtual void SetDimension(int dim);
-	virtual void SetEvaluatorFunc(double (*Evaluate)(CMAData*, int, double*));
 	virtual int Search(CMAData* cData, double* argMin, int maxIterations);
 	virtual int Search(CMAData* cData, double* lower_bound, double* upper_bound, double* argMin, int maxIterations);
 	
 	void CreateMessageQueue();
 
 protected:
-	int mDim;
+	
 	double* mPrevSol;
 	double* mStandardDeviation;
 	int* mInfeasibleTime;
 	int NUM_IPC_PROCESS;
-	double (*mEvaluator)(CMAData*, int, double*);
+	
 	bool isFeasible(double* value, double* lower_bound, double* upper_bound);
 	void calculateSearchStandardDeviation(double* lower_bound, double* upper_boun);
 	void clear();

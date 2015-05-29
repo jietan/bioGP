@@ -59,6 +59,7 @@
 #include "robot/CMASearcher.h"
 #include "robot/WorldConstructor.h"
 #include "robot/Evaluation.h"
+#include "robot/UniformSearcher.h"
 
 #include "myUtils/ConfigManager.h"
 #include "myUtils/mathlib.h"
@@ -73,7 +74,7 @@ using namespace dart::utils;
 
 World* gWorld = NULL;
 bioloidgp::robot::HumanoidController* gController = NULL;
-CMASearcher* gPolicySearch = NULL;
+Searcher* gPolicySearch = NULL;
 int gIsSystemId = 0;
 double gTimeStep = 0.0002;
 
@@ -121,8 +122,14 @@ static void buildPolicy()
 	int numParams = cmaData->GetNumParameters();
 	double* params = new double[numParams];
 
-
-	gPolicySearch = new CMASearcher;
+	if (!gIsSystemId && WorldConstructor::GetWorldId() == 0)
+	{
+		gPolicySearch = new UniformSearcher;
+	}
+	else
+	{
+		gPolicySearch = new CMASearcher;
+	}
 	gPolicySearch->SetDimension(numParams);
 	gPolicySearch->SetEvaluatorFunc(eval);
 	gPolicySearch->Search(cmaData, params, 50);
