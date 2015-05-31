@@ -693,20 +693,34 @@ void HumanoidController::setBodyMassesByRatio(const Eigen::VectorXd& ratios)
 	setBodyMasses(realMasses);
 }
 
-void HumanoidController::ReadReferenceTrajectories()
+void HumanoidController::ReadReferenceTrajectories(const string& filePrefix)
 {
 	int nReferences = 0;
 	DecoConfig::GetSingleton()->GetInt("CMA", "NumReferences", nReferences);
 	if (nReferences)
 		mReferenceTrajectories.resize(nReferences);
-	string refPath;
-	DecoConfig::GetSingleton()->GetString("CMA", "ReferenceTrajectoryPath", refPath);
+	
 	for (int i = 1; i <= nReferences; ++i)
 	{
 		char filePath[256];
-		sprintf(filePath, "%s%02d.measure", refPath.c_str(), i);
+		sprintf(filePath, "%s-%02d.measure", filePrefix.c_str(), i);
 		mReferenceTrajectories[i - 1].ReadFromFile(filePath, robot()->getNumDofs());
 	}
+}
+
+void HumanoidController::setPoseFromReferenceTrajectories(double time)
+{
+	int nReferences = static_cast<int>(mReferenceTrajectories.size());
+	
+	Eigen::VectorXd pose = Eigen::VectorXd::Zero(robot()->getNumDofs());
+	for (int i = 0; i < nReferences; ++i)
+	{
+		pose += mReferenceTrajectories[i].GetValue(time);
+	}
+	pose /= nReferences;
+	robot()->setPositions(pose);
+	robot()->computeForwardKinematics(true, true, false);
+	
 }
 
 double HumanoidController::compareGlobalRotationWithReferenceTrajectories(double t, double angle)

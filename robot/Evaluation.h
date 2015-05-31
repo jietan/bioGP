@@ -17,7 +17,7 @@ namespace bioloidgp
 }
 
 class CMAData;
-
+double evalLeanToStandRobotData(dart::simulation::World* world, bioloidgp::robot::HumanoidController* controller, CMAData* cData, int pop_id, double* timerPerStep);
 double evalController(dart::simulation::World* world, bioloidgp::robot::HumanoidController* controller, CMAData* cData, int pop_id, double* timerPerStep);
 double evalSystemId(dart::simulation::World* world, bioloidgp::robot::HumanoidController* controller, CMAData* cData, int pop_id, double* timerPerStep);
 

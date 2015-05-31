@@ -76,6 +76,7 @@ World* gWorld = NULL;
 bioloidgp::robot::HumanoidController* gController = NULL;
 Searcher* gPolicySearch = NULL;
 int gIsSystemId = 0;
+int gIsRobotData = 0;
 double gTimeStep = 0.0002;
 
 
@@ -83,22 +84,11 @@ double eval(CMAData* cData, int pop_id, double* timerPerStep)
 {
 	//WorldConstructor::Destroy();
 	//WorldConstructor::Construct();
-
-	gController->reset();
-	//SystemIdentificationData* sData = static_cast<SystemIdentificationData*>(cData);
-	//sData->mMassRatio[0] = 1.0221644765835582;
-	//sData->mMassRatio[1] = 1.0625016548173554;
-	//sData->mMassRatio[2] = 1.0559031762912450;
-	//sData->mMassRatio[3] = 1.0836126286505545;
-	//sData->mMassRatio[4] = 1.0893469339813033;
-	//sData->mMassRatio[5] = 1.1480225306013023;
-	//sData->mMassRatio[6] = 1.1459299660452369;
-	//sData->mMassRatio[7] = 1.1092851276684312;
-	//sData->mMassRatio[8] = 1.0601630886808593;
-
-	cData->ApplyToController(gController);
-
-	if (gIsSystemId)
+	if (gIsRobotData)
+	{
+		return evalLeanToStandRobotData(gWorld, gController, cData, pop_id, timerPerStep);
+	}
+	else if (gIsSystemId)
 	{
 		return evalSystemId(gWorld, gController, cData, pop_id, timerPerStep);
 	}
@@ -150,6 +140,7 @@ int main(int argc, char* argv[])
 #endif
     LOG(INFO) << "BioloidGP program begins...";
 	
+	DecoConfig::GetSingleton()->GetInt("CMA", "isRobotData", gIsRobotData);
 	DecoConfig::GetSingleton()->GetInt("CMA", "isSystemId", gIsSystemId);
     
     srand( (unsigned int) time (NULL) );
@@ -158,8 +149,8 @@ int main(int argc, char* argv[])
 	WorldConstructor::Construct();
 	gWorld = WorldConstructor::msWorld;
 	gController = WorldConstructor::msHumanoid;
-	if (gIsSystemId)
-		gController->ReadReferenceTrajectories();
+	//if (gIsSystemId)
+	//	gController->ReadReferenceTrajectories();
 	buildPolicy();
 
     return 0;

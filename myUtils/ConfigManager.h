@@ -58,6 +58,7 @@ public:
 	BOOL GetString( const char* Section, const char* Key, char* Value, INT Size) const;
 	BOOL GetSection( const char* Section, char* Result, INT Size) const;
 	BOOL GetString(	const char* Section, const char* Key, string& Str) const;
+	BOOL GetStringVector(const char* Section, const char* Key, vector<string>& Str) const;
 	BOOL GetInt(const char*	Section, const char* Key, INT& Value) const;
 	BOOL GetFloat(const char* Section,const char* Key, FLOAT& Value) const;
 	BOOL GetDouble(const char* Section,const char* Key, DOUBLE& Value) const;

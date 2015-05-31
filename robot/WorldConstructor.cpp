@@ -148,7 +148,9 @@ void WorldConstructor::constructWallWorld(World* world)
 
 	msHumanoid->reset();
 	
-	msCData.ReadFromFile("../../data/controller/lean-to-stand.txt");
+	string controllerPath;
+	DecoConfig::GetSingleton()->GetString("World0", "ControllerPath", controllerPath);
+	msCData.ReadFromFile(controllerPath);
 	msHumanoid->motion()->setControllerData(msCData);
 
 	double totalMass = msHumanoid->robot()->getMass();
@@ -160,7 +162,9 @@ void WorldConstructor::constructWallWorld(World* world)
 	DecoConfig::GetSingleton()->GetInt("Sim", "IsUseSystemId", isUseSystemId);
 	if (isUseSystemId)
 	{
-		msIdData.ReadFromFile("../../data/systemIdentification/lean-to-stand/0.11.txt");
+		string systemIdPath;
+		DecoConfig::GetSingleton()->GetString("World0", "SystemIdPath", systemIdPath);
+		msIdData.ReadFromFile(systemIdPath);
 		msHumanoid->setSystemIdData(msIdData);
 		msHumanoid->robot()->computeForwardKinematics(true, true, false);
 	}
@@ -218,7 +222,9 @@ void WorldConstructor::constructKneelWorld(World* world)
 	msHumanoid->motion()->loadMTN("../../data/mtn/sitPose.mtn", "kneel-to-stand");
 	msHumanoid->reset();
 	
-	msCData.ReadFromFile("../../data/controller/kneel-to-stand.txt");
+	string controllerPath;
+	DecoConfig::GetSingleton()->GetString("World2", "ControllerPath", controllerPath);
+	msCData.ReadFromFile(controllerPath);
 	msHumanoid->motion()->setControllerData(msCData);
 
 	double totalMass = msHumanoid->robot()->getMass();
@@ -230,7 +236,10 @@ void WorldConstructor::constructKneelWorld(World* world)
 	DecoConfig::GetSingleton()->GetInt("Sim", "IsUseSystemId", isUseSystemId);
 	if (isUseSystemId)
 	{
-		msIdData.ReadFromFile("../../data/systemIdentification/kneel-to-stand/sim1.txt");
+		string systemIdPath;
+		DecoConfig::GetSingleton()->GetString("World2", "SystemIdPath", systemIdPath);
+		msIdData.ReadFromFile(systemIdPath);
+		
 		msHumanoid->setSystemIdData(msIdData);
 		msHumanoid->robot()->computeForwardKinematics(true, true, false);
 	}

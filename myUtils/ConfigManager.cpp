@@ -162,6 +162,31 @@ BOOL DecoConfig::GetString
 }
 
 
+BOOL DecoConfig::GetStringVector
+(
+const char* Section,
+const char* Key,
+vector<string>&     Str
+) const
+{
+	char Temp[4096] = "";
+	BOOL Result = GetString(Section, Key, Temp, 4096);
+	string tmp = Temp;
+	
+	int strLen = static_cast<int>(tmp.size());
+	if (strLen)
+	{
+		if (tmp[strLen - 1] == '\r')
+			tmp = tmp.substr(0, strLen - 1);
+	}
+	istringstream iss(tmp);
+	copy(istream_iterator<string>(iss),
+		istream_iterator<string>(),
+		back_inserter(Str));
+	return Result;
+}
+
+
 BOOL DecoConfig::GetInt
 (
  const char*	Section,

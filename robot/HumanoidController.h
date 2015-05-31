@@ -78,7 +78,7 @@ public:
 	void setActuatorGains(const Eigen::VectorXd& gainRatio);
 	void setCenterOfMassOffset(const vector<Eigen::Vector3d>& comShift);
 	void setCenterOfMassOffsetByRatio(const Eigen::VectorXd& comShiftRatio);
-
+	void setPoseFromReferenceTrajectories(double time);
 
 	void setMarkers(const vector<dart::dynamics::Marker*> markers);
 	const vector<dart::dynamics::Marker*>& getMarkers() const;
@@ -86,7 +86,7 @@ public:
 	void keepFeetLevel();
     void keyboard(unsigned char _key, int _x, int _y, double _currentTime);
 	double compareGlobalRotationWithReferenceTrajectories(double t, double angle);
-	void ReadReferenceTrajectories();
+	void ReadReferenceTrajectories(const string& filePrefix);
 	
 public:
 	Eigen::VectorXd computeTorque(const Eigen::VectorXd& qhat);
