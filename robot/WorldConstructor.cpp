@@ -195,8 +195,31 @@ void WorldConstructor::constructChairWorld(World* world)
 	msHumanoid->motion()->loadMTN("../../data/mtn/sitPose.mtn", "sit-to-stand");
 	msHumanoid->reset();
 	
-	msCData.ReadFromFile("../../data/controller/sit-to-stand.txt");
+	string controllerPath;
+	DecoConfig::GetSingleton()->GetString("World1", "ControllerPath", controllerPath);
+	msCData.ReadFromFile(controllerPath);
 	msHumanoid->motion()->setControllerData(msCData);
+
+	double totalMass = msHumanoid->robot()->getMass();
+	LOG(INFO) << "The total mass: " << totalMass;
+	Eigen::Vector3d com = msHumanoid->robot()->getCOM();
+	LOG(INFO) << "The COM: " << com[0] << " " << com[1] << " " << com[2];
+
+	int isUseSystemId = 0;
+	DecoConfig::GetSingleton()->GetInt("Sim", "IsUseSystemId", isUseSystemId);
+	if (isUseSystemId)
+	{
+		string systemIdPath;
+		DecoConfig::GetSingleton()->GetString("World1", "SystemIdPath", systemIdPath);
+		msIdData.ReadFromFile(systemIdPath);
+
+		msHumanoid->setSystemIdData(msIdData);
+		msHumanoid->robot()->computeForwardKinematics(true, true, false);
+	}
+
+	LOG(INFO) << "The total mass: " << totalMass;
+	com = msHumanoid->robot()->getCOM();
+	LOG(INFO) << "The COM: " << com[0] << " " << com[1] << " " << com[2];
 }
 void WorldConstructor::constructKneelWorld(World* world)
 {

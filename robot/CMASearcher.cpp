@@ -383,7 +383,7 @@ void CMASearcher::calculateSearchStandardDeviation(double* lower_bound, double* 
 		{
 			double minBoundary = abs(mPrevSol[i] - lower_bound[i]);
 			double maxBoundary = abs(mPrevSol[i] - upper_bound[i]);
-			mStandardDeviation[i] = 1 * max(minBoundary, maxBoundary) / 2.0;
+			mStandardDeviation[i] = 10 * max(minBoundary, maxBoundary) / 2.0;
 		}
     }
 }
